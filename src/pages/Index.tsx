@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RotateCcw } from "lucide-react";
+import { RotateCcw, Scroll } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import tiEmblem from "@/assets/ti-emblem.png";
 import { Button } from "@/components/ui/button";
 import StarField from "@/components/StarField";
@@ -8,15 +9,20 @@ import PlayerSetup from "@/components/PlayerSetup";
 import FactionPool from "@/components/FactionPool";
 import TokenGrid from "@/components/TokenGrid";
 import FactionCard from "@/components/FactionCard";
+import ResultsEntry from "@/components/ResultsEntry";
+import { useGameHistory } from "@/hooks/useGameHistory";
 import { TI4_FACTIONS, POK_FACTIONS, type Faction } from "@/data/factions";
 
 type Phase = "setup" | "draft" | "choose" | "reveal";
 
 const Index = () => {
+  const navigate = useNavigate();
+  const { history, addGame } = useGameHistory();
   const [players, setPlayers] = useState(["Player 1", "Player 2", "Player 3"]);
   const [includePok, setIncludePok] = useState(false);
   const [excludedFactions, setExcludedFactions] = useState<Set<string>>(new Set());
   const [picksPerPlayer, setPicksPerPlayer] = useState(1);
+  const [resultsSaved, setResultsSaved] = useState(false);
 
   const [phase, setPhase] = useState<Phase>("setup");
   const [tokenMapping, setTokenMapping] = useState<Map<number, Faction>>(new Map());
@@ -128,6 +134,7 @@ const Index = () => {
     setCurrentPlayerIndex(0);
     setCurrentPickCount(0);
     setChoosingPlayerIndex(0);
+    setResultsSaved(false);
   }, []);
 
   const toggleFaction = useCallback((name: string) => {
@@ -188,7 +195,7 @@ const Index = () => {
                 />
               </div>
 
-              <div className="text-center">
+              <div className="flex flex-col items-center gap-3">
                 <Button
                   onClick={startDraft}
                   disabled={!canStart}
@@ -198,9 +205,20 @@ const Index = () => {
                   Begin the Draft
                 </Button>
                 {!canStart && (
-                  <p className="text-destructive text-sm mt-2 font-body">
+                  <p className="text-destructive text-sm font-body">
                     Not enough factions ({availableFactions.length}) for {players.length} players × {picksPerPlayer} picks = {players.length * picksPerPlayer} needed
                   </p>
+                )}
+                {history.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate("/history")}
+                    className="font-display text-xs uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+                  >
+                    <Scroll className="mr-2 h-3 w-3" />
+                    Game History ({history.length})
+                  </Button>
                 )}
               </div>
             </motion.div>
@@ -320,11 +338,36 @@ const Index = () => {
                 ))}
               </div>
 
-              <div className="text-center pt-4">
+              {!resultsSaved && (
+                <>
+                  <div className="imperial-divider w-32 mx-auto" />
+                  <ResultsEntry
+                    assignments={finalAssignments}
+                    onSave={(game) => {
+                      addGame(game);
+                      setResultsSaved(true);
+                    }}
+                    onSkip={() => setResultsSaved(true)}
+                  />
+                </>
+              )}
+
+              <div className="flex justify-center gap-3 pt-4">
                 <Button onClick={reset} size="lg" className="font-display text-sm uppercase tracking-[0.2em] glow-primary px-10 py-6 bg-primary text-primary-foreground hover:bg-primary/90">
                   <RotateCcw className="mr-2 h-5 w-5" />
                   New Game
                 </Button>
+                {resultsSaved && (
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => navigate("/history")}
+                    className="font-display text-sm uppercase tracking-[0.2em] px-6 py-6 border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+                  >
+                    <Scroll className="mr-2 h-5 w-5" />
+                    History
+                  </Button>
+                )}
               </div>
             </motion.div>
           )}
