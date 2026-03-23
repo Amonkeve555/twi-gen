@@ -15,6 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useGameHistory } from "@/hooks/useGameHistory";
+import { useOnlineGameHistory } from "@/hooks/useOnlineGameHistory";
 import type { GameRecord } from "@/types/gameHistory";
 
 interface FactionStat {
