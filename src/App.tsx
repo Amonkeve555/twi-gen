@@ -9,6 +9,7 @@ import CreateLobby from "./pages/CreateLobby.tsx";
 import JoinLobby from "./pages/JoinLobby.tsx";
 import LobbyView from "./pages/LobbyView.tsx";
 import GameDay from "./pages/GameDay.tsx";
+import MyLobbies from "./pages/MyLobbies.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/join/:inviteCode" element={<JoinLobby />} />
           <Route path="/lobby/:inviteCode" element={<LobbyView />} />
           <Route path="/lobby/:inviteCode/gameday" element={<GameDay />} />
+          <Route path="/my-lobbies" element={<MyLobbies />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
