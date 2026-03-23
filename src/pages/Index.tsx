@@ -256,6 +256,15 @@ const Index = () => {
                     <Bot className="mr-2 h-3 w-3" />
                     Rules Assistant
                   </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate("/stats")}
+                    className="font-display text-xs uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+                  >
+                    <BarChart3 className="mr-2 h-3 w-3" />
+                    Stats
+                  </Button>
                 </div>
               </div>
             </motion.div>
