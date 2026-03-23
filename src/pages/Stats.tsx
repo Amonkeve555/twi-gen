@@ -157,6 +157,9 @@ const Stats = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="font-display text-3xl text-primary text-glow">{totalGames}</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {totalLocal} local · {totalOnline} online
+                  </p>
                 </CardContent>
               </Card>
               <Card className="glass imperial-border bg-transparent border-border">
