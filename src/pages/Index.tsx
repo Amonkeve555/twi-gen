@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RotateCcw } from "lucide-react";
+import tiEmblem from "@/assets/ti-emblem.png";
 import { Button } from "@/components/ui/button";
 import StarField from "@/components/StarField";
 import PlayerSetup from "@/components/PlayerSetup";
