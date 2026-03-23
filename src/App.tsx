@@ -30,6 +30,8 @@ const App = () => (
           <Route path="/lobby/:inviteCode" element={<LobbyView />} />
           <Route path="/lobby/:inviteCode/gameday" element={<GameDay />} />
           <Route path="/my-lobbies" element={<MyLobbies />} />
+          <Route path="/factions" element={<FactionGuide />} />
+          <Route path="/rules" element={<RulesAssistant />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
