@@ -1,19 +1,89 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shuffle } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import StarField from "@/components/StarField";
 import PlayerSetup from "@/components/PlayerSetup";
 import FactionPool from "@/components/FactionPool";
+import TokenGrid from "@/components/TokenGrid";
 import FactionCard from "@/components/FactionCard";
 import { TI4_FACTIONS, POK_FACTIONS, type Faction } from "@/data/factions";
+
+type Phase = "setup" | "draft" | "reveal";
 
 const Index = () => {
   const [players, setPlayers] = useState(["Player 1", "Player 2", "Player 3"]);
   const [includePok, setIncludePok] = useState(false);
   const [excludedFactions, setExcludedFactions] = useState<Set<string>>(new Set());
-  const [assignments, setAssignments] = useState<{ player: string; faction: Faction }[]>([]);
-  const [isRandomizing, setIsRandomizing] = useState(false);
+
+  const [phase, setPhase] = useState<Phase>("setup");
+  const [tokenMapping, setTokenMapping] = useState<Map<number, Faction>>(new Map());
+  const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
+  const [playerTokens, setPlayerTokens] = useState<Map<number, number>>(new Map()); // tokenId -> playerIndex
+  const [revealedAssignments, setRevealedAssignments] = useState<{ player: string; faction: Faction }[]>([]);
+
+  const availableFactions = useMemo(() => {
+    return [...TI4_FACTIONS, ...(includePok ? POK_FACTIONS : [])].filter(
+      (f) => !excludedFactions.has(f.name)
+    );
+  }, [includePok, excludedFactions]);
+
+  const canStart = availableFactions.length >= players.length;
+
+  const startDraft = useCallback(() => {
+    // Randomly map tokens to factions
+    const shuffled = [...availableFactions].sort(() => Math.random() - 0.5);
+    const mapping = new Map<number, Faction>();
+    shuffled.forEach((f, i) => mapping.set(i + 1, f));
+
+    setTokenMapping(mapping);
+    setPlayerTokens(new Map());
+    setCurrentPlayerIndex(0);
+    setRevealedAssignments([]);
+    setPhase("draft");
+  }, [availableFactions]);
+
+  const selectToken = useCallback(
+    (tokenId: number) => {
+      setPlayerTokens((prev) => {
+        const next = new Map(prev);
+        next.set(tokenId, currentPlayerIndex);
+        return next;
+      });
+
+      if (currentPlayerIndex + 1 >= players.length) {
+        // All players have picked — go to reveal
+        setTimeout(() => setPhase("reveal"), 400);
+
+        // Build assignments from the picks
+        const nextTokens = new Map(playerTokens);
+        nextTokens.set(tokenId, currentPlayerIndex);
+
+        const assignments: { player: string; faction: Faction }[] = [];
+        players.forEach((name, pIdx) => {
+          for (const [tId, ownerIdx] of nextTokens.entries()) {
+            if (ownerIdx === pIdx) {
+              const faction = tokenMapping.get(tId);
+              if (faction) assignments.push({ player: name, faction });
+              break;
+            }
+          }
+        });
+
+        setTimeout(() => setRevealedAssignments(assignments), 400);
+      } else {
+        setCurrentPlayerIndex((prev) => prev + 1);
+      }
+    },
+    [currentPlayerIndex, players, playerTokens, tokenMapping]
+  );
+
+  const reset = useCallback(() => {
+    setPhase("setup");
+    setPlayerTokens(new Map());
+    setRevealedAssignments([]);
+    setCurrentPlayerIndex(0);
+  }, []);
 
   const toggleFaction = useCallback((name: string) => {
     setExcludedFactions((prev) => {
@@ -23,31 +93,6 @@ const Index = () => {
       return next;
     });
   }, []);
-
-  const randomize = useCallback(() => {
-    const pool = [...TI4_FACTIONS, ...(includePok ? POK_FACTIONS : [])].filter(
-      (f) => !excludedFactions.has(f.name)
-    );
-
-    if (pool.length < players.length) return;
-
-    setIsRandomizing(true);
-    setAssignments([]);
-
-    setTimeout(() => {
-      const shuffled = [...pool].sort(() => Math.random() - 0.5);
-      const result = players.map((p, i) => ({ player: p, faction: shuffled[i] }));
-      setAssignments(result);
-      setIsRandomizing(false);
-    }, 600);
-  }, [players, includePok, excludedFactions]);
-
-  const availableCount =
-    [...TI4_FACTIONS, ...(includePok ? POK_FACTIONS : [])].filter(
-      (f) => !excludedFactions.has(f.name)
-    ).length;
-
-  const canRandomize = availableCount >= players.length;
 
   return (
     <div className="min-h-screen relative">
@@ -67,56 +112,92 @@ const Index = () => {
           </p>
         </motion.div>
 
-        {/* Setup */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="glass rounded-xl p-6 space-y-6 mb-6"
-        >
-          <PlayerSetup players={players} onPlayersChange={setPlayers} />
-          <div className="border-t border-border" />
-          <FactionPool
-            includePok={includePok}
-            onIncludePokChange={setIncludePok}
-            excludedFactions={excludedFactions}
-            onToggleFaction={toggleFaction}
-          />
-        </motion.div>
-
-        {/* Randomize Button */}
-        <div className="text-center mb-8">
-          <Button
-            onClick={randomize}
-            disabled={!canRandomize || isRandomizing}
-            size="lg"
-            className="font-display text-sm uppercase tracking-widest glow-primary px-10 py-6"
-          >
-            <Shuffle className="mr-2 h-5 w-5" />
-            {isRandomizing ? "Randomizing..." : "Randomize"}
-          </Button>
-          {!canRandomize && (
-            <p className="text-destructive text-sm mt-2 font-body">
-              Not enough factions ({availableCount}) for {players.length} players
-            </p>
-          )}
-        </div>
-
-        {/* Results */}
         <AnimatePresence mode="wait">
-          {assignments.length > 0 && (
+          {phase === "setup" && (
             <motion.div
-              key="results"
+              key="setup"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="space-y-3"
             >
-              <h2 className="font-display text-sm uppercase tracking-widest text-primary text-glow text-center mb-4">
-                Assignments
+              <div className="glass rounded-xl p-6 space-y-6 mb-6">
+                <PlayerSetup players={players} onPlayersChange={setPlayers} />
+                <div className="border-t border-border" />
+                <FactionPool
+                  includePok={includePok}
+                  onIncludePokChange={setIncludePok}
+                  excludedFactions={excludedFactions}
+                  onToggleFaction={toggleFaction}
+                />
+              </div>
+
+              <div className="text-center">
+                <Button
+                  onClick={startDraft}
+                  disabled={!canStart}
+                  size="lg"
+                  className="font-display text-sm uppercase tracking-widest glow-primary px-10 py-6"
+                >
+                  Start Draft
+                </Button>
+                {!canStart && (
+                  <p className="text-destructive text-sm mt-2 font-body">
+                    Not enough factions ({availableFactions.length}) for {players.length} players
+                  </p>
+                )}
+              </div>
+            </motion.div>
+          )}
+
+          {phase === "draft" && (
+            <motion.div
+              key="draft"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="space-y-6"
+            >
+              <div className="text-center glass rounded-xl p-4">
+                <p className="text-muted-foreground text-sm font-body uppercase tracking-wider mb-1">
+                  Selecting token
+                </p>
+                <p className="font-display text-xl text-primary text-glow">
+                  {players[currentPlayerIndex]}
+                </p>
+                <p className="text-muted-foreground text-xs font-body mt-1">
+                  Player {currentPlayerIndex + 1} of {players.length}
+                </p>
+              </div>
+
+              <TokenGrid
+                totalTokens={availableFactions.length}
+                takenTokens={playerTokens}
+                players={players}
+                onSelectToken={selectToken}
+              />
+
+              <div className="text-center">
+                <Button variant="outline" size="sm" onClick={reset} className="font-display text-xs uppercase tracking-widest">
+                  <RotateCcw className="mr-2 h-3 w-3" />
+                  Restart
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
+          {phase === "reveal" && (
+            <motion.div
+              key="reveal"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="space-y-6"
+            >
+              <h2 className="font-display text-sm uppercase tracking-widest text-primary text-glow text-center">
+                Assignments Revealed
               </h2>
               <div className="grid gap-3">
-                {assignments.map((a, i) => (
+                {revealedAssignments.map((a, i) => (
                   <FactionCard
                     key={a.faction.name}
                     playerName={a.player}
@@ -124,6 +205,13 @@ const Index = () => {
                     index={i}
                   />
                 ))}
+              </div>
+
+              <div className="text-center pt-4">
+                <Button onClick={reset} size="lg" className="font-display text-sm uppercase tracking-widest glow-primary px-10 py-6">
+                  <RotateCcw className="mr-2 h-5 w-5" />
+                  New Game
+                </Button>
               </div>
             </motion.div>
           )}
