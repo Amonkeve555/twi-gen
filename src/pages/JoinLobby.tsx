@@ -135,14 +135,14 @@ const JoinLobby = () => {
         <StarField />
         <div className="relative z-10 max-w-2xl mx-auto px-4 py-12 space-y-6">
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center">
-            <h1 className="font-display text-2xl text-primary text-glow mb-2">
+            <h1 className="font-display text-3xl text-primary text-glow mb-2">
               You've already picked!
             </h1>
             <p className="font-body text-muted-foreground">{existingPlayer.player_name}</p>
           </motion.div>
 
           <div className="glass imperial-border rounded p-6 space-y-3">
-            <h2 className="font-display text-sm uppercase tracking-[0.2em] text-primary text-glow text-center mb-4">
+            <h2 className="font-display text-base uppercase tracking-[0.2em] text-primary text-glow text-center mb-4">
               Your Factions
             </h2>
             {(existingPlayer.assigned_factions as unknown as Faction[])?.map((f, i) => (
@@ -165,10 +165,10 @@ const JoinLobby = () => {
       <StarField />
       <div className="relative z-10 max-w-2xl mx-auto px-4 py-12">
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-10">
-          <h1 className="font-display text-2xl md:text-3xl font-black tracking-[0.15em] text-primary text-glow mb-2">
+          <h1 className="font-display text-3xl md:text-4xl font-black tracking-[0.15em] text-primary text-glow mb-2">
             Join Game
           </h1>
-          <p className="font-display text-xs uppercase tracking-[0.4em] text-muted-foreground">
+          <p className="font-display text-sm uppercase tracking-[0.4em] text-muted-foreground">
             Lobby {inviteCode}
           </p>
           <div className="imperial-divider w-48 mx-auto mt-4" />
@@ -182,8 +182,8 @@ const JoinLobby = () => {
               </div>
             ) : (
               <div className="glass imperial-border rounded p-6 space-y-4">
-                <h2 className="font-display text-sm uppercase tracking-[0.2em] text-primary text-glow">
-                  Enter Your Name
+                 <h2 className="font-display text-base uppercase tracking-[0.2em] text-primary text-glow">
+                   Enter Your Name
                 </h2>
                 <Input
                   value={playerName}
@@ -192,7 +192,7 @@ const JoinLobby = () => {
                   className="bg-input border-border font-body text-foreground focus:border-primary/40 rounded"
                   onKeyDown={(e) => e.key === "Enter" && joinLobby()}
                 />
-                <p className="font-body text-xs text-muted-foreground">
+                <p className="font-body text-base text-muted-foreground">
                   {players.length}/{settings?.max_players} players joined · {picksPerPlayer} pick{picksPerPlayer > 1 ? "s" : ""} per player
                 </p>
                 <Button
@@ -210,11 +210,11 @@ const JoinLobby = () => {
         {phase === "pick" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
             <div className="text-center glass imperial-border rounded p-4">
-              <p className="text-muted-foreground text-sm font-body uppercase tracking-[0.15em] mb-1">
+              <p className="text-muted-foreground text-base font-body uppercase tracking-[0.15em] mb-1">
                 Selecting tokens
               </p>
               <p className="font-display text-xl text-primary text-glow">{playerName}</p>
-              <p className="text-muted-foreground text-xs font-body mt-1">
+              <p className="text-muted-foreground text-base font-body mt-1">
                 Pick {tokenPicks.length + 1} of {picksPerPlayer}
               </p>
             </div>
@@ -230,7 +230,7 @@ const JoinLobby = () => {
 
         {phase === "done" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-            <h2 className="font-display text-sm uppercase tracking-[0.3em] text-primary text-glow text-center">
+            <h2 className="font-display text-base uppercase tracking-[0.3em] text-primary text-glow text-center">
               Your Assigned Factions
             </h2>
             <div className="imperial-divider w-32 mx-auto" />
@@ -240,7 +240,7 @@ const JoinLobby = () => {
               ))}
             </div>
             {picksPerPlayer > 1 && (
-              <p className="text-center font-body text-sm text-muted-foreground">
+              <p className="text-center font-body text-base text-muted-foreground">
                 You'll choose which faction to play on game day
               </p>
             )}

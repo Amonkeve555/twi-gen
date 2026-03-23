@@ -18,7 +18,7 @@ const FactionPool = ({
     return (
       <button
         onClick={() => onToggleFaction(faction.name)}
-        className={`px-3 py-1.5 rounded text-sm font-body font-medium transition-all duration-200 border ${
+        className={`px-3 py-1.5 rounded text-base font-body font-medium transition-all duration-200 border ${
           excluded
             ? "opacity-25 border-border bg-muted text-muted-foreground line-through"
             : "border-border bg-secondary text-secondary-foreground hover:opacity-80"
@@ -29,7 +29,7 @@ const FactionPool = ({
             : undefined
         }
       >
-        {faction.shortName}
+        {faction.name}
       </button>
     );
   };

@@ -252,13 +252,13 @@ const Index = () => {
               className="space-y-6"
             >
               <div className="text-center glass imperial-border rounded p-4">
-                <p className="text-muted-foreground text-sm font-body uppercase tracking-[0.15em] mb-1">
+                 <p className="text-muted-foreground text-base font-body uppercase tracking-[0.15em] mb-1">
                   Selecting token
                 </p>
                 <p className="font-display text-xl text-primary text-glow">
                   {players[currentPlayerIndex]}
                 </p>
-                <p className="text-muted-foreground text-xs font-body mt-1">
+                 <p className="text-muted-foreground text-base font-body mt-1">
                   Pick {currentPickCount + 1} of {picksPerPlayer} · Player {currentPlayerIndex + 1} of {players.length}
                 </p>
               </div>
@@ -288,13 +288,13 @@ const Index = () => {
               className="space-y-6"
             >
               <div className="text-center glass imperial-border rounded p-4">
-                <p className="text-muted-foreground text-sm font-body uppercase tracking-[0.15em] mb-1">
+                <p className="text-muted-foreground text-base font-body uppercase tracking-[0.15em] mb-1">
                   Choose thy faction
                 </p>
                 <p className="font-display text-xl text-primary text-glow">
                   {players[choosingPlayerIndex]}
                 </p>
-                <p className="text-muted-foreground text-xs font-body mt-1">
+                <p className="text-muted-foreground text-base font-body mt-1">
                   Player {choosingPlayerIndex + 1} of {players.length}
                 </p>
               </div>
@@ -316,7 +316,7 @@ const Index = () => {
                         }}
                       />
                       <div>
-                        <p className="font-display text-sm uppercase tracking-[0.1em] text-primary">
+                        <p className="font-display text-base uppercase tracking-[0.1em] text-primary">
                           {faction.name}
                         </p>
                       </div>
@@ -342,7 +342,7 @@ const Index = () => {
               exit={{ opacity: 0 }}
               className="space-y-6"
             >
-              <h2 className="font-display text-sm uppercase tracking-[0.3em] text-primary text-glow text-center">
+              <h2 className="font-display text-base uppercase tracking-[0.3em] text-primary text-glow text-center">
                 Assignments Revealed
               </h2>
               <div className="imperial-divider w-32 mx-auto" />

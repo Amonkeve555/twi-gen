@@ -71,7 +71,7 @@ const LobbyView = () => {
       <StarField />
       <div className="relative z-10 max-w-2xl mx-auto px-4 py-12">
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-10">
-          <h1 className="font-display text-2xl md:text-3xl font-black tracking-[0.15em] text-primary text-glow mb-2">
+          <h1 className="font-display text-3xl md:text-4xl font-black tracking-[0.15em] text-primary text-glow mb-2">
             Game Lobby
           </h1>
           <div className="flex items-center justify-center gap-2 mt-2">
@@ -86,7 +86,7 @@ const LobbyView = () => {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
           {/* Status */}
           <div className="glass imperial-border rounded p-4 text-center">
-            <div className="flex items-center justify-center gap-2 text-muted-foreground font-body text-sm">
+            <div className="flex items-center justify-center gap-2 text-muted-foreground font-body text-base">
               <Users className="h-4 w-4" />
               <span>{players.length}/{settings?.max_players} players</span>
               <span className="mx-2">·</span>
@@ -96,7 +96,7 @@ const LobbyView = () => {
 
           {/* Player List */}
           <div className="glass imperial-border rounded p-6 space-y-3">
-            <h2 className="font-display text-sm uppercase tracking-[0.2em] text-primary text-glow mb-4">
+            <h2 className="font-display text-base uppercase tracking-[0.2em] text-primary text-glow mb-4">
               Players
             </h2>
             {players.length === 0 ? (
@@ -110,16 +110,16 @@ const LobbyView = () => {
                 return (
                   <div key={p.id} className="flex items-center justify-between p-3 rounded bg-secondary/50 border border-border">
                     <div>
-                      <p className="font-display text-sm text-primary">{p.player_name}</p>
+                      <p className="font-display text-lg text-primary">{p.player_name}</p>
                       {hasPicked && factions && (
                         <div className="flex gap-1 mt-1">
                           {factions.map((f) => (
-                            <span
+                             <span
                               key={f.name}
-                              className="text-[10px] font-body px-2 py-0.5 rounded border border-border"
+                              className="text-sm font-body px-2 py-0.5 rounded border border-border"
                               style={{ background: `hsl(${f.color} / 0.2)` }}
                             >
-                              {f.shortName}
+                              {f.name}
                             </span>
                           ))}
                         </div>

@@ -98,10 +98,10 @@ const GameDay = () => {
       <StarField />
       <div className="relative z-10 max-w-2xl mx-auto px-4 py-12">
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-10">
-          <h1 className="font-display text-2xl md:text-3xl font-black tracking-[0.15em] text-primary text-glow mb-2">
+          <h1 className="font-display text-3xl md:text-4xl font-black tracking-[0.15em] text-primary text-glow mb-2">
             Game Day
           </h1>
-          <p className="font-display text-xs uppercase tracking-[0.4em] text-muted-foreground">
+          <p className="font-display text-sm uppercase tracking-[0.4em] text-muted-foreground">
             {inviteCode}
           </p>
           <div className="imperial-divider w-48 mx-auto mt-4" />
@@ -112,7 +112,7 @@ const GameDay = () => {
             {/* Faction Choice (if multi-pick and hasn't chosen) */}
             {picksPerPlayer > 1 && myPlayer && !hasChosen && (
               <div className="glass imperial-border rounded p-6 space-y-4">
-                <h2 className="font-display text-sm uppercase tracking-[0.2em] text-primary text-glow text-center">
+                 <h2 className="font-display text-base uppercase tracking-[0.2em] text-primary text-glow text-center">
                   Choose Your Faction
                 </h2>
                 <div className="grid gap-3">
@@ -131,7 +131,7 @@ const GameDay = () => {
                             background: `linear-gradient(135deg, hsl(${f.color}) 0%, hsl(${f.color} / 0.4) 100%)`,
                           }}
                         />
-                        <p className="font-display text-sm uppercase tracking-[0.1em] text-primary">
+                        <p className="font-display text-base uppercase tracking-[0.1em] text-primary">
                           {f.name}
                         </p>
                       </div>
@@ -144,7 +144,7 @@ const GameDay = () => {
             {/* Show chosen faction */}
             {hasChosen && myPlayer && (
               <div className="glass imperial-border rounded p-6 text-center">
-                <p className="font-body text-sm text-muted-foreground mb-2">Your chosen faction:</p>
+                <p className="font-body text-base text-muted-foreground mb-2">Your chosen faction:</p>
                 <FactionCard
                   playerName={myPlayer.player_name}
                   faction={myPlayer.chosen_faction as unknown as Faction}
@@ -156,7 +156,7 @@ const GameDay = () => {
             {/* For single-pick, auto-choose */}
             {picksPerPlayer === 1 && myPlayer && !hasChosen && myFactions.length === 1 && (
               <div className="glass imperial-border rounded p-6 text-center">
-                <p className="font-body text-sm text-muted-foreground mb-2">Your faction:</p>
+                <p className="font-body text-base text-muted-foreground mb-2">Your faction:</p>
                 <FactionCard playerName={myPlayer.player_name} faction={myFactions[0]} index={0} />
                 <Button
                   onClick={() => chooseFaction(myFactions[0])}
@@ -169,7 +169,7 @@ const GameDay = () => {
 
             {/* All players' status */}
             <div className="glass imperial-border rounded p-6 space-y-3">
-              <h2 className="font-display text-sm uppercase tracking-[0.2em] text-primary text-glow">
+              <h2 className="font-display text-base uppercase tracking-[0.2em] text-primary text-glow">
                 All Players
               </h2>
               {players.map((p) => {
@@ -177,14 +177,14 @@ const GameDay = () => {
                 return (
                   <div key={p.id} className="flex items-center justify-between p-3 rounded bg-secondary/50 border border-border">
                     <div>
-                      <p className="font-display text-sm text-primary">{p.player_name}</p>
+                       <p className="font-display text-lg text-primary">{p.player_name}</p>
                       {chosen && (
-                        <span className="text-[10px] font-body px-2 py-0.5 rounded border border-border" style={{ background: `hsl(${chosen.color} / 0.2)` }}>
-                          {chosen.name}
+                         <span className="text-sm font-body px-2 py-0.5 rounded border border-border" style={{ background: `hsl(${chosen.color} / 0.2)` }}>
+                           {chosen.name}
                         </span>
                       )}
                     </div>
-                    <span className={`text-xs font-body ${chosen ? "text-green-400" : "text-muted-foreground"}`}>
+                    <span className={`text-sm font-body ${chosen ? "text-green-400" : "text-muted-foreground"}`}>
                       {chosen ? "Ready" : "Choosing..."}
                     </span>
                   </div>
@@ -211,7 +211,7 @@ const GameDay = () => {
         {phase === "results" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
             <div className="glass imperial-border rounded p-6 space-y-4">
-              <h2 className="font-display text-sm uppercase tracking-[0.2em] text-primary text-glow text-center">
+              <h2 className="font-display text-base uppercase tracking-[0.2em] text-primary text-glow text-center">
                 Game Results
               </h2>
               {players.map((p) => {
@@ -229,13 +229,13 @@ const GameDay = () => {
                         />
                       )}
                       <div>
-                        <p className="font-display text-sm text-primary">{p.player_name}</p>
-                        <p className="text-[10px] font-body text-muted-foreground">{chosen?.name}</p>
+                         <p className="font-display text-lg text-primary">{p.player_name}</p>
+                         <p className="text-sm font-body text-muted-foreground">{chosen?.name}</p>
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="font-body text-xs text-muted-foreground">VP</label>
+                        <label className="font-body text-sm text-muted-foreground">VP</label>
                         <Input
                           type="number"
                           value={data.vp}
@@ -245,7 +245,7 @@ const GameDay = () => {
                         />
                       </div>
                       <div>
-                        <label className="font-body text-xs text-muted-foreground">Rank</label>
+                        <label className="font-body text-sm text-muted-foreground">Rank</label>
                         <Input
                           type="number"
                           value={data.rank}

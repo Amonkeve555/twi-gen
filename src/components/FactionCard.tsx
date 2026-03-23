@@ -34,11 +34,11 @@ const FactionCard = ({ playerName, faction, index }: FactionCardProps) => {
       />
 
       <div className="relative z-10">
-        <p className="text-muted-foreground text-sm font-body uppercase tracking-[0.15em] mb-1">
+        <p className="text-muted-foreground text-base font-body uppercase tracking-[0.15em] mb-1">
           {playerName}
         </p>
         <h3
-          className="font-display text-lg font-bold tracking-wide"
+          className="font-display text-xl font-bold tracking-wide"
           style={{
             color: `hsl(${faction.color})`,
             textShadow: `0 0 12px hsl(${faction.color} / 0.4)`,
