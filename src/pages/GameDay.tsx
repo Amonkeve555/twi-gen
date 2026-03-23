@@ -112,7 +112,7 @@ const GameDay = () => {
             {/* Faction Choice (if multi-pick and hasn't chosen) */}
             {picksPerPlayer > 1 && myPlayer && !hasChosen && (
               <div className="glass imperial-border rounded p-6 space-y-4">
-                <h2 className="font-display text-sm uppercase tracking-[0.2em] text-primary text-glow text-center">
+                 <h2 className="font-display text-base uppercase tracking-[0.2em] text-primary text-glow text-center">
                   Choose Your Faction
                 </h2>
                 <div className="grid gap-3">
