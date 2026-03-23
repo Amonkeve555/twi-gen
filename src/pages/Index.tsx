@@ -252,7 +252,7 @@ const Index = () => {
               className="space-y-6"
             >
               <div className="text-center glass imperial-border rounded p-4">
-                <p className="text-muted-foreground text-sm font-body uppercase tracking-[0.15em] mb-1">
+                 <p className="text-muted-foreground text-base font-body uppercase tracking-[0.15em] mb-1">
                   Selecting token
                 </p>
                 <p className="font-display text-xl text-primary text-glow">
