@@ -1,46 +1,30 @@
 
 
-## Stats Dashboard
+## Simplify Home Page — Move Setup Into Local Draft Flow
 
 ### Overview
-Add a `/stats` page that computes win rates by faction and player rankings from the localStorage game history data. Accessible from the home page.
+Remove the PlayerSetup and FactionPool controls from the home page. The landing page becomes a clean menu with two primary actions and navigation links. When "Begin Local Draft" is clicked, a new setup phase appears inline (same page) where the user configures players, picks, and factions before starting.
 
-### Stats to Display
+### Changes
 
-**Faction Stats Table**
-- Faction name, games played, wins, win rate %, average VP
-- Sorted by win rate (descending)
-- Color-coded faction indicators
+**`src/pages/Index.tsx`**
+- Add a new phase: `"menu"` before `"setup"` — the landing state shows only buttons (Begin Local Draft, Create Online Lobby, and nav links)
+- When "Begin Local Draft" is clicked → transition to `"setup"` phase which shows PlayerSetup + FactionPool + "Start Draft" button (existing UI, just moved behind a click)
+- Add a "Back" button in setup phase to return to menu
+- The `reset` function returns to `"menu"` instead of `"setup"`
+- Remove the "Create Online Lobby" button from the setup phase (it stays on menu only)
 
-**Player Leaderboard**
-- Player name, games played, wins, win rate %, average VP, average rank
-- Sorted by wins then win rate
+**No other files change** — CreateLobby already has its own setup UI for the online flow.
 
-**Summary Cards**
-- Total games played
-- Most winning faction
-- Most winning player
-
-### Implementation
-
-**New file: `src/pages/Stats.tsx`**
-- Reads game history via `useGameHistory()` hook
-- Computes all stats from `GameRecord[]` data client-side
-- Two tabs: "Factions" and "Players"
-- Summary cards at top
-- Tables using existing `Table` UI components
-- Empty state when no games recorded
-- TI4-themed styling (StarField, glass panels, imperial borders)
-- Back button to home
-
-**Edit: `src/App.tsx`**
-- Add route `/stats`
-
-**Edit: `src/pages/Index.tsx`**
-- Add "Stats" navigation button alongside Faction Guide and Rules Assistant
-
-### Technical Notes
-- All data comes from localStorage (same `useGameHistory` hook) — no database changes needed
-- No new dependencies required
-- Uses existing UI components (Table, Card, Tabs)
+### Flow
+```text
+MENU (landing)
+  ├─ Begin Local Draft → SETUP (players, picks, factions) → DRAFT → ...
+  ├─ Create Online Lobby → /create (existing page)
+  ├─ My Lobbies → /my-lobbies
+  ├─ Game History → /history
+  ├─ Faction Guide → /factions
+  ├─ Rules Assistant → /rules
+  └─ Stats → /stats
+```
 
