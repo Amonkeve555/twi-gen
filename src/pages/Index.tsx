@@ -23,7 +23,7 @@ interface ActiveLobby {
   status: string;
   created_at: string;
   settings: LobbySettings;
-  role: "host" | "player";
+  role: "host" | "player" | "—";
   player_count: number;
 }
 
