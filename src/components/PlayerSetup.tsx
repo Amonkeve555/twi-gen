@@ -5,6 +5,8 @@ import { Minus, Plus } from "lucide-react";
 interface PlayerSetupProps {
   players: string[];
   onPlayersChange: (players: string[]) => void;
+  picksPerPlayer: number;
+  onPicksPerPlayerChange: (picks: number) => void;
 }
 
 const PlayerSetup = ({ players, onPlayersChange }: PlayerSetupProps) => {
