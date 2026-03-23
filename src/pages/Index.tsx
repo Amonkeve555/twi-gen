@@ -13,7 +13,7 @@ import ResultsEntry from "@/components/ResultsEntry";
 import { useGameHistory } from "@/hooks/useGameHistory";
 import { TI4_FACTIONS, POK_FACTIONS, type Faction } from "@/data/factions";
 
-type Phase = "setup" | "draft" | "choose" | "reveal";
+type Phase = "menu" | "setup" | "draft" | "choose" | "reveal";
 
 const Index = () => {
   const navigate = useNavigate();
