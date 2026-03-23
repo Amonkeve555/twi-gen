@@ -70,6 +70,34 @@ const PlayerSetup = ({ players, onPlayersChange, picksPerPlayer, onPicksPerPlaye
           />
         ))}
       </div>
+
+      <div className="imperial-divider" />
+
+      <div className="flex items-center justify-between">
+        <h2 className="font-display text-sm uppercase tracking-[0.2em] text-primary text-glow">
+          Picks per Player
+        </h2>
+        <div className="flex items-center gap-2">
+          {[1, 2, 3].map((n) => (
+            <Button
+              key={n}
+              variant={picksPerPlayer === n ? "default" : "outline"}
+              size="sm"
+              onClick={() => onPicksPerPlayerChange(n)}
+              className={`h-8 w-8 font-display text-sm ${
+                picksPerPlayer === n
+                  ? "bg-primary text-primary-foreground"
+                  : "border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+              }`}
+            >
+              {n}
+            </Button>
+          ))}
+        </div>
+      </div>
+      <p className="text-muted-foreground text-xs font-body">
+        Each player picks {picksPerPlayer} token{picksPerPlayer > 1 ? "s" : ""}, then chooses which faction to play
+      </p>
     </div>
   );
 };
