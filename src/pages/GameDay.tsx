@@ -229,8 +229,8 @@ const GameDay = () => {
                         />
                       )}
                       <div>
-                        <p className="font-display text-sm text-primary">{p.player_name}</p>
-                        <p className="text-[10px] font-body text-muted-foreground">{chosen?.name}</p>
+                         <p className="font-display text-lg text-primary">{p.player_name}</p>
+                         <p className="text-sm font-body text-muted-foreground">{chosen?.name}</p>
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
