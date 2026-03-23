@@ -51,55 +51,46 @@ const Index = () => {
   useEffect(() => {
     const fetchActiveLobbies = async () => {
       const sessionId = getSessionId();
-      const { data: hosted } = await supabase
+
+      // Fetch ALL non-completed lobbies
+      const { data: allLobbies } = await supabase
         .from("lobbies")
         .select("*")
-        .eq("host_session_id", sessionId)
         .neq("status", "completed")
         .order("created_at", { ascending: false });
 
-      const { data: joined } = await supabase
+      if (!allLobbies || allLobbies.length === 0) {
+        setActiveLobbies([]);
+        setLobbiesLoading(false);
+        return;
+      }
+
+      // Fetch current session's joined lobbies to determine role
+      const { data: myMemberships } = await supabase
         .from("lobby_players")
         .select("lobby_id")
         .eq("session_id", sessionId);
 
-      const joinedIds = (joined ?? []).map((j) => j.lobby_id);
-      const hostedIds = new Set((hosted ?? []).map((l) => l.id));
-      const nonHostedJoinedIds = joinedIds.filter((id) => !hostedIds.has(id));
+      const joinedSet = new Set((myMemberships ?? []).map((m) => m.lobby_id));
 
-      let playerLobbies: typeof hosted = [];
-      if (nonHostedJoinedIds.length > 0) {
-        const { data } = await supabase
-          .from("lobbies")
-          .select("*")
-          .in("id", nonHostedJoinedIds)
-          .neq("status", "completed")
-          .order("created_at", { ascending: false });
-        playerLobbies = data ?? [];
-      }
+      // Fetch player counts
+      const lobbyIds = allLobbies.map((l) => l.id);
+      const { data: counts } = await supabase
+        .from("lobby_players")
+        .select("lobby_id")
+        .in("lobby_id", lobbyIds);
 
-      const allIds = [...(hosted ?? []).map((l) => l.id), ...(playerLobbies ?? []).map((l) => l.id)];
-      let countMap: Record<string, number> = {};
-      if (allIds.length > 0) {
-        const { data: counts } = await supabase
-          .from("lobby_players")
-          .select("lobby_id")
-          .in("lobby_id", allIds);
-        (counts ?? []).forEach((c) => {
-          countMap[c.lobby_id] = (countMap[c.lobby_id] ?? 0) + 1;
-        });
-      }
+      const countMap: Record<string, number> = {};
+      (counts ?? []).forEach((c) => {
+        countMap[c.lobby_id] = (countMap[c.lobby_id] ?? 0) + 1;
+      });
 
-      const merged: ActiveLobby[] = [
-        ...(hosted ?? []).map((l) => ({
-          ...l, settings: l.settings as unknown as LobbySettings,
-          role: "host" as const, player_count: countMap[l.id] ?? 0,
-        })),
-        ...(playerLobbies ?? []).map((l) => ({
-          ...l, settings: l.settings as unknown as LobbySettings,
-          role: "player" as const, player_count: countMap[l.id] ?? 0,
-        })),
-      ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      const merged: ActiveLobby[] = allLobbies.map((l) => ({
+        ...l,
+        settings: l.settings as unknown as LobbySettings,
+        role: l.host_session_id === sessionId ? "host" as const : joinedSet.has(l.id) ? "player" as const : "—" as const,
+        player_count: countMap[l.id] ?? 0,
+      }));
 
       setActiveLobbies(merged);
       setLobbiesLoading(false);
