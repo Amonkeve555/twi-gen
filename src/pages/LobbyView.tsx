@@ -86,7 +86,7 @@ const LobbyView = () => {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
           {/* Status */}
           <div className="glass imperial-border rounded p-4 text-center">
-            <div className="flex items-center justify-center gap-2 text-muted-foreground font-body text-sm">
+            <div className="flex items-center justify-center gap-2 text-muted-foreground font-body text-base">
               <Users className="h-4 w-4" />
               <span>{players.length}/{settings?.max_players} players</span>
               <span className="mx-2">·</span>
