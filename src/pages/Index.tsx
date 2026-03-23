@@ -1,6 +1,6 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RotateCcw, Scroll, Users, Gamepad2, BookOpen, Bot, BarChart3 } from "lucide-react";
+import { RotateCcw, Scroll, Users, Gamepad2, BookOpen, Bot, BarChart3, Clock, Check, Trophy } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import tiEmblem from "@/assets/ti-emblem.png";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,20 @@ import FactionCard from "@/components/FactionCard";
 import ResultsEntry from "@/components/ResultsEntry";
 import { useGameHistory } from "@/hooks/useGameHistory";
 import { TI4_FACTIONS, POK_FACTIONS, type Faction } from "@/data/factions";
+import { supabase } from "@/integrations/supabase/client";
+import { getSessionId } from "@/lib/sessionId";
+import type { LobbySettings } from "@/hooks/useLobby";
+
+interface ActiveLobby {
+  id: string;
+  invite_code: string;
+  host_name: string;
+  status: string;
+  created_at: string;
+  settings: LobbySettings;
+  role: "host" | "player";
+  player_count: number;
+}
 
 type Phase = "menu" | "setup" | "draft" | "choose" | "reveal";
 
@@ -23,6 +37,8 @@ const Index = () => {
   const [excludedFactions, setExcludedFactions] = useState<Set<string>>(new Set());
   const [picksPerPlayer, setPicksPerPlayer] = useState(1);
   const [resultsSaved, setResultsSaved] = useState(false);
+  const [activeLobbies, setActiveLobbies] = useState<ActiveLobby[]>([]);
+  const [lobbiesLoading, setLobbiesLoading] = useState(true);
 
   const [phase, setPhase] = useState<Phase>("menu");
   const [tokenMapping, setTokenMapping] = useState<Map<number, Faction>>(new Map());
@@ -31,6 +47,65 @@ const Index = () => {
   const [playerTokens, setPlayerTokens] = useState<Map<number, number>>(new Map());
   const [choosingPlayerIndex, setChoosingPlayerIndex] = useState(0);
   const [finalAssignments, setFinalAssignments] = useState<{ player: string; faction: Faction }[]>([]);
+
+  useEffect(() => {
+    const fetchActiveLobbies = async () => {
+      const sessionId = getSessionId();
+      const { data: hosted } = await supabase
+        .from("lobbies")
+        .select("*")
+        .eq("host_session_id", sessionId)
+        .neq("status", "completed")
+        .order("created_at", { ascending: false });
+
+      const { data: joined } = await supabase
+        .from("lobby_players")
+        .select("lobby_id")
+        .eq("session_id", sessionId);
+
+      const joinedIds = (joined ?? []).map((j) => j.lobby_id);
+      const hostedIds = new Set((hosted ?? []).map((l) => l.id));
+      const nonHostedJoinedIds = joinedIds.filter((id) => !hostedIds.has(id));
+
+      let playerLobbies: typeof hosted = [];
+      if (nonHostedJoinedIds.length > 0) {
+        const { data } = await supabase
+          .from("lobbies")
+          .select("*")
+          .in("id", nonHostedJoinedIds)
+          .neq("status", "completed")
+          .order("created_at", { ascending: false });
+        playerLobbies = data ?? [];
+      }
+
+      const allIds = [...(hosted ?? []).map((l) => l.id), ...(playerLobbies ?? []).map((l) => l.id)];
+      let countMap: Record<string, number> = {};
+      if (allIds.length > 0) {
+        const { data: counts } = await supabase
+          .from("lobby_players")
+          .select("lobby_id")
+          .in("lobby_id", allIds);
+        (counts ?? []).forEach((c) => {
+          countMap[c.lobby_id] = (countMap[c.lobby_id] ?? 0) + 1;
+        });
+      }
+
+      const merged: ActiveLobby[] = [
+        ...(hosted ?? []).map((l) => ({
+          ...l, settings: l.settings as unknown as LobbySettings,
+          role: "host" as const, player_count: countMap[l.id] ?? 0,
+        })),
+        ...(playerLobbies ?? []).map((l) => ({
+          ...l, settings: l.settings as unknown as LobbySettings,
+          role: "player" as const, player_count: countMap[l.id] ?? 0,
+        })),
+      ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+      setActiveLobbies(merged);
+      setLobbiesLoading(false);
+    };
+    fetchActiveLobbies();
+  }, []);
 
   const availableFactions = useMemo(() => {
     return [...TI4_FACTIONS, ...(includePok ? POK_FACTIONS : [])].filter(
@@ -180,23 +255,24 @@ const Index = () => {
               exit={{ opacity: 0 }}
               className="flex flex-col items-center gap-4"
             >
-              <Button
-                onClick={() => setPhase("setup")}
-                size="lg"
-                className="font-display text-sm uppercase tracking-[0.2em] glow-primary px-10 py-6 bg-primary text-primary-foreground hover:bg-primary/90"
-              >
-                Begin Local Draft
-              </Button>
-              <div className="imperial-divider w-32 mx-auto" />
-              <Button
-                onClick={() => navigate("/create")}
-                size="lg"
-                variant="outline"
-                className="font-display text-sm uppercase tracking-[0.2em] px-10 py-6 border-border text-muted-foreground hover:text-primary hover:border-primary/40"
-              >
-                <Users className="mr-2 h-5 w-5" />
-                Create Online Lobby
-              </Button>
+              <div className="flex flex-wrap justify-center gap-3">
+                <Button
+                  onClick={() => setPhase("setup")}
+                  size="lg"
+                  className="font-display text-sm uppercase tracking-[0.2em] glow-primary px-8 py-6 bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  Create Local Game
+                </Button>
+                <Button
+                  onClick={() => navigate("/create")}
+                  size="lg"
+                  variant="outline"
+                  className="font-display text-sm uppercase tracking-[0.2em] px-8 py-6 border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+                >
+                  <Users className="mr-2 h-5 w-5" />
+                  Create Online Lobby
+                </Button>
+              </div>
               <div className="flex flex-wrap justify-center gap-3 mt-2">
                 <Button
                   variant="outline"
@@ -244,6 +320,60 @@ const Index = () => {
                   Stats
                 </Button>
               </div>
+
+              {/* Active Lobbies */}
+              {!lobbiesLoading && activeLobbies.length > 0 && (
+                <div className="w-full mt-6">
+                  <div className="imperial-divider w-32 mx-auto mb-4" />
+                  <h2 className="font-display text-sm uppercase tracking-[0.3em] text-primary text-glow text-center mb-4">
+                    Active Lobbies
+                  </h2>
+                  <div className="space-y-3">
+                    {activeLobbies.map((l) => (
+                      <motion.button
+                        key={l.id}
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.99 }}
+                        onClick={() => navigate(`/lobby/${l.invite_code}`)}
+                        className="w-full glass imperial-border rounded p-4 text-left transition-all hover:border-primary/60 cursor-pointer"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              <code className="font-body text-xs text-primary bg-secondary px-2 py-0.5 rounded">
+                                {l.invite_code}
+                              </code>
+                              <span className="text-[10px] font-body uppercase tracking-wider px-2 py-0.5 rounded border border-border text-muted-foreground">
+                                {l.role}
+                              </span>
+                            </div>
+                            <p className="font-display text-base text-primary">
+                              {l.host_name}'s game
+                            </p>
+                            <div className="flex items-center gap-3 mt-1 text-sm font-body text-muted-foreground">
+                              <span className="flex items-center gap-1">
+                                <Users className="h-3 w-3" />
+                                {l.player_count}/{l.settings.max_players}
+                              </span>
+                              <span>{new Date(l.created_at).toLocaleDateString()}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {l.status === "ready" ? (
+                              <Check className="h-4 w-4 text-green-400" />
+                            ) : (
+                              <Clock className="h-4 w-4 text-muted-foreground animate-pulse" />
+                            )}
+                            <span className="font-body text-sm text-muted-foreground">
+                              {l.status === "ready" ? "Ready" : "Waiting"}
+                            </span>
+                          </div>
+                        </div>
+                      </motion.button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </motion.div>
           )}
 
