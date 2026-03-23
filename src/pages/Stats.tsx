@@ -103,7 +103,9 @@ const Stats = () => {
   const factionStats = useMemo(() => computeFactionStats(allGames), [allGames]);
   const playerStats = useMemo(() => computePlayerStats(allGames), [allGames]);
 
-  const totalGames = history.length;
+  const totalGames = allGames.length;
+  const totalLocal = history.length;
+  const totalOnline = onlineGames.length;
   const topFaction = factionStats[0]?.name ?? "—";
   const topPlayer = playerStats[0]?.name ?? "—";
 
