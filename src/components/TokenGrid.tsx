@@ -12,7 +12,7 @@ const TokenGrid = ({ totalTokens, takenTokens, players, onSelectToken }: TokenGr
 
   return (
     <div className="glass imperial-border rounded p-6">
-      <p className="font-display text-xs uppercase tracking-[0.2em] text-muted-foreground mb-4 text-center">
+      <p className="font-display text-sm uppercase tracking-[0.2em] text-muted-foreground mb-4 text-center">
         Choose thy token — each conceals a faction
       </p>
       <div className="grid grid-cols-6 sm:grid-cols-8 gap-2">
