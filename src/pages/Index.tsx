@@ -128,7 +128,7 @@ const Index = () => {
   );
 
   const reset = useCallback(() => {
-    setPhase("setup");
+    setPhase("menu");
     setPlayerTokens(new Map());
     setFinalAssignments([]);
     setCurrentPlayerIndex(0);
