@@ -24,7 +24,7 @@ const Index = () => {
   const [picksPerPlayer, setPicksPerPlayer] = useState(1);
   const [resultsSaved, setResultsSaved] = useState(false);
 
-  const [phase, setPhase] = useState<Phase>("setup");
+  const [phase, setPhase] = useState<Phase>("menu");
   const [tokenMapping, setTokenMapping] = useState<Map<number, Faction>>(new Map());
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
   const [currentPickCount, setCurrentPickCount] = useState(0);
