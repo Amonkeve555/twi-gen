@@ -14,7 +14,86 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      lobbies: {
+        Row: {
+          created_at: string
+          host_name: string
+          host_session_id: string
+          id: string
+          invite_code: string
+          settings: Json
+          status: string
+          token_mapping: Json | null
+        }
+        Insert: {
+          created_at?: string
+          host_name?: string
+          host_session_id: string
+          id?: string
+          invite_code: string
+          settings?: Json
+          status?: string
+          token_mapping?: Json | null
+        }
+        Update: {
+          created_at?: string
+          host_name?: string
+          host_session_id?: string
+          id?: string
+          invite_code?: string
+          settings?: Json
+          status?: string
+          token_mapping?: Json | null
+        }
+        Relationships: []
+      }
+      lobby_players: {
+        Row: {
+          assigned_factions: Json | null
+          chosen_faction: Json | null
+          id: string
+          joined_at: string
+          lobby_id: string
+          player_name: string
+          rank: number | null
+          session_id: string
+          token_picks: number[] | null
+          vp: number | null
+        }
+        Insert: {
+          assigned_factions?: Json | null
+          chosen_faction?: Json | null
+          id?: string
+          joined_at?: string
+          lobby_id: string
+          player_name: string
+          rank?: number | null
+          session_id: string
+          token_picks?: number[] | null
+          vp?: number | null
+        }
+        Update: {
+          assigned_factions?: Json | null
+          chosen_faction?: Json | null
+          id?: string
+          joined_at?: string
+          lobby_id?: string
+          player_name?: string
+          rank?: number | null
+          session_id?: string
+          token_picks?: number[] | null
+          vp?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lobby_players_lobby_id_fkey"
+            columns: ["lobby_id"]
+            isOneToOne: false
+            referencedRelation: "lobbies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
