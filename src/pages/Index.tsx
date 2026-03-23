@@ -294,7 +294,7 @@ const Index = () => {
                 <p className="font-display text-xl text-primary text-glow">
                   {players[choosingPlayerIndex]}
                 </p>
-                <p className="text-muted-foreground text-xs font-body mt-1">
+                <p className="text-muted-foreground text-base font-body mt-1">
                   Player {choosingPlayerIndex + 1} of {players.length}
                 </p>
               </div>
