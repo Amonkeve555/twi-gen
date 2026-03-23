@@ -18,6 +18,7 @@ const CreateLobby = () => {
   const [picksPerPlayer, setPicksPerPlayer] = useState(1);
   const [includePok, setIncludePok] = useState(false);
   const [excludedFactions, setExcludedFactions] = useState<Set<string>>(new Set());
+  const [hostPassword, setHostPassword] = useState("");
   const [creating, setCreating] = useState(false);
   const [createdCode, setCreatedCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
