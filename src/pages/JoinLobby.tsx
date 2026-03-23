@@ -135,7 +135,7 @@ const JoinLobby = () => {
         <StarField />
         <div className="relative z-10 max-w-2xl mx-auto px-4 py-12 space-y-6">
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center">
-            <h1 className="font-display text-2xl text-primary text-glow mb-2">
+            <h1 className="font-display text-3xl text-primary text-glow mb-2">
               You've already picked!
             </h1>
             <p className="font-body text-muted-foreground">{existingPlayer.player_name}</p>
