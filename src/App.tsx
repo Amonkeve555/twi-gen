@@ -10,6 +10,8 @@ import JoinLobby from "./pages/JoinLobby.tsx";
 import LobbyView from "./pages/LobbyView.tsx";
 import GameDay from "./pages/GameDay.tsx";
 import MyLobbies from "./pages/MyLobbies.tsx";
+import FactionGuide from "./pages/FactionGuide.tsx";
+import RulesAssistant from "./pages/RulesAssistant.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
