@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Trophy, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ClaimHostDialog from "@/components/ClaimHostDialog";
 import { Input } from "@/components/ui/input";
 import StarField from "@/components/StarField";
 import FactionCard from "@/components/FactionCard";
