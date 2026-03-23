@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           created_at: string
           host_name: string
+          host_password: string
           host_session_id: string
           id: string
           invite_code: string
@@ -28,6 +29,7 @@ export type Database = {
         Insert: {
           created_at?: string
           host_name?: string
+          host_password?: string
           host_session_id: string
           id?: string
           invite_code: string
@@ -38,6 +40,7 @@ export type Database = {
         Update: {
           created_at?: string
           host_name?: string
+          host_password?: string
           host_session_id?: string
           id?: string
           invite_code?: string

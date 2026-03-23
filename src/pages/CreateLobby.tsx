@@ -18,6 +18,7 @@ const CreateLobby = () => {
   const [picksPerPlayer, setPicksPerPlayer] = useState(1);
   const [includePok, setIncludePok] = useState(false);
   const [excludedFactions, setExcludedFactions] = useState<Set<string>>(new Set());
+  const [hostPassword, setHostPassword] = useState("");
   const [creating, setCreating] = useState(false);
   const [createdCode, setCreatedCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -28,7 +29,7 @@ const CreateLobby = () => {
     );
   }, [includePok, excludedFactions]);
 
-  const canCreate = availableFactions.length >= maxPlayers * picksPerPlayer;
+  const canCreate = availableFactions.length >= maxPlayers * picksPerPlayer && hostPassword.trim().length > 0;
 
   const toggleFaction = useCallback((name: string) => {
     setExcludedFactions((prev) => {
@@ -59,6 +60,7 @@ const CreateLobby = () => {
       invite_code: code,
       host_session_id: sessionId,
       host_name: hostName,
+      host_password: hostPassword,
       settings: JSON.parse(JSON.stringify(settings)),
       token_mapping: JSON.parse(JSON.stringify(tokenMapping)),
     }]);
@@ -101,6 +103,21 @@ const CreateLobby = () => {
                 <Input
                   value={hostName}
                   onChange={(e) => setHostName(e.target.value)}
+                  className="bg-input border-border font-body text-foreground focus:border-primary/40 rounded"
+                />
+              </div>
+
+              <div className="imperial-divider" />
+
+              <div className="space-y-3">
+                <h2 className="font-display text-sm uppercase tracking-[0.2em] text-primary text-glow">
+                  Host Password
+                </h2>
+                <Input
+                  type="password"
+                  value={hostPassword}
+                  onChange={(e) => setHostPassword(e.target.value)}
+                  placeholder="Set a password to manage this lobby from any device"
                   className="bg-input border-border font-body text-foreground focus:border-primary/40 rounded"
                 />
               </div>

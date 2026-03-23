@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Trophy, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ClaimHostDialog from "@/components/ClaimHostDialog";
 import { Input } from "@/components/ui/input";
 import StarField from "@/components/StarField";
 import FactionCard from "@/components/FactionCard";
@@ -274,7 +275,7 @@ const GameDay = () => {
           </motion.div>
         )}
 
-        <div className="flex justify-center mt-6">
+        <div className="flex justify-center gap-3 mt-6">
           <Button
             variant="outline"
             size="sm"
@@ -284,6 +285,9 @@ const GameDay = () => {
             <ArrowLeft className="mr-2 h-3 w-3" />
             Back to Lobby
           </Button>
+          {!isHost && lobby?.host_password && (
+            <ClaimHostDialog lobbyId={lobby.id} lobbyHostPassword={lobby.host_password as string} />
+          )}
         </div>
       </div>
     </div>

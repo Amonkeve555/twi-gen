@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Copy, Check, Users, Clock, ArrowLeft, Trash2, UserMinus } from "lucide-react";
+import ClaimHostDialog from "@/components/ClaimHostDialog";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import StarField from "@/components/StarField";
@@ -160,7 +161,7 @@ const LobbyView = () => {
                 Game Day →
               </Button>
             )}
-            <div className="flex gap-3">
+            <div className="flex gap-3 flex-wrap justify-center">
               <Button
                 variant="outline"
                 size="sm"
@@ -170,6 +171,9 @@ const LobbyView = () => {
                 <ArrowLeft className="mr-2 h-3 w-3" />
                 Home
               </Button>
+              {!isHost && lobby.host_password && (
+                <ClaimHostDialog lobbyId={lobby.id} lobbyHostPassword={lobby.host_password as string} />
+              )}
               {isHost && (
                 <Button
                   variant="outline"
