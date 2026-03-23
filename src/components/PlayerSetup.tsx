@@ -9,7 +9,7 @@ interface PlayerSetupProps {
   onPicksPerPlayerChange: (picks: number) => void;
 }
 
-const PlayerSetup = ({ players, onPlayersChange }: PlayerSetupProps) => {
+const PlayerSetup = ({ players, onPlayersChange, picksPerPlayer, onPicksPerPlayerChange }: PlayerSetupProps) => {
   const addPlayer = () => {
     if (players.length < 8) {
       onPlayersChange([...players, `Player ${players.length + 1}`]);
