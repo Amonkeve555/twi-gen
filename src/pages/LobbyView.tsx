@@ -49,6 +49,15 @@ const LobbyView = () => {
     await supabase.from("lobby_players").delete().eq("id", playerId);
   };
 
+  const savePassword = async () => {
+    if (!lobby) return;
+    setSavingPw(true);
+    await supabase.from("lobbies").update({ host_password: newPassword }).eq("id", lobby.id);
+    setSavingPw(false);
+    setPwDialogOpen(false);
+    setNewPassword("");
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen relative">
