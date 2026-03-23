@@ -316,7 +316,7 @@ const Index = () => {
                         }}
                       />
                       <div>
-                        <p className="font-display text-sm uppercase tracking-[0.1em] text-primary">
+                        <p className="font-display text-base uppercase tracking-[0.1em] text-primary">
                           {faction.name}
                         </p>
                       </div>
