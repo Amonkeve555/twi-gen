@@ -184,7 +184,7 @@ const GameDay = () => {
                         </span>
                       )}
                     </div>
-                    <span className={`text-xs font-body ${chosen ? "text-green-400" : "text-muted-foreground"}`}>
+                    <span className={`text-sm font-body ${chosen ? "text-green-400" : "text-muted-foreground"}`}>
                       {chosen ? "Ready" : "Choosing..."}
                     </span>
                   </div>
