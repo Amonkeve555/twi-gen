@@ -129,7 +129,13 @@ const Stats = () => {
           <div className="imperial-divider w-48 mx-auto mb-8" />
         </motion.div>
 
-        {totalGames === 0 ? (
+        {loading ? (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center glass imperial-border rounded p-10">
+            <p className="font-display text-lg text-muted-foreground uppercase tracking-[0.15em]">
+              Loading stats…
+            </p>
+          </motion.div>
+        ) : totalGames === 0 ? (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center glass imperial-border rounded p-10">
             <Trophy className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
             <p className="font-display text-lg text-muted-foreground uppercase tracking-[0.15em]">
