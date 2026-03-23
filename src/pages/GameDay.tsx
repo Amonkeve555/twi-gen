@@ -275,7 +275,7 @@ const GameDay = () => {
           </motion.div>
         )}
 
-        <div className="flex justify-center mt-6">
+        <div className="flex justify-center gap-3 mt-6">
           <Button
             variant="outline"
             size="sm"
@@ -285,6 +285,9 @@ const GameDay = () => {
             <ArrowLeft className="mr-2 h-3 w-3" />
             Back to Lobby
           </Button>
+          {!isHost && lobby?.host_password && (
+            <ClaimHostDialog lobbyId={lobby.id} lobbyHostPassword={lobby.host_password as string} />
+          )}
         </div>
       </div>
     </div>
