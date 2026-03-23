@@ -144,7 +144,7 @@ const GameDay = () => {
             {/* Show chosen faction */}
             {hasChosen && myPlayer && (
               <div className="glass imperial-border rounded p-6 text-center">
-                <p className="font-body text-sm text-muted-foreground mb-2">Your chosen faction:</p>
+                <p className="font-body text-base text-muted-foreground mb-2">Your chosen faction:</p>
                 <FactionCard
                   playerName={myPlayer.player_name}
                   faction={myPlayer.chosen_faction as unknown as Faction}
