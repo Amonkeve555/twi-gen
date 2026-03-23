@@ -29,7 +29,7 @@ const CreateLobby = () => {
     );
   }, [includePok, excludedFactions]);
 
-  const canCreate = availableFactions.length >= maxPlayers * picksPerPlayer;
+  const canCreate = availableFactions.length >= maxPlayers * picksPerPlayer && hostPassword.trim().length > 0;
 
   const toggleFaction = useCallback((name: string) => {
     setExcludedFactions((prev) => {
