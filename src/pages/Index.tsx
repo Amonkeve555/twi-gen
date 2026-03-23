@@ -219,14 +219,26 @@ const Index = () => {
                   <Users className="mr-2 h-5 w-5" />
                   Create Online Lobby
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigate("/history")}
-                  className="font-display text-xs uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40"
-                >
-                  <Scroll className="mr-2 h-3 w-3" />
-                  Game History{history.length > 0 ? ` (${history.length})` : ""}
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate("/my-lobbies")}
+                    className="font-display text-xs uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+                  >
+                    <Gamepad2 className="mr-2 h-3 w-3" />
+                    My Lobbies
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate("/history")}
+                    className="font-display text-xs uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+                  >
+                    <Scroll className="mr-2 h-3 w-3" />
+                    Game History{history.length > 0 ? ` (${history.length})` : ""}
+                  </Button>
+                </div>
                 </Button>
               </div>
             </motion.div>
