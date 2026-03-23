@@ -211,7 +211,7 @@ const GameDay = () => {
         {phase === "results" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
             <div className="glass imperial-border rounded p-6 space-y-4">
-              <h2 className="font-display text-sm uppercase tracking-[0.2em] text-primary text-glow text-center">
+              <h2 className="font-display text-base uppercase tracking-[0.2em] text-primary text-glow text-center">
                 Game Results
               </h2>
               {players.map((p) => {
