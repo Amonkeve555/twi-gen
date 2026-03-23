@@ -13,7 +13,7 @@ import ResultsEntry from "@/components/ResultsEntry";
 import { useGameHistory } from "@/hooks/useGameHistory";
 import { TI4_FACTIONS, POK_FACTIONS, type Faction } from "@/data/factions";
 
-type Phase = "setup" | "draft" | "choose" | "reveal";
+type Phase = "menu" | "setup" | "draft" | "choose" | "reveal";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -24,7 +24,7 @@ const Index = () => {
   const [picksPerPlayer, setPicksPerPlayer] = useState(1);
   const [resultsSaved, setResultsSaved] = useState(false);
 
-  const [phase, setPhase] = useState<Phase>("setup");
+  const [phase, setPhase] = useState<Phase>("menu");
   const [tokenMapping, setTokenMapping] = useState<Map<number, Faction>>(new Map());
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
   const [currentPickCount, setCurrentPickCount] = useState(0);
@@ -128,7 +128,7 @@ const Index = () => {
   );
 
   const reset = useCallback(() => {
-    setPhase("setup");
+    setPhase("menu");
     setPlayerTokens(new Map());
     setFinalAssignments([]);
     setCurrentPlayerIndex(0);
@@ -172,6 +172,81 @@ const Index = () => {
         </motion.div>
 
         <AnimatePresence mode="wait">
+          {phase === "menu" && (
+            <motion.div
+              key="menu"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex flex-col items-center gap-4"
+            >
+              <Button
+                onClick={() => setPhase("setup")}
+                size="lg"
+                className="font-display text-sm uppercase tracking-[0.2em] glow-primary px-10 py-6 bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                Begin Local Draft
+              </Button>
+              <div className="imperial-divider w-32 mx-auto" />
+              <Button
+                onClick={() => navigate("/create")}
+                size="lg"
+                variant="outline"
+                className="font-display text-sm uppercase tracking-[0.2em] px-10 py-6 border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+              >
+                <Users className="mr-2 h-5 w-5" />
+                Create Online Lobby
+              </Button>
+              <div className="flex flex-wrap justify-center gap-3 mt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate("/my-lobbies")}
+                  className="font-display text-xs uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+                >
+                  <Gamepad2 className="mr-2 h-3 w-3" />
+                  My Lobbies
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate("/history")}
+                  className="font-display text-xs uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+                >
+                  <Scroll className="mr-2 h-3 w-3" />
+                  Game History{history.length > 0 ? ` (${history.length})` : ""}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate("/factions")}
+                  className="font-display text-xs uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+                >
+                  <BookOpen className="mr-2 h-3 w-3" />
+                  Faction Guide
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate("/rules")}
+                  className="font-display text-xs uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+                >
+                  <Bot className="mr-2 h-3 w-3" />
+                  Rules Assistant
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate("/stats")}
+                  className="font-display text-xs uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+                >
+                  <BarChart3 className="mr-2 h-3 w-3" />
+                  Stats
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
           {phase === "setup" && (
             <motion.div
               key="setup"
@@ -202,70 +277,22 @@ const Index = () => {
                   size="lg"
                   className="font-display text-sm uppercase tracking-[0.2em] glow-primary px-10 py-6 bg-primary text-primary-foreground hover:bg-primary/90"
                 >
-                  Begin Local Draft
+                  Start Draft
                 </Button>
                 {!canStart && (
                   <p className="text-destructive text-sm font-body">
                     Not enough factions ({availableFactions.length}) for {players.length} players × {picksPerPlayer} picks = {players.length * picksPerPlayer} needed
                   </p>
                 )}
-                <div className="imperial-divider w-32 mx-auto" />
                 <Button
-                  onClick={() => navigate("/create")}
-                  size="lg"
                   variant="outline"
-                  className="font-display text-sm uppercase tracking-[0.2em] px-10 py-6 border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+                  size="sm"
+                  onClick={() => setPhase("menu")}
+                  className="font-display text-xs uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40"
                 >
-                  <Users className="mr-2 h-5 w-5" />
-                  Create Online Lobby
+                  <RotateCcw className="mr-2 h-3 w-3" />
+                  Back
                 </Button>
-                <div className="flex flex-wrap justify-center gap-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate("/my-lobbies")}
-                    className="font-display text-xs uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40"
-                  >
-                    <Gamepad2 className="mr-2 h-3 w-3" />
-                    My Lobbies
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate("/history")}
-                    className="font-display text-xs uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40"
-                  >
-                    <Scroll className="mr-2 h-3 w-3" />
-                    Game History{history.length > 0 ? ` (${history.length})` : ""}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate("/factions")}
-                    className="font-display text-xs uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40"
-                  >
-                    <BookOpen className="mr-2 h-3 w-3" />
-                    Faction Guide
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate("/rules")}
-                    className="font-display text-xs uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40"
-                  >
-                    <Bot className="mr-2 h-3 w-3" />
-                    Rules Assistant
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate("/stats")}
-                    className="font-display text-xs uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40"
-                  >
-                    <BarChart3 className="mr-2 h-3 w-3" />
-                    Stats
-                  </Button>
-                </div>
               </div>
             </motion.div>
           )}
