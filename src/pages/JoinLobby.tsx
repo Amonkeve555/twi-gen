@@ -182,8 +182,8 @@ const JoinLobby = () => {
               </div>
             ) : (
               <div className="glass imperial-border rounded p-6 space-y-4">
-                <h2 className="font-display text-sm uppercase tracking-[0.2em] text-primary text-glow">
-                  Enter Your Name
+                 <h2 className="font-display text-base uppercase tracking-[0.2em] text-primary text-glow">
+                   Enter Your Name
                 </h2>
                 <Input
                   value={playerName}
