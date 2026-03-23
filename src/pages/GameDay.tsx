@@ -177,7 +177,7 @@ const GameDay = () => {
                 return (
                   <div key={p.id} className="flex items-center justify-between p-3 rounded bg-secondary/50 border border-border">
                     <div>
-                      <p className="font-display text-sm text-primary">{p.player_name}</p>
+                       <p className="font-display text-lg text-primary">{p.player_name}</p>
                       {chosen && (
                         <span className="text-[10px] font-body px-2 py-0.5 rounded border border-border" style={{ background: `hsl(${chosen.color} / 0.2)` }}>
                           {chosen.name}
