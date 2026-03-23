@@ -338,11 +338,36 @@ const Index = () => {
                 ))}
               </div>
 
-              <div className="text-center pt-4">
+              {!resultsSaved && (
+                <>
+                  <div className="imperial-divider w-32 mx-auto" />
+                  <ResultsEntry
+                    assignments={finalAssignments}
+                    onSave={(game) => {
+                      addGame(game);
+                      setResultsSaved(true);
+                    }}
+                    onSkip={() => setResultsSaved(true)}
+                  />
+                </>
+              )}
+
+              <div className="flex justify-center gap-3 pt-4">
                 <Button onClick={reset} size="lg" className="font-display text-sm uppercase tracking-[0.2em] glow-primary px-10 py-6 bg-primary text-primary-foreground hover:bg-primary/90">
                   <RotateCcw className="mr-2 h-5 w-5" />
                   New Game
                 </Button>
+                {resultsSaved && (
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => navigate("/history")}
+                    className="font-display text-sm uppercase tracking-[0.2em] px-6 py-6 border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+                  >
+                    <Scroll className="mr-2 h-5 w-5" />
+                    History
+                  </Button>
+                )}
               </div>
             </motion.div>
           )}
