@@ -60,6 +60,7 @@ const CreateLobby = () => {
       invite_code: code,
       host_session_id: sessionId,
       host_name: hostName,
+      host_password: hostPassword,
       settings: JSON.parse(JSON.stringify(settings)),
       token_mapping: JSON.parse(JSON.stringify(tokenMapping)),
     }]);
