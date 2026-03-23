@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RotateCcw, Scroll, Users, Gamepad2 } from "lucide-react";
+import { RotateCcw, Scroll, Users, Gamepad2, BookOpen, Bot } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import tiEmblem from "@/assets/ti-emblem.png";
 import { Button } from "@/components/ui/button";
@@ -219,7 +219,7 @@ const Index = () => {
                   <Users className="mr-2 h-5 w-5" />
                   Create Online Lobby
                 </Button>
-                <div className="flex gap-3">
+                <div className="flex flex-wrap justify-center gap-3">
                   <Button
                     variant="outline"
                     size="sm"
@@ -237,6 +237,24 @@ const Index = () => {
                   >
                     <Scroll className="mr-2 h-3 w-3" />
                     Game History{history.length > 0 ? ` (${history.length})` : ""}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate("/factions")}
+                    className="font-display text-xs uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+                  >
+                    <BookOpen className="mr-2 h-3 w-3" />
+                    Faction Guide
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate("/rules")}
+                    className="font-display text-xs uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+                  >
+                    <Bot className="mr-2 h-3 w-3" />
+                    Rules Assistant
                   </Button>
                 </div>
               </div>

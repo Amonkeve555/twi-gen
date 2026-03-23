@@ -10,6 +10,8 @@ import JoinLobby from "./pages/JoinLobby.tsx";
 import LobbyView from "./pages/LobbyView.tsx";
 import GameDay from "./pages/GameDay.tsx";
 import MyLobbies from "./pages/MyLobbies.tsx";
+import FactionGuide from "./pages/FactionGuide.tsx";
+import RulesAssistant from "./pages/RulesAssistant.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -28,6 +30,8 @@ const App = () => (
           <Route path="/lobby/:inviteCode" element={<LobbyView />} />
           <Route path="/lobby/:inviteCode/gameday" element={<GameDay />} />
           <Route path="/my-lobbies" element={<MyLobbies />} />
+          <Route path="/factions" element={<FactionGuide />} />
+          <Route path="/rules" element={<RulesAssistant />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
