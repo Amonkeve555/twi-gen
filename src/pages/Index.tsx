@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RotateCcw } from "lucide-react";
+import { RotateCcw, Scroll } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import tiEmblem from "@/assets/ti-emblem.png";
 import { Button } from "@/components/ui/button";
 import StarField from "@/components/StarField";
@@ -8,6 +9,8 @@ import PlayerSetup from "@/components/PlayerSetup";
 import FactionPool from "@/components/FactionPool";
 import TokenGrid from "@/components/TokenGrid";
 import FactionCard from "@/components/FactionCard";
+import ResultsEntry from "@/components/ResultsEntry";
+import { useGameHistory } from "@/hooks/useGameHistory";
 import { TI4_FACTIONS, POK_FACTIONS, type Faction } from "@/data/factions";
 
 type Phase = "setup" | "draft" | "choose" | "reveal";
