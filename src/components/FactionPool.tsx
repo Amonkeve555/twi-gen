@@ -29,7 +29,7 @@ const FactionPool = ({
             : undefined
         }
       >
-        {faction.shortName}
+        {faction.name}
       </button>
     );
   };

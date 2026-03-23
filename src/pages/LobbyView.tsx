@@ -114,12 +114,12 @@ const LobbyView = () => {
                       {hasPicked && factions && (
                         <div className="flex gap-1 mt-1">
                           {factions.map((f) => (
-                            <span
+                             <span
                               key={f.name}
-                              className="text-[10px] font-body px-2 py-0.5 rounded border border-border"
+                              className="text-sm font-body px-2 py-0.5 rounded border border-border"
                               style={{ background: `hsl(${f.color} / 0.2)` }}
                             >
-                              {f.shortName}
+                              {f.name}
                             </span>
                           ))}
                         </div>

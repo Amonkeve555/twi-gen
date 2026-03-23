@@ -240,7 +240,7 @@ const JoinLobby = () => {
               ))}
             </div>
             {picksPerPlayer > 1 && (
-              <p className="text-center font-body text-sm text-muted-foreground">
+              <p className="text-center font-body text-base text-muted-foreground">
                 You'll choose which faction to play on game day
               </p>
             )}

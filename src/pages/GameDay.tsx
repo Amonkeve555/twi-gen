@@ -245,7 +245,7 @@ const GameDay = () => {
                         />
                       </div>
                       <div>
-                        <label className="font-body text-xs text-muted-foreground">Rank</label>
+                        <label className="font-body text-sm text-muted-foreground">Rank</label>
                         <Input
                           type="number"
                           value={data.rank}

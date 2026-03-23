@@ -27,7 +27,7 @@ const TokenGrid = ({ totalTokens, takenTokens, players, onSelectToken }: TokenGr
               whileTap={!isTaken ? { scale: 0.95 } : undefined}
               onClick={() => !isTaken && onSelectToken(id)}
               disabled={isTaken}
-              className={`aspect-square rounded font-display text-sm font-bold flex items-center justify-center transition-all duration-200 border ${
+              className={`aspect-square rounded font-display text-base font-bold flex items-center justify-center transition-all duration-200 border ${
                 isTaken
                   ? "bg-muted border-border opacity-30 cursor-not-allowed"
                   : "bg-secondary border-border hover:border-primary/60 hover:glow-primary cursor-pointer text-primary"
