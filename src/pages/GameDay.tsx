@@ -235,7 +235,7 @@ const GameDay = () => {
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="font-body text-xs text-muted-foreground">VP</label>
+                        <label className="font-body text-sm text-muted-foreground">VP</label>
                         <Input
                           type="number"
                           value={data.vp}
