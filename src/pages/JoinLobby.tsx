@@ -168,7 +168,7 @@ const JoinLobby = () => {
           <h1 className="font-display text-3xl md:text-4xl font-black tracking-[0.15em] text-primary text-glow mb-2">
             Join Game
           </h1>
-          <p className="font-display text-xs uppercase tracking-[0.4em] text-muted-foreground">
+          <p className="font-display text-sm uppercase tracking-[0.4em] text-muted-foreground">
             Lobby {inviteCode}
           </p>
           <div className="imperial-divider w-48 mx-auto mt-4" />
