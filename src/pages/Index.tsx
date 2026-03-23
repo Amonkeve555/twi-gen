@@ -16,10 +16,13 @@ import { TI4_FACTIONS, POK_FACTIONS, type Faction } from "@/data/factions";
 type Phase = "setup" | "draft" | "choose" | "reveal";
 
 const Index = () => {
+  const navigate = useNavigate();
+  const { history, addGame } = useGameHistory();
   const [players, setPlayers] = useState(["Player 1", "Player 2", "Player 3"]);
   const [includePok, setIncludePok] = useState(false);
   const [excludedFactions, setExcludedFactions] = useState<Set<string>>(new Set());
   const [picksPerPlayer, setPicksPerPlayer] = useState(1);
+  const [resultsSaved, setResultsSaved] = useState(false);
 
   const [phase, setPhase] = useState<Phase>("setup");
   const [tokenMapping, setTokenMapping] = useState<Map<number, Faction>>(new Map());
