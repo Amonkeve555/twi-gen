@@ -156,7 +156,7 @@ const GameDay = () => {
             {/* For single-pick, auto-choose */}
             {picksPerPlayer === 1 && myPlayer && !hasChosen && myFactions.length === 1 && (
               <div className="glass imperial-border rounded p-6 text-center">
-                <p className="font-body text-sm text-muted-foreground mb-2">Your faction:</p>
+                <p className="font-body text-base text-muted-foreground mb-2">Your faction:</p>
                 <FactionCard playerName={myPlayer.player_name} faction={myFactions[0]} index={0} />
                 <Button
                   onClick={() => chooseFaction(myFactions[0])}
