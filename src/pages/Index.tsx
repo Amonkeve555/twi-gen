@@ -195,7 +195,7 @@ const Index = () => {
                 />
               </div>
 
-              <div className="text-center">
+              <div className="flex flex-col items-center gap-3">
                 <Button
                   onClick={startDraft}
                   disabled={!canStart}
@@ -205,9 +205,20 @@ const Index = () => {
                   Begin the Draft
                 </Button>
                 {!canStart && (
-                  <p className="text-destructive text-sm mt-2 font-body">
+                  <p className="text-destructive text-sm font-body">
                     Not enough factions ({availableFactions.length}) for {players.length} players × {picksPerPlayer} picks = {players.length * picksPerPlayer} needed
                   </p>
+                )}
+                {history.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate("/history")}
+                    className="font-display text-xs uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+                  >
+                    <Scroll className="mr-2 h-3 w-3" />
+                    Game History ({history.length})
+                  </Button>
                 )}
               </div>
             </motion.div>
