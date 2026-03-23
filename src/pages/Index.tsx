@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RotateCcw, Scroll, Users, Gamepad2, BookOpen, Bot } from "lucide-react";
+import { RotateCcw, Scroll, Users, Gamepad2, BookOpen, Bot, BarChart3 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import tiEmblem from "@/assets/ti-emblem.png";
 import { Button } from "@/components/ui/button";
@@ -255,6 +255,15 @@ const Index = () => {
                   >
                     <Bot className="mr-2 h-3 w-3" />
                     Rules Assistant
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate("/stats")}
+                    className="font-display text-xs uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+                  >
+                    <BarChart3 className="mr-2 h-3 w-3" />
+                    Stats
                   </Button>
                 </div>
               </div>
