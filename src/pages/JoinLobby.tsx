@@ -230,7 +230,7 @@ const JoinLobby = () => {
 
         {phase === "done" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-            <h2 className="font-display text-sm uppercase tracking-[0.3em] text-primary text-glow text-center">
+            <h2 className="font-display text-base uppercase tracking-[0.3em] text-primary text-glow text-center">
               Your Assigned Factions
             </h2>
             <div className="imperial-divider w-32 mx-auto" />
