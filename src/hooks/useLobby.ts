@@ -13,6 +13,7 @@ export interface LobbyRow {
   invite_code: string;
   host_session_id: string;
   host_name: string;
+  host_password: string;
   settings: LobbySettings;
   status: string;
   token_mapping: Record<string, Faction> | null;
