@@ -134,6 +134,7 @@ const Index = () => {
     setCurrentPlayerIndex(0);
     setCurrentPickCount(0);
     setChoosingPlayerIndex(0);
+    setResultsSaved(false);
   }, []);
 
   const toggleFaction = useCallback((name: string) => {
