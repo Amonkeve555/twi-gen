@@ -15,6 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useGameHistory } from "@/hooks/useGameHistory";
+import { useOnlineGameHistory } from "@/hooks/useOnlineGameHistory";
 import type { GameRecord } from "@/types/gameHistory";
 
 interface FactionStat {
@@ -89,11 +90,22 @@ function computePlayerStats(history: GameRecord[]): PlayerStat[] {
 const Stats = () => {
   const navigate = useNavigate();
   const { history } = useGameHistory();
+  const { games: onlineGames, loading } = useOnlineGameHistory();
 
-  const factionStats = useMemo(() => computeFactionStats(history), [history]);
-  const playerStats = useMemo(() => computePlayerStats(history), [history]);
+  const allGames = useMemo(() => {
+    // Merge local and online, deduplicate by id
+    const map = new Map<string, GameRecord>();
+    for (const g of history) map.set(g.id, g);
+    for (const g of onlineGames) map.set(g.id, g);
+    return Array.from(map.values());
+  }, [history, onlineGames]);
 
-  const totalGames = history.length;
+  const factionStats = useMemo(() => computeFactionStats(allGames), [allGames]);
+  const playerStats = useMemo(() => computePlayerStats(allGames), [allGames]);
+
+  const totalGames = allGames.length;
+  const totalLocal = history.length;
+  const totalOnline = onlineGames.length;
   const topFaction = factionStats[0]?.name ?? "—";
   const topPlayer = playerStats[0]?.name ?? "—";
 
@@ -117,7 +129,13 @@ const Stats = () => {
           <div className="imperial-divider w-48 mx-auto mb-8" />
         </motion.div>
 
-        {totalGames === 0 ? (
+        {loading ? (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center glass imperial-border rounded p-10">
+            <p className="font-display text-lg text-muted-foreground uppercase tracking-[0.15em]">
+              Loading stats…
+            </p>
+          </motion.div>
+        ) : totalGames === 0 ? (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center glass imperial-border rounded p-10">
             <Trophy className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
             <p className="font-display text-lg text-muted-foreground uppercase tracking-[0.15em]">
@@ -139,6 +157,9 @@ const Stats = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="font-display text-3xl text-primary text-glow">{totalGames}</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {totalLocal} local · {totalOnline} online
+                  </p>
                 </CardContent>
               </Card>
               <Card className="glass imperial-border bg-transparent border-border">
