@@ -20,6 +20,9 @@ const LobbyView = () => {
   const { lobby, players, loading, error } = useLobby(inviteCode);
   const [copied, setCopied] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [pwDialogOpen, setPwDialogOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [savingPw, setSavingPw] = useState(false);
   const sessionId = getSessionId();
 
   const settings = lobby?.settings as LobbySettings | undefined;
