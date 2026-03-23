@@ -1,0 +1,154 @@
+import { useParams, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Copy, Check, Users, Clock, ArrowLeft } from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import StarField from "@/components/StarField";
+import { useLobby, type LobbySettings } from "@/hooks/useLobby";
+import { getSessionId } from "@/lib/sessionId";
+import type { Faction } from "@/data/factions";
+
+const LobbyView = () => {
+  const { inviteCode } = useParams<{ inviteCode: string }>();
+  const navigate = useNavigate();
+  const { lobby, players, loading, error } = useLobby(inviteCode);
+  const [copied, setCopied] = useState(false);
+  const sessionId = getSessionId();
+
+  const settings = lobby?.settings as LobbySettings | undefined;
+  const picksPerPlayer = settings?.picks_per_player ?? 1;
+  const isHost = lobby?.host_session_id === sessionId;
+  const allPicked = players.length >= (settings?.max_players ?? 99) &&
+    players.every((p) => (p.token_picks?.length ?? 0) >= picksPerPlayer);
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(`${window.location.origin}/join/${inviteCode}`);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen relative">
+        <StarField />
+        <div className="relative z-10 flex items-center justify-center min-h-screen">
+          <p className="font-display text-primary text-glow">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !lobby) {
+    return (
+      <div className="min-h-screen relative">
+        <StarField />
+        <div className="relative z-10 flex flex-col items-center justify-center min-h-screen gap-4">
+          <p className="font-display text-destructive">{error || "Lobby not found"}</p>
+          <Button variant="outline" onClick={() => navigate("/")} className="font-display text-xs uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40">
+            Back to Home
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen relative">
+      <StarField />
+      <div className="relative z-10 max-w-2xl mx-auto px-4 py-12">
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-10">
+          <h1 className="font-display text-2xl md:text-3xl font-black tracking-[0.15em] text-primary text-glow mb-2">
+            Game Lobby
+          </h1>
+          <div className="flex items-center justify-center gap-2 mt-2">
+            <code className="font-body text-sm text-primary bg-secondary px-3 py-1 rounded">{inviteCode}</code>
+            <Button variant="outline" size="icon" onClick={copyLink} className="h-7 w-7 border-border text-muted-foreground hover:text-primary hover:border-primary/40">
+              {copied ? <Check className="h-3 w-3 text-green-400" /> : <Copy className="h-3 w-3" />}
+            </Button>
+          </div>
+          <div className="imperial-divider w-48 mx-auto mt-4" />
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+          {/* Status */}
+          <div className="glass imperial-border rounded p-4 text-center">
+            <div className="flex items-center justify-center gap-2 text-muted-foreground font-body text-sm">
+              <Users className="h-4 w-4" />
+              <span>{players.length}/{settings?.max_players} players</span>
+              <span className="mx-2">·</span>
+              <span>{picksPerPlayer} pick{picksPerPlayer > 1 ? "s" : ""} each</span>
+            </div>
+          </div>
+
+          {/* Player List */}
+          <div className="glass imperial-border rounded p-6 space-y-3">
+            <h2 className="font-display text-sm uppercase tracking-[0.2em] text-primary text-glow mb-4">
+              Players
+            </h2>
+            {players.length === 0 ? (
+              <p className="text-center font-body text-sm text-muted-foreground">
+                Waiting for players to join...
+              </p>
+            ) : (
+              players.map((p) => {
+                const hasPicked = (p.token_picks?.length ?? 0) >= picksPerPlayer;
+                const factions = p.assigned_factions as unknown as Faction[] | null;
+                return (
+                  <div key={p.id} className="flex items-center justify-between p-3 rounded bg-secondary/50 border border-border">
+                    <div>
+                      <p className="font-display text-sm text-primary">{p.player_name}</p>
+                      {hasPicked && factions && (
+                        <div className="flex gap-1 mt-1">
+                          {factions.map((f) => (
+                            <span
+                              key={f.name}
+                              className="text-[10px] font-body px-2 py-0.5 rounded border border-border"
+                              style={{ background: `hsl(${f.color} / 0.2)` }}
+                            >
+                              {f.shortName}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {hasPicked ? (
+                        <Check className="h-4 w-4 text-green-400" />
+                      ) : (
+                        <Clock className="h-4 w-4 text-muted-foreground animate-pulse" />
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Actions */}
+          <div className="flex flex-col items-center gap-3">
+            {allPicked && (
+              <Button
+                onClick={() => navigate(`/lobby/${inviteCode}/gameday`)}
+                size="lg"
+                className="font-display text-sm uppercase tracking-[0.2em] glow-primary px-10 py-6 bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                Game Day →
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/")}
+              className="font-display text-xs uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+            >
+              <ArrowLeft className="mr-2 h-3 w-3" />
+              Home
+            </Button>
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
+};
+
+export default LobbyView;
