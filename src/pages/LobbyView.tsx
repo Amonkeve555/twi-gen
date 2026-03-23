@@ -1,9 +1,13 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Copy, Check, Users, Clock, ArrowLeft, Trash2, UserMinus } from "lucide-react";
+import { Copy, Check, Users, Clock, ArrowLeft, Trash2, UserMinus, KeyRound } from "lucide-react";
 import ClaimHostDialog from "@/components/ClaimHostDialog";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
 import StarField from "@/components/StarField";
 import { supabase } from "@/integrations/supabase/client";
 import { useLobby, type LobbySettings } from "@/hooks/useLobby";
@@ -16,6 +20,9 @@ const LobbyView = () => {
   const { lobby, players, loading, error } = useLobby(inviteCode);
   const [copied, setCopied] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [pwDialogOpen, setPwDialogOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [savingPw, setSavingPw] = useState(false);
   const sessionId = getSessionId();
 
   const settings = lobby?.settings as LobbySettings | undefined;
@@ -40,6 +47,15 @@ const LobbyView = () => {
   const kickPlayer = async (playerId: string, playerName: string) => {
     if (!confirm(`Kick ${playerName} from the lobby?`)) return;
     await supabase.from("lobby_players").delete().eq("id", playerId);
+  };
+
+  const savePassword = async () => {
+    if (!lobby) return;
+    setSavingPw(true);
+    await supabase.from("lobbies").update({ host_password: newPassword }).eq("id", lobby.id);
+    setSavingPw(false);
+    setPwDialogOpen(false);
+    setNewPassword("");
   };
 
   if (loading) {
@@ -175,20 +191,62 @@ const LobbyView = () => {
                 <ClaimHostDialog lobbyId={lobby.id} lobbyHostPassword={lobby.host_password as string} />
               )}
               {isHost && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={deleteLobby}
-                  disabled={deleting}
-                  className="font-display text-xs uppercase tracking-[0.15em] border-destructive/40 text-destructive hover:bg-destructive/10"
-                >
-                  <Trash2 className="mr-2 h-3 w-3" />
-                  {deleting ? "Deleting..." : "Delete Lobby"}
-                </Button>
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => { setNewPassword(lobby.host_password || ""); setPwDialogOpen(true); }}
+                    className="font-display text-xs uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+                  >
+                    <KeyRound className="mr-2 h-3 w-3" />
+                    {lobby.host_password ? "Change Password" : "Set Password"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={deleteLobby}
+                    disabled={deleting}
+                    className="font-display text-xs uppercase tracking-[0.15em] border-destructive/40 text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="mr-2 h-3 w-3" />
+                    {deleting ? "Deleting..." : "Delete Lobby"}
+                  </Button>
+                </>
               )}
             </div>
           </div>
         </motion.div>
+
+        <Dialog open={pwDialogOpen} onOpenChange={setPwDialogOpen}>
+          <DialogContent className="glass imperial-border">
+            <DialogHeader>
+              <DialogTitle className="font-display text-lg uppercase tracking-[0.15em] text-primary">
+                {lobby.host_password ? "Change Host Password" : "Set Host Password"}
+              </DialogTitle>
+              <DialogDescription className="font-body text-base text-muted-foreground">
+                This password lets you claim host access from any device.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <Input
+                type="password"
+                placeholder="Enter password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && newPassword.trim() && savePassword()}
+                className="bg-input border-border font-body text-foreground focus:border-primary/40 rounded"
+              />
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setPwDialogOpen(false)} className="font-display text-xs uppercase tracking-[0.15em]">
+                  Cancel
+                </Button>
+                <Button onClick={savePassword} disabled={savingPw || !newPassword.trim()} className="font-display text-xs uppercase tracking-[0.15em] bg-primary text-primary-foreground hover:bg-primary/90">
+                  {savingPw ? "Saving..." : "Save"}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
