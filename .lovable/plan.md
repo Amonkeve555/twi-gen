@@ -1,71 +1,48 @@
 
 
-## Game Lobby System — Online Multiplayer Draft
+## Increase Font Sizes & Show Full Faction Names
 
-### Overview
-Transform the app from a single-device experience into an online lobby system where a host creates a game, shares a link, and each player independently picks tokens and sees their factions. On game day, players confirm their chosen faction and record results.
+### Problem
+Text across the app is too small — player names, faction names, labels, and status text are hard to read. Faction chips and tags only show `shortName` instead of full names.
 
-### Flow
-```text
-HOST                          PLAYERS (via shared link)
-─────                         ────────────────────────
-Create lobby                  
-  - Set available factions    
-  - Set player count          
-  - Set picks per player      
-  - Get invite link ────────► Open link
-                               Enter name
-                               Pick token(s)
-                               See assigned faction(s)
-                               (choice deferred to game day)
+### Changes
 
-Pending Games tab              
-  - See who has picked         
-  - See all faction results    
+**1. Global base font size bump** (`src/index.css`)
+- Change body from `text-lg` (18px) to `text-xl` (20px)
 
-Game Day ◄──────────────────► Each player confirms chosen faction
-Record results (VP, rank)     
-```
+**2. FactionPool chips — show full names** (`src/components/FactionPool.tsx`)
+- Change `{faction.shortName}` → `{faction.name}`
+- Increase chip text from `text-sm` to `text-base`
 
-### Backend: Supabase (Lovable Cloud)
+**3. LobbyView — bigger text & full faction names** (`src/pages/LobbyView.tsx`)
+- Player names: `text-sm` → `text-lg`
+- Status bar text: `text-sm` → `text-base`
+- Faction tags: `text-[10px]` → `text-sm`, show `f.name` instead of `f.shortName`
+- Section headings: `text-sm` → `text-base`
+- Page title: `text-2xl md:text-3xl` → `text-3xl md:text-4xl`
 
-A backend is required to share game state between players. We'll use **Lovable Cloud** (managed Supabase) — no external account needed.
+**4. JoinLobby — bigger text** (`src/pages/JoinLobby.tsx`)
+- Page title: `text-2xl md:text-3xl` → `text-3xl md:text-4xl`
+- Subtitle: `text-xs` → `text-sm`
+- Section headings: `text-sm` → `text-base`
+- Status text: `text-sm`/`text-xs` → `text-base`
 
-**Database tables:**
+**5. GameDay — bigger text & full names** (`src/pages/GameDay.tsx`)
+- Page title: `text-2xl md:text-3xl` → `text-3xl md:text-4xl`
+- Player names: `text-sm` → `text-lg`
+- Faction name tags: `text-[10px]` → `text-sm`
+- Section headings: `text-sm` → `text-base`
+- Faction choice buttons text: `text-sm` → `text-base`
 
-- **`lobbies`** — id, invite_code (unique short code), host_name, settings (JSON: factions, picks_per_player, max_players), status (waiting/ready/completed), created_at
-- **`lobby_players`** — id, lobby_id (FK), player_name, token_picks (int[]), assigned_factions (JSON), chosen_faction (JSON, nullable), vp (nullable), rank (nullable), joined_at
+**6. FactionCard — bigger text** (`src/components/FactionCard.tsx`)
+- Player label: `text-sm` → `text-base`
+- Faction name: `text-lg` → `text-xl`
 
-RLS: Public access via invite_code (no auth). Players identified by a session token stored in localStorage.
+**7. TokenGrid — bigger text** (`src/components/TokenGrid.tsx`)
+- Instruction text: `text-xs` → `text-sm`
+- Token numbers: `text-sm` → `text-base`
 
-### Frontend Changes
-
-**New pages:**
-1. **`/create`** — Host creates lobby (reuse existing faction pool + player count UI), generates invite link
-2. **`/join/:inviteCode`** — Player enters name, picks tokens, sees assigned factions
-3. **`/lobby/:inviteCode`** — Live lobby view showing all players and their status (picked/pending)
-4. **`/lobby/:inviteCode/gameday`** — Game day: players confirm faction choice, host records results
-
-**Updated pages:**
-- **Index** — Add "Create Game Lobby" button alongside existing local draft flow
-- **History** — Show completed online games alongside local games
-
-### Key Details
-
-- **Invite codes**: Short random strings (e.g., `TI4-ABCX`) for easy sharing
-- **Real-time updates**: Use Supabase Realtime subscriptions so the lobby view updates as players join and pick
-- **No auth**: Players get a random session ID stored in localStorage to identify themselves within a lobby
-- **Token picking**: Reuse existing `TokenGrid` component; faction assignment happens server-side (or on first pick) to prevent cheating
-- **Game day flow**: Each player with 2-3 picks sees their factions and confirms one; host can then enter VP/rank results
-
-### Files to create/modify
-- **Supabase migration**: `lobbies` and `lobby_players` tables with RLS
-- **`src/pages/CreateLobby.tsx`** — Lobby creation form
-- **`src/pages/JoinLobby.tsx`** — Player join + token pick flow  
-- **`src/pages/LobbyView.tsx`** — Real-time lobby status
-- **`src/pages/GameDay.tsx`** — Faction confirmation + results entry
-- **`src/App.tsx`** — New routes
-- **`src/pages/Index.tsx`** — Add lobby creation button
-- **`src/lib/supabase.ts`** — Supabase client setup
-- **`src/hooks/useLobby.ts`** — Lobby data fetching and real-time subscription
+**8. Index page** (`src/pages/Index.tsx`)
+- Various `text-xs` labels → `text-sm`
+- Status labels: `text-sm` → `text-base`
 
