@@ -239,7 +239,6 @@ const Index = () => {
                     Game History{history.length > 0 ? ` (${history.length})` : ""}
                   </Button>
                 </div>
-                </Button>
               </div>
             </motion.div>
           )}
