@@ -1,30 +1,17 @@
 
 
-## Simplify Home Page — Move Setup Into Local Draft Flow
-
-### Overview
-Remove the PlayerSetup and FactionPool controls from the home page. The landing page becomes a clean menu with two primary actions and navigation links. When "Begin Local Draft" is clicked, a new setup phase appears inline (same page) where the user configures players, picks, and factions before starting.
+## Home Page Redesign — Side-by-side Buttons + Inline Active Lobbies
 
 ### Changes
 
 **`src/pages/Index.tsx`**
-- Add a new phase: `"menu"` before `"setup"` — the landing state shows only buttons (Begin Local Draft, Create Online Lobby, and nav links)
-- When "Begin Local Draft" is clicked → transition to `"setup"` phase which shows PlayerSetup + FactionPool + "Start Draft" button (existing UI, just moved behind a click)
-- Add a "Back" button in setup phase to return to menu
-- The `reset` function returns to `"menu"` instead of `"setup"`
-- Remove the "Create Online Lobby" button from the setup phase (it stays on menu only)
 
-**No other files change** — CreateLobby already has its own setup UI for the online flow.
+1. **Rename** "Begin Local Draft" → "Create Local Game"
+2. **Layout**: Put both primary buttons in a single row (`flex-row`) instead of stacked
+3. **Inline active lobbies**: Below the nav buttons, fetch and display the user's active (non-completed) lobbies directly on the home page — reusing the same fetch logic from `MyLobbies.tsx`. Show lobby cards with invite code, host name, player count, and status. Clicking navigates to the lobby. Keep the "My Lobbies" button for viewing all (including completed).
 
-### Flow
-```text
-MENU (landing)
-  ├─ Begin Local Draft → SETUP (players, picks, factions) → DRAFT → ...
-  ├─ Create Online Lobby → /create (existing page)
-  ├─ My Lobbies → /my-lobbies
-  ├─ Game History → /history
-  ├─ Faction Guide → /factions
-  ├─ Rules Assistant → /rules
-  └─ Stats → /stats
-```
+**Data fetching**: Add a `useEffect` in `Index` that fetches lobbies where the user is host or player (same logic as `MyLobbies`), filtered to `status != 'completed'`. Display them in a section titled "Active Lobbies" with the same card style.
+
+### Files to modify
+- `src/pages/Index.tsx` — rename button, side-by-side layout, add active lobbies list with fetch logic
 
