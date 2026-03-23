@@ -1,42 +1,21 @@
 
 
-## Host Password for Lobby Management
+## Show All Active Lobbies to Everyone
 
-### Overview
-When creating a lobby, the host sets a custom password. On any device, entering this password on the lobby view grants host privileges (manage game, kick players, delete lobby, start Game Day).
+### Problem
+The home page only fetches lobbies where the current session is the host or a joined player. On a new device, you see no lobbies because your session ID doesn't match any records.
 
-### Database Change
-- Add `host_password` (text, not null) column to `lobbies` table
+### Solution
+Replace the session-filtered fetch with a single query that fetches **all non-completed lobbies**. Determine the user's role (host/player/none) client-side.
 
-### Frontend Changes
+### Changes — `src/pages/Index.tsx`
 
-**`src/pages/CreateLobby.tsx`**
-- Add a "Host Password" input field in the lobby creation form
-- Store password in the `host_password` column on insert
+Replace the `fetchActiveLobbies` logic (lines 52–108) with:
 
-**`src/pages/LobbyView.tsx`**
-- If current session is not the host, show a "Claim Host" button
-- Clicking it opens a password input dialog
-- On correct password: update `host_session_id` to current session ID → user becomes host on this device
-- On wrong password: show error
+1. Fetch **all** lobbies where `status != 'completed'`, ordered by `created_at desc`
+2. Fetch the current session's `lobby_players` entries to determine role
+3. For each lobby, set role as `"host"` (if `host_session_id` matches), `"player"` (if in lobby_players), or `"—"` (not involved)
+4. Fetch player counts for all returned lobbies
 
-**`src/pages/GameDay.tsx`**
-- Same "Claim Host" button + password dialog for non-host users
-
-**`src/lib/inviteCode.ts`**
-- No changes needed (user sets their own password)
-
-### Flow
-```text
-CREATE LOBBY
-  → Enter host password (your choice)
-  → Lobby created
-
-LOBBY VIEW (any device)
-  → Not recognized as host?
-  → Click "Claim Host" → enter password → verified → you're the host
-```
-
-### Security Note
-Password is stored as plain text since there's no auth system — this is a lightweight access control for a game lobby, not sensitive data protection. RLS is already fully open on these tables.
+This way, any device visiting the site sees all active games and can navigate to one, then use the host password to claim host privileges.
 
