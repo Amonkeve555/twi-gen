@@ -90,9 +90,18 @@ function computePlayerStats(history: GameRecord[]): PlayerStat[] {
 const Stats = () => {
   const navigate = useNavigate();
   const { history } = useGameHistory();
+  const { games: onlineGames, loading } = useOnlineGameHistory();
 
-  const factionStats = useMemo(() => computeFactionStats(history), [history]);
-  const playerStats = useMemo(() => computePlayerStats(history), [history]);
+  const allGames = useMemo(() => {
+    // Merge local and online, deduplicate by id
+    const map = new Map<string, GameRecord>();
+    for (const g of history) map.set(g.id, g);
+    for (const g of onlineGames) map.set(g.id, g);
+    return Array.from(map.values());
+  }, [history, onlineGames]);
+
+  const factionStats = useMemo(() => computeFactionStats(allGames), [allGames]);
+  const playerStats = useMemo(() => computePlayerStats(allGames), [allGames]);
 
   const totalGames = history.length;
   const topFaction = factionStats[0]?.name ?? "—";
