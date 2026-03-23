@@ -1,9 +1,13 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Copy, Check, Users, Clock, ArrowLeft, Trash2, UserMinus } from "lucide-react";
+import { Copy, Check, Users, Clock, ArrowLeft, Trash2, UserMinus, KeyRound } from "lucide-react";
 import ClaimHostDialog from "@/components/ClaimHostDialog";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
 import StarField from "@/components/StarField";
 import { supabase } from "@/integrations/supabase/client";
 import { useLobby, type LobbySettings } from "@/hooks/useLobby";
