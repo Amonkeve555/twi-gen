@@ -1,48 +1,60 @@
 
 
-## Increase Font Sizes & Show Full Faction Names
+## Faction Guide + AI Rules Assistant
 
-### Problem
-Text across the app is too small — player names, faction names, labels, and status text are hard to read. Faction chips and tags only show `shortName` instead of full names.
+Two features: a static faction reference guide and an AI-powered rules assistant for resolving game questions in real time.
 
-### Changes
+### 1. Faction Guide Page (`/factions`)
 
-**1. Global base font size bump** (`src/index.css`)
-- Change body from `text-lg` (18px) to `text-xl` (20px)
+A searchable reference page showing all TI4 + PoK factions with detailed info.
 
-**2. FactionPool chips — show full names** (`src/components/FactionPool.tsx`)
-- Change `{faction.shortName}` → `{faction.name}`
-- Increase chip text from `text-sm` to `text-base`
+**Data**: Extend `src/data/factions.ts` to include per-faction details:
+- Abilities (faction abilities, promissory note)
+- Starting units, commodities, starting tech
+- Brief strategy tips
 
-**3. LobbyView — bigger text & full faction names** (`src/pages/LobbyView.tsx`)
-- Player names: `text-sm` → `text-lg`
-- Status bar text: `text-sm` → `text-base`
-- Faction tags: `text-[10px]` → `text-sm`, show `f.name` instead of `f.shortName`
-- Section headings: `text-sm` → `text-base`
-- Page title: `text-2xl md:text-3xl` → `text-3xl md:text-4xl`
+**UI**: New page `src/pages/FactionGuide.tsx`
+- Search/filter bar at the top
+- Toggle for base game vs PoK factions
+- Expandable cards for each faction showing all details
+- Consistent TI4 styling (glass panels, imperial borders)
 
-**4. JoinLobby — bigger text** (`src/pages/JoinLobby.tsx`)
-- Page title: `text-2xl md:text-3xl` → `text-3xl md:text-4xl`
-- Subtitle: `text-xs` → `text-sm`
-- Section headings: `text-sm` → `text-base`
-- Status text: `text-sm`/`text-xs` → `text-base`
+### 2. AI Rules Assistant (`/rules`)
 
-**5. GameDay — bigger text & full names** (`src/pages/GameDay.tsx`)
-- Page title: `text-2xl md:text-3xl` → `text-3xl md:text-4xl`
-- Player names: `text-sm` → `text-lg`
-- Faction name tags: `text-[10px]` → `text-sm`
-- Section headings: `text-sm` → `text-base`
-- Faction choice buttons text: `text-sm` → `text-base`
+A chat interface where players can ask TI4 rules questions and get grounded answers.
 
-**6. FactionCard — bigger text** (`src/components/FactionCard.tsx`)
-- Player label: `text-sm` → `text-base`
-- Faction name: `text-lg` → `text-xl`
+**Backend**: New edge function `supabase/functions/rules-chat/index.ts`
+- Uses Lovable AI (Gemini) with a system prompt containing TI4 rules context
+- System prompt includes core rules references (combat, action cards, strategy cards, agenda phase, etc.)
+- Streaming responses for real-time feel
 
-**7. TokenGrid — bigger text** (`src/components/TokenGrid.tsx`)
-- Instruction text: `text-xs` → `text-sm`
-- Token numbers: `text-sm` → `text-base`
+**Frontend**: New page `src/pages/RulesAssistant.tsx`
+- Chat interface with message history (session-only, no persistence needed)
+- Markdown rendering for AI responses (react-markdown)
+- Pre-built quick question buttons (e.g. "How does Space Combat work?", "Explain the Agenda Phase")
+- TI4-themed styling
 
-**8. Index page** (`src/pages/Index.tsx`)
-- Various `text-xs` labels → `text-sm`
-- Status labels: `text-sm` → `text-base`
+### 3. Navigation Updates
+
+- **Index page**: Add two new buttons — "Faction Guide" and "Rules Assistant" — in the bottom section
+- **App.tsx**: Add routes `/factions` and `/rules`
+
+### Files to Create/Modify
+
+| File | Action |
+|------|--------|
+| `src/data/factions.ts` | Add detailed faction data (abilities, units, tips) |
+| `src/pages/FactionGuide.tsx` | New searchable faction reference page |
+| `src/pages/RulesAssistant.tsx` | New AI chat page for rules questions |
+| `supabase/functions/rules-chat/index.ts` | Edge function calling Lovable AI with TI4 rules context |
+| `src/pages/Index.tsx` | Add navigation buttons |
+| `src/App.tsx` | Add new routes |
+
+### Technical Notes
+
+- AI uses `google/gemini-3-flash-preview` via Lovable AI gateway — no API key needed from user
+- System prompt will be comprehensive with TI4 core rules to ground responses
+- Streaming SSE for responsive chat experience
+- `react-markdown` for rendering formatted AI responses
+- No database tables needed — chat is ephemeral per session
 
