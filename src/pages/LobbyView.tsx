@@ -1,9 +1,10 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Copy, Check, Users, Clock, ArrowLeft } from "lucide-react";
+import { Copy, Check, Users, Clock, ArrowLeft, Trash2, UserMinus } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import StarField from "@/components/StarField";
+import { supabase } from "@/integrations/supabase/client";
 import { useLobby, type LobbySettings } from "@/hooks/useLobby";
 import { getSessionId } from "@/lib/sessionId";
 import type { Faction } from "@/data/factions";
@@ -13,6 +14,7 @@ const LobbyView = () => {
   const navigate = useNavigate();
   const { lobby, players, loading, error } = useLobby(inviteCode);
   const [copied, setCopied] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const sessionId = getSessionId();
 
   const settings = lobby?.settings as LobbySettings | undefined;
@@ -25,6 +27,18 @@ const LobbyView = () => {
     navigator.clipboard.writeText(`${window.location.origin}/join/${inviteCode}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const deleteLobby = async () => {
+    if (!lobby || !confirm("Delete this lobby? This cannot be undone.")) return;
+    setDeleting(true);
+    await supabase.from("lobbies").delete().eq("id", lobby.id);
+    navigate("/");
+  };
+
+  const kickPlayer = async (playerId: string, playerName: string) => {
+    if (!confirm(`Kick ${playerName} from the lobby?`)) return;
+    await supabase.from("lobby_players").delete().eq("id", playerId);
   };
 
   if (loading) {
@@ -111,11 +125,22 @@ const LobbyView = () => {
                         </div>
                       )}
                     </div>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-2">
                       {hasPicked ? (
                         <Check className="h-4 w-4 text-green-400" />
                       ) : (
                         <Clock className="h-4 w-4 text-muted-foreground animate-pulse" />
+                      )}
+                      {isHost && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => kickPlayer(p.id, p.player_name)}
+                          className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                          title={`Kick ${p.player_name}`}
+                        >
+                          <UserMinus className="h-3.5 w-3.5" />
+                        </Button>
                       )}
                     </div>
                   </div>
@@ -135,15 +160,29 @@ const LobbyView = () => {
                 Game Day →
               </Button>
             )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate("/")}
-              className="font-display text-xs uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40"
-            >
-              <ArrowLeft className="mr-2 h-3 w-3" />
-              Home
-            </Button>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate("/")}
+                className="font-display text-xs uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+              >
+                <ArrowLeft className="mr-2 h-3 w-3" />
+                Home
+              </Button>
+              {isHost && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={deleteLobby}
+                  disabled={deleting}
+                  className="font-display text-xs uppercase tracking-[0.15em] border-destructive/40 text-destructive hover:bg-destructive/10"
+                >
+                  <Trash2 className="mr-2 h-3 w-3" />
+                  {deleting ? "Deleting..." : "Delete Lobby"}
+                </Button>
+              )}
+            </div>
           </div>
         </motion.div>
       </div>
