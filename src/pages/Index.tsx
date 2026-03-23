@@ -202,13 +202,23 @@ const Index = () => {
                   size="lg"
                   className="font-display text-sm uppercase tracking-[0.2em] glow-primary px-10 py-6 bg-primary text-primary-foreground hover:bg-primary/90"
                 >
-                  Begin the Draft
+                  Begin Local Draft
                 </Button>
                 {!canStart && (
                   <p className="text-destructive text-sm font-body">
                     Not enough factions ({availableFactions.length}) for {players.length} players × {picksPerPlayer} picks = {players.length * picksPerPlayer} needed
                   </p>
                 )}
+                <div className="imperial-divider w-32 mx-auto" />
+                <Button
+                  onClick={() => navigate("/create")}
+                  size="lg"
+                  variant="outline"
+                  className="font-display text-sm uppercase tracking-[0.2em] px-10 py-6 border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+                >
+                  <Users className="mr-2 h-5 w-5" />
+                  Create Online Lobby
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"
