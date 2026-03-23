@@ -69,30 +69,38 @@ const JoinLobby = () => {
 
   const selectToken = useCallback(
     async (tokenId: number) => {
-      if (!tokenMapping || !playerId) return;
+      if (!lobby || !playerId) return;
+
+      const { data, error: err } = await supabase.rpc("claim_token", {
+        p_lobby_id: lobby.id,
+        p_player_id: playerId,
+        p_token_id: tokenId,
+      });
+
+      if (err) {
+        toast.error("Failed to claim token");
+        console.error(err);
+        return;
+      }
+
+      const result = data as { success?: boolean; error?: string; faction?: Faction };
+
+      if (result.error) {
+        toast.error(result.error);
+        return;
+      }
 
       const newPicks = [...tokenPicks, tokenId];
       setTokenPicks(newPicks);
-
-      // Look up faction for this token
-      const faction = tokenMapping[String(tokenId)];
-      const newFactions = faction ? [...assignedFactions, faction] : assignedFactions;
-      setAssignedFactions(newFactions);
-
-      // Update DB
-      await supabase
-        .from("lobby_players")
-        .update({
-          token_picks: newPicks,
-          assigned_factions: JSON.parse(JSON.stringify(newFactions)),
-        })
-        .eq("id", playerId);
+      if (result.faction) {
+        setAssignedFactions((prev) => [...prev, result.faction as Faction]);
+      }
 
       if (newPicks.length >= picksPerPlayer) {
         setPhase("done");
       }
     },
-    [tokenPicks, assignedFactions, tokenMapping, playerId, picksPerPlayer]
+    [lobby, tokenPicks, playerId, picksPerPlayer]
   );
 
   if (loading) {
