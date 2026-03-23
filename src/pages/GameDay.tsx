@@ -131,7 +131,7 @@ const GameDay = () => {
                             background: `linear-gradient(135deg, hsl(${f.color}) 0%, hsl(${f.color} / 0.4) 100%)`,
                           }}
                         />
-                        <p className="font-display text-sm uppercase tracking-[0.1em] text-primary">
+                        <p className="font-display text-base uppercase tracking-[0.1em] text-primary">
                           {f.name}
                         </p>
                       </div>
