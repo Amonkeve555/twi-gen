@@ -255,23 +255,24 @@ const Index = () => {
               exit={{ opacity: 0 }}
               className="flex flex-col items-center gap-4"
             >
-              <Button
-                onClick={() => setPhase("setup")}
-                size="lg"
-                className="font-display text-sm uppercase tracking-[0.2em] glow-primary px-10 py-6 bg-primary text-primary-foreground hover:bg-primary/90"
-              >
-                Begin Local Draft
-              </Button>
-              <div className="imperial-divider w-32 mx-auto" />
-              <Button
-                onClick={() => navigate("/create")}
-                size="lg"
-                variant="outline"
-                className="font-display text-sm uppercase tracking-[0.2em] px-10 py-6 border-border text-muted-foreground hover:text-primary hover:border-primary/40"
-              >
-                <Users className="mr-2 h-5 w-5" />
-                Create Online Lobby
-              </Button>
+              <div className="flex flex-wrap justify-center gap-3">
+                <Button
+                  onClick={() => setPhase("setup")}
+                  size="lg"
+                  className="font-display text-sm uppercase tracking-[0.2em] glow-primary px-8 py-6 bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  Create Local Game
+                </Button>
+                <Button
+                  onClick={() => navigate("/create")}
+                  size="lg"
+                  variant="outline"
+                  className="font-display text-sm uppercase tracking-[0.2em] px-8 py-6 border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+                >
+                  <Users className="mr-2 h-5 w-5" />
+                  Create Online Lobby
+                </Button>
+              </div>
               <div className="flex flex-wrap justify-center gap-3 mt-2">
                 <Button
                   variant="outline"
@@ -319,6 +320,60 @@ const Index = () => {
                   Stats
                 </Button>
               </div>
+
+              {/* Active Lobbies */}
+              {!lobbiesLoading && activeLobbies.length > 0 && (
+                <div className="w-full mt-6">
+                  <div className="imperial-divider w-32 mx-auto mb-4" />
+                  <h2 className="font-display text-sm uppercase tracking-[0.3em] text-primary text-glow text-center mb-4">
+                    Active Lobbies
+                  </h2>
+                  <div className="space-y-3">
+                    {activeLobbies.map((l) => (
+                      <motion.button
+                        key={l.id}
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.99 }}
+                        onClick={() => navigate(`/lobby/${l.invite_code}`)}
+                        className="w-full glass imperial-border rounded p-4 text-left transition-all hover:border-primary/60 cursor-pointer"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              <code className="font-body text-xs text-primary bg-secondary px-2 py-0.5 rounded">
+                                {l.invite_code}
+                              </code>
+                              <span className="text-[10px] font-body uppercase tracking-wider px-2 py-0.5 rounded border border-border text-muted-foreground">
+                                {l.role}
+                              </span>
+                            </div>
+                            <p className="font-display text-base text-primary">
+                              {l.host_name}'s game
+                            </p>
+                            <div className="flex items-center gap-3 mt-1 text-sm font-body text-muted-foreground">
+                              <span className="flex items-center gap-1">
+                                <Users className="h-3 w-3" />
+                                {l.player_count}/{l.settings.max_players}
+                              </span>
+                              <span>{new Date(l.created_at).toLocaleDateString()}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {l.status === "ready" ? (
+                              <Check className="h-4 w-4 text-green-400" />
+                            ) : (
+                              <Clock className="h-4 w-4 text-muted-foreground animate-pulse" />
+                            )}
+                            <span className="font-body text-sm text-muted-foreground">
+                              {l.status === "ready" ? "Ready" : "Waiting"}
+                            </span>
+                          </div>
+                        </div>
+                      </motion.button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </motion.div>
           )}
 
