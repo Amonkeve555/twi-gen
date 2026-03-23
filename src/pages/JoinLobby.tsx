@@ -83,7 +83,7 @@ const JoinLobby = () => {
         .from("lobby_players")
         .update({
           token_picks: newPicks,
-          assigned_factions: newFactions as unknown as Record<string, unknown>[],
+          assigned_factions: JSON.parse(JSON.stringify(newFactions)),
         })
         .eq("id", playerId);
 

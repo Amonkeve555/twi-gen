@@ -34,7 +34,7 @@ const GameDay = () => {
     if (!myPlayer) return;
     await supabase
       .from("lobby_players")
-      .update({ chosen_faction: faction as unknown as Record<string, unknown> })
+      .update({ chosen_faction: JSON.parse(JSON.stringify(faction)) })
       .eq("id", myPlayer.id);
   };
 

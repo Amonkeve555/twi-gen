@@ -5,6 +5,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index.tsx";
 import History from "./pages/History.tsx";
+import CreateLobby from "./pages/CreateLobby.tsx";
+import JoinLobby from "./pages/JoinLobby.tsx";
+import LobbyView from "./pages/LobbyView.tsx";
+import GameDay from "./pages/GameDay.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -18,6 +22,10 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/history" element={<History />} />
+          <Route path="/create" element={<CreateLobby />} />
+          <Route path="/join/:inviteCode" element={<JoinLobby />} />
+          <Route path="/lobby/:inviteCode" element={<LobbyView />} />
+          <Route path="/lobby/:inviteCode/gameday" element={<GameDay />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

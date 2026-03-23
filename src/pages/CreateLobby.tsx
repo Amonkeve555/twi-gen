@@ -55,13 +55,13 @@ const CreateLobby = () => {
       max_players: maxPlayers,
     };
 
-    const { error } = await supabase.from("lobbies").insert({
+    const { error } = await supabase.from("lobbies").insert([{
       invite_code: code,
       host_session_id: sessionId,
       host_name: hostName,
-      settings: settings as unknown as Record<string, unknown>,
-      token_mapping: tokenMapping as unknown as Record<string, unknown>,
-    });
+      settings: JSON.parse(JSON.stringify(settings)),
+      token_mapping: JSON.parse(JSON.stringify(tokenMapping)),
+    }]);
 
     if (error) {
       console.error(error);
