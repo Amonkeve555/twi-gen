@@ -103,11 +103,20 @@ const LobbyView = () => {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
           {/* Status */}
           <div className="glass imperial-border rounded p-4 text-center">
-            <div className="flex items-center justify-center gap-2 text-muted-foreground font-body text-base">
+            <div className="flex items-center justify-center gap-2 text-muted-foreground font-body text-base flex-wrap">
               <Users className="h-4 w-4" />
               <span>{players.length}/{settings?.max_players} players</span>
               <span className="mx-2">·</span>
               <span>{picksPerPlayer} pick{picksPerPlayer > 1 ? "s" : ""} each</span>
+              <span className="mx-2">·</span>
+              <span className="flex items-center gap-1">
+                <KeyRound className="h-3.5 w-3.5" />
+                {lobby.host_password ? (
+                  <span className="text-green-400">Password set</span>
+                ) : (
+                  <span className="text-muted-foreground/60">No password</span>
+                )}
+              </span>
             </div>
           </div>
 
