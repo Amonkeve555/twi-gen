@@ -102,15 +102,19 @@ const Index = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-10"
         >
-          {/* Decorative top line */}
-          <div className="imperial-divider w-48 mx-auto mb-6" />
+          <img
+            src={tiEmblem}
+            alt="Twilight Imperium Emblem"
+            className="w-24 h-24 md:w-28 md:h-28 mx-auto mb-4 drop-shadow-[0_0_15px_hsl(42_85%_55%/0.3)]"
+          />
+          <div className="imperial-divider w-48 mx-auto mb-4" />
           <h1 className="font-display text-3xl md:text-4xl font-black tracking-[0.15em] text-primary text-glow mb-2">
             Twilight Imperium
           </h1>
           <p className="font-display text-xs uppercase tracking-[0.4em] text-muted-foreground">
             Race Randomizer
           </p>
-          <div className="imperial-divider w-48 mx-auto mt-6" />
+          <div className="imperial-divider w-48 mx-auto mt-4" />
         </motion.div>
 
         <AnimatePresence mode="wait">
