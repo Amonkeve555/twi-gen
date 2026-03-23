@@ -19,7 +19,7 @@ const Index = () => {
   const [phase, setPhase] = useState<Phase>("setup");
   const [tokenMapping, setTokenMapping] = useState<Map<number, Faction>>(new Map());
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
-  const [playerTokens, setPlayerTokens] = useState<Map<number, number>>(new Map()); // tokenId -> playerIndex
+  const [playerTokens, setPlayerTokens] = useState<Map<number, number>>(new Map());
   const [revealedAssignments, setRevealedAssignments] = useState<{ player: string; faction: Faction }[]>([]);
 
   const availableFactions = useMemo(() => {
@@ -31,7 +31,6 @@ const Index = () => {
   const canStart = availableFactions.length >= players.length;
 
   const startDraft = useCallback(() => {
-    // Randomly map tokens to factions
     const shuffled = [...availableFactions].sort(() => Math.random() - 0.5);
     const mapping = new Map<number, Faction>();
     shuffled.forEach((f, i) => mapping.set(i + 1, f));
@@ -52,10 +51,8 @@ const Index = () => {
       });
 
       if (currentPlayerIndex + 1 >= players.length) {
-        // All players have picked — go to reveal
         setTimeout(() => setPhase("reveal"), 400);
 
-        // Build assignments from the picks
         const nextTokens = new Map(playerTokens);
         nextTokens.set(tokenId, currentPlayerIndex);
 
@@ -104,12 +101,15 @@ const Index = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-10"
         >
-          <h1 className="font-display text-3xl md:text-4xl font-black tracking-wider text-primary text-glow mb-2">
+          {/* Decorative top line */}
+          <div className="imperial-divider w-48 mx-auto mb-6" />
+          <h1 className="font-display text-3xl md:text-4xl font-black tracking-[0.15em] text-primary text-glow mb-2">
             Twilight Imperium
           </h1>
-          <p className="font-display text-xs uppercase tracking-[0.3em] text-muted-foreground">
+          <p className="font-display text-xs uppercase tracking-[0.4em] text-muted-foreground">
             Race Randomizer
           </p>
+          <div className="imperial-divider w-48 mx-auto mt-6" />
         </motion.div>
 
         <AnimatePresence mode="wait">
@@ -120,9 +120,9 @@ const Index = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              <div className="glass rounded-xl p-6 space-y-6 mb-6">
+              <div className="glass imperial-border rounded p-6 space-y-6 mb-6">
                 <PlayerSetup players={players} onPlayersChange={setPlayers} />
-                <div className="border-t border-border" />
+                <div className="imperial-divider" />
                 <FactionPool
                   includePok={includePok}
                   onIncludePokChange={setIncludePok}
@@ -136,9 +136,9 @@ const Index = () => {
                   onClick={startDraft}
                   disabled={!canStart}
                   size="lg"
-                  className="font-display text-sm uppercase tracking-widest glow-primary px-10 py-6"
+                  className="font-display text-sm uppercase tracking-[0.2em] glow-primary px-10 py-6 bg-primary text-primary-foreground hover:bg-primary/90"
                 >
-                  Start Draft
+                  Begin the Draft
                 </Button>
                 {!canStart && (
                   <p className="text-destructive text-sm mt-2 font-body">
@@ -157,8 +157,8 @@ const Index = () => {
               exit={{ opacity: 0 }}
               className="space-y-6"
             >
-              <div className="text-center glass rounded-xl p-4">
-                <p className="text-muted-foreground text-sm font-body uppercase tracking-wider mb-1">
+              <div className="text-center glass imperial-border rounded p-4">
+                <p className="text-muted-foreground text-sm font-body uppercase tracking-[0.15em] mb-1">
                   Selecting token
                 </p>
                 <p className="font-display text-xl text-primary text-glow">
@@ -177,7 +177,7 @@ const Index = () => {
               />
 
               <div className="text-center">
-                <Button variant="outline" size="sm" onClick={reset} className="font-display text-xs uppercase tracking-widest">
+                <Button variant="outline" size="sm" onClick={reset} className="font-display text-xs uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40">
                   <RotateCcw className="mr-2 h-3 w-3" />
                   Restart
                 </Button>
@@ -193,9 +193,10 @@ const Index = () => {
               exit={{ opacity: 0 }}
               className="space-y-6"
             >
-              <h2 className="font-display text-sm uppercase tracking-widest text-primary text-glow text-center">
+              <h2 className="font-display text-sm uppercase tracking-[0.3em] text-primary text-glow text-center">
                 Assignments Revealed
               </h2>
+              <div className="imperial-divider w-32 mx-auto" />
               <div className="grid gap-3">
                 {revealedAssignments.map((a, i) => (
                   <FactionCard
@@ -208,7 +209,7 @@ const Index = () => {
               </div>
 
               <div className="text-center pt-4">
-                <Button onClick={reset} size="lg" className="font-display text-sm uppercase tracking-widest glow-primary px-10 py-6">
+                <Button onClick={reset} size="lg" className="font-display text-sm uppercase tracking-[0.2em] glow-primary px-10 py-6 bg-primary text-primary-foreground hover:bg-primary/90">
                   <RotateCcw className="mr-2 h-5 w-5" />
                   New Game
                 </Button>

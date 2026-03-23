@@ -18,14 +18,14 @@ const FactionPool = ({
     return (
       <button
         onClick={() => onToggleFaction(faction.name)}
-        className={`px-3 py-1.5 rounded-md text-sm font-body font-medium transition-all duration-200 border ${
+        className={`px-3 py-1.5 rounded text-sm font-body font-medium transition-all duration-200 border ${
           excluded
-            ? "opacity-30 border-border bg-muted text-muted-foreground line-through"
+            ? "opacity-25 border-border bg-muted text-muted-foreground line-through"
             : "border-border bg-secondary text-secondary-foreground hover:opacity-80"
         }`}
         style={
           !excluded
-            ? { borderColor: `hsl(${faction.color} / 0.4)`, color: `hsl(${faction.color})` }
+            ? { borderColor: `hsl(${faction.color} / 0.35)`, color: `hsl(${faction.color})` }
             : undefined
         }
       >
@@ -37,7 +37,7 @@ const FactionPool = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="font-display text-sm uppercase tracking-widest text-primary text-glow">
+        <h2 className="font-display text-sm uppercase tracking-[0.2em] text-primary text-glow">
           Faction Pool
         </h2>
         <label className="flex items-center gap-2 cursor-pointer">
@@ -68,8 +68,8 @@ const FactionPool = ({
             <FactionChip key={f.name} faction={f} />
           ))}
       </div>
-      <p className="text-xs text-muted-foreground font-body">
-        Click to exclude/include factions
+      <p className="text-xs text-muted-foreground font-body italic">
+        Click to exclude or include factions
       </p>
     </div>
   );

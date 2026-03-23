@@ -14,7 +14,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ["Orbitron", "sans-serif"],
+        display: ["Cinzel", "serif"],
         body: ["Rajdhani", "sans-serif"],
       },
       colors: {
