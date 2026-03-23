@@ -109,6 +109,21 @@ const CreateLobby = () => {
 
               <div className="imperial-divider" />
 
+              <div className="space-y-3">
+                <h2 className="font-display text-sm uppercase tracking-[0.2em] text-primary text-glow">
+                  Host Password
+                </h2>
+                <Input
+                  type="password"
+                  value={hostPassword}
+                  onChange={(e) => setHostPassword(e.target.value)}
+                  placeholder="Set a password to manage this lobby from any device"
+                  className="bg-input border-border font-body text-foreground focus:border-primary/40 rounded"
+                />
+              </div>
+
+              <div className="imperial-divider" />
+
               <div className="flex items-center justify-between">
                 <h2 className="font-display text-sm uppercase tracking-[0.2em] text-primary text-glow">
                   Max Players
