@@ -142,7 +142,7 @@ const JoinLobby = () => {
           </motion.div>
 
           <div className="glass imperial-border rounded p-6 space-y-3">
-            <h2 className="font-display text-sm uppercase tracking-[0.2em] text-primary text-glow text-center mb-4">
+            <h2 className="font-display text-base uppercase tracking-[0.2em] text-primary text-glow text-center mb-4">
               Your Factions
             </h2>
             {(existingPlayer.assigned_factions as unknown as Faction[])?.map((f, i) => (
