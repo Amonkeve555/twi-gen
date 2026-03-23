@@ -96,7 +96,7 @@ const LobbyView = () => {
 
           {/* Player List */}
           <div className="glass imperial-border rounded p-6 space-y-3">
-            <h2 className="font-display text-sm uppercase tracking-[0.2em] text-primary text-glow mb-4">
+            <h2 className="font-display text-base uppercase tracking-[0.2em] text-primary text-glow mb-4">
               Players
             </h2>
             {players.length === 0 ? (
