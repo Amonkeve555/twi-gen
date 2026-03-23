@@ -210,7 +210,7 @@ const JoinLobby = () => {
         {phase === "pick" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
             <div className="text-center glass imperial-border rounded p-4">
-              <p className="text-muted-foreground text-sm font-body uppercase tracking-[0.15em] mb-1">
+              <p className="text-muted-foreground text-base font-body uppercase tracking-[0.15em] mb-1">
                 Selecting tokens
               </p>
               <p className="font-display text-xl text-primary text-glow">{playerName}</p>
