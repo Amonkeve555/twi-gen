@@ -209,17 +209,15 @@ const Index = () => {
                     Not enough factions ({availableFactions.length}) for {players.length} players × {picksPerPlayer} picks = {players.length * picksPerPlayer} needed
                   </p>
                 )}
-                {history.length > 0 && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate("/history")}
-                    className="font-display text-xs uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40"
-                  >
-                    <Scroll className="mr-2 h-3 w-3" />
-                    Game History ({history.length})
-                  </Button>
-                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate("/history")}
+                  className="font-display text-xs uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+                >
+                  <Scroll className="mr-2 h-3 w-3" />
+                  Game History{history.length > 0 ? ` (${history.length})` : ""}
+                </Button>
               </div>
             </motion.div>
           )}
