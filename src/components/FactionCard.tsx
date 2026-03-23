@@ -34,7 +34,7 @@ const FactionCard = ({ playerName, faction, index }: FactionCardProps) => {
       />
 
       <div className="relative z-10">
-        <p className="text-muted-foreground text-sm font-body uppercase tracking-[0.15em] mb-1">
+        <p className="text-muted-foreground text-base font-body uppercase tracking-[0.15em] mb-1">
           {playerName}
         </p>
         <h3
