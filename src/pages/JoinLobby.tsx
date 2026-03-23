@@ -214,7 +214,7 @@ const JoinLobby = () => {
                 Selecting tokens
               </p>
               <p className="font-display text-xl text-primary text-glow">{playerName}</p>
-              <p className="text-muted-foreground text-xs font-body mt-1">
+              <p className="text-muted-foreground text-base font-body mt-1">
                 Pick {tokenPicks.length + 1} of {picksPerPlayer}
               </p>
             </div>
