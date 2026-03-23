@@ -27,6 +27,7 @@ const App = () => (
           <Route path="/join/:inviteCode" element={<JoinLobby />} />
           <Route path="/lobby/:inviteCode" element={<LobbyView />} />
           <Route path="/lobby/:inviteCode/gameday" element={<GameDay />} />
+          <Route path="/my-lobbies" element={<MyLobbies />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
