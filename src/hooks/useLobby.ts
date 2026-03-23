@@ -1,0 +1,122 @@
+import { useEffect, useState, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import type { Faction } from "@/data/factions";
+
+export interface LobbySettings {
+  factions: Faction[];
+  picks_per_player: number;
+  max_players: number;
+}
+
+export interface LobbyRow {
+  id: string;
+  invite_code: string;
+  host_session_id: string;
+  host_name: string;
+  settings: LobbySettings;
+  status: string;
+  token_mapping: Record<string, Faction> | null;
+  created_at: string;
+}
+
+export interface LobbyPlayerRow {
+  id: string;
+  lobby_id: string;
+  session_id: string;
+  player_name: string;
+  token_picks: number[] | null;
+  assigned_factions: Faction[] | null;
+  chosen_faction: Faction | null;
+  vp: number | null;
+  rank: number | null;
+  joined_at: string;
+}
+
+export function useLobby(inviteCode: string | undefined) {
+  const [lobby, setLobby] = useState<LobbyRow | null>(null);
+  const [players, setPlayers] = useState<LobbyPlayerRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchLobby = useCallback(async () => {
+    if (!inviteCode) return;
+    
+    const { data, error: err } = await supabase
+      .from("lobbies")
+      .select("*")
+      .eq("invite_code", inviteCode)
+      .maybeSingle();
+
+    if (err) {
+      setError(err.message);
+      setLoading(false);
+      return;
+    }
+    if (!data) {
+      setError("Lobby not found");
+      setLoading(false);
+      return;
+    }
+
+    setLobby({
+      ...data,
+      settings: data.settings as unknown as LobbySettings,
+      token_mapping: data.token_mapping as unknown as Record<string, Faction> | null,
+    });
+    setError(null);
+  }, [inviteCode]);
+
+  const fetchPlayers = useCallback(async () => {
+    if (!lobby) return;
+    
+    const { data } = await supabase
+      .from("lobby_players")
+      .select("*")
+      .eq("lobby_id", lobby.id)
+      .order("joined_at", { ascending: true });
+
+    if (data) {
+      setPlayers(
+        data.map((p) => ({
+          ...p,
+          assigned_factions: p.assigned_factions as unknown as Faction[] | null,
+          chosen_faction: p.chosen_faction as unknown as Faction | null,
+        }))
+      );
+    }
+    setLoading(false);
+  }, [lobby]);
+
+  useEffect(() => {
+    fetchLobby();
+  }, [fetchLobby]);
+
+  useEffect(() => {
+    fetchPlayers();
+  }, [fetchPlayers]);
+
+  // Real-time subscriptions
+  useEffect(() => {
+    if (!lobby) return;
+
+    const channel = supabase
+      .channel(`lobby-${lobby.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "lobby_players", filter: `lobby_id=eq.${lobby.id}` },
+        () => fetchPlayers()
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "lobbies", filter: `id=eq.${lobby.id}` },
+        () => fetchLobby()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [lobby?.id, fetchPlayers, fetchLobby]);
+
+  return { lobby, players, loading, error, refetch: fetchPlayers };
+}
