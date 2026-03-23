@@ -1,17 +1,42 @@
 
 
-## Home Page Redesign — Side-by-side Buttons + Inline Active Lobbies
+## Host Password for Lobby Management
 
-### Changes
+### Overview
+When creating a lobby, the host sets a custom password. On any device, entering this password on the lobby view grants host privileges (manage game, kick players, delete lobby, start Game Day).
 
-**`src/pages/Index.tsx`**
+### Database Change
+- Add `host_password` (text, not null) column to `lobbies` table
 
-1. **Rename** "Begin Local Draft" → "Create Local Game"
-2. **Layout**: Put both primary buttons in a single row (`flex-row`) instead of stacked
-3. **Inline active lobbies**: Below the nav buttons, fetch and display the user's active (non-completed) lobbies directly on the home page — reusing the same fetch logic from `MyLobbies.tsx`. Show lobby cards with invite code, host name, player count, and status. Clicking navigates to the lobby. Keep the "My Lobbies" button for viewing all (including completed).
+### Frontend Changes
 
-**Data fetching**: Add a `useEffect` in `Index` that fetches lobbies where the user is host or player (same logic as `MyLobbies`), filtered to `status != 'completed'`. Display them in a section titled "Active Lobbies" with the same card style.
+**`src/pages/CreateLobby.tsx`**
+- Add a "Host Password" input field in the lobby creation form
+- Store password in the `host_password` column on insert
 
-### Files to modify
-- `src/pages/Index.tsx` — rename button, side-by-side layout, add active lobbies list with fetch logic
+**`src/pages/LobbyView.tsx`**
+- If current session is not the host, show a "Claim Host" button
+- Clicking it opens a password input dialog
+- On correct password: update `host_session_id` to current session ID → user becomes host on this device
+- On wrong password: show error
+
+**`src/pages/GameDay.tsx`**
+- Same "Claim Host" button + password dialog for non-host users
+
+**`src/lib/inviteCode.ts`**
+- No changes needed (user sets their own password)
+
+### Flow
+```text
+CREATE LOBBY
+  → Enter host password (your choice)
+  → Lobby created
+
+LOBBY VIEW (any device)
+  → Not recognized as host?
+  → Click "Claim Host" → enter password → verified → you're the host
+```
+
+### Security Note
+Password is stored as plain text since there's no auth system — this is a lightweight access control for a game lobby, not sensitive data protection. RLS is already fully open on these tables.
 
