@@ -192,7 +192,7 @@ const JoinLobby = () => {
                   className="bg-input border-border font-body text-foreground focus:border-primary/40 rounded"
                   onKeyDown={(e) => e.key === "Enter" && joinLobby()}
                 />
-                <p className="font-body text-xs text-muted-foreground">
+                <p className="font-body text-base text-muted-foreground">
                   {players.length}/{settings?.max_players} players joined · {picksPerPlayer} pick{picksPerPlayer > 1 ? "s" : ""} per player
                 </p>
                 <Button
