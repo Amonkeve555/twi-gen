@@ -258,7 +258,7 @@ const Index = () => {
                 <p className="font-display text-xl text-primary text-glow">
                   {players[currentPlayerIndex]}
                 </p>
-                <p className="text-muted-foreground text-xs font-body mt-1">
+                 <p className="text-muted-foreground text-base font-body mt-1">
                   Pick {currentPickCount + 1} of {picksPerPlayer} · Player {currentPlayerIndex + 1} of {players.length}
                 </p>
               </div>
