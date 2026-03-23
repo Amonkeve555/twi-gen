@@ -1,6 +1,6 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RotateCcw, Scroll, Users, Gamepad2, BookOpen, Bot, BarChart3 } from "lucide-react";
+import { RotateCcw, Scroll, Users, Gamepad2, BookOpen, Bot, BarChart3, Clock, Check, Trophy } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import tiEmblem from "@/assets/ti-emblem.png";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,20 @@ import FactionCard from "@/components/FactionCard";
 import ResultsEntry from "@/components/ResultsEntry";
 import { useGameHistory } from "@/hooks/useGameHistory";
 import { TI4_FACTIONS, POK_FACTIONS, type Faction } from "@/data/factions";
+import { supabase } from "@/integrations/supabase/client";
+import { getSessionId } from "@/lib/sessionId";
+import type { LobbySettings } from "@/hooks/useLobby";
+
+interface ActiveLobby {
+  id: string;
+  invite_code: string;
+  host_name: string;
+  status: string;
+  created_at: string;
+  settings: LobbySettings;
+  role: "host" | "player";
+  player_count: number;
+}
 
 type Phase = "menu" | "setup" | "draft" | "choose" | "reveal";
 
