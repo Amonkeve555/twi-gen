@@ -223,6 +223,8 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "Wormhole Generator II", type: "blue", prerequisites: "BBB", description: "At the start of the status phase, place or move a Creuss wormhole token into either a system that contains a planet you control or a non-home system that is adjacent to a system that contains a planet you control." },
     ],
     agent: { name: "Emissary Taivra", description: "After a player activates a system that contains a non-delta wormhole: You may exhaust this card to allow that player to apply +1 to the move value of each of their ships during this tactical action that started in or adjacent to a wormhole." },
+    commander: { name: "Sai Seravus", unlock: "Have units in or adjacent to 3 or more wormholes.", description: "During your turn, you may place 1 Creuss wormhole token in a non-home system that contains 1 or more of your ships." },
+    hero: { name: "Ixthael", description: "ACTION: Place this card face-up in your play area. All systems that contain a wormhole are adjacent to all other systems that contain a wormhole. At the end of the status phase, purge this card." },
   },
   {
     name: "The L1Z1X Mindnet",
