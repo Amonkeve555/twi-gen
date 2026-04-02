@@ -216,7 +216,8 @@ const FactionGuideCard = ({ faction, onDetailClick }: { faction: Faction; onDeta
 
 const FactionGuide = () => {
   const navigate = useNavigate();
-  const [search, setSearch] = useState("");
+  const [searchParams] = useSearchParams();
+  const [search, setSearch] = useState(searchParams.get("search") ?? "");
   const [showPok, setShowPok] = useState(true);
   const [detailDialog, setDetailDialog] = useState<DetailDialogData | null>(null);
 
