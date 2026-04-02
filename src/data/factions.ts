@@ -520,6 +520,8 @@ export const POK_FACTIONS: Faction[] = [
       { name: "Z-Grav Eddying II", type: "unit", prerequisites: "GY", description: "Cost 2 / Combat 8 / Move 2. After this unit moves, if it is in the space area of an anomaly, you may explore that planet as if you controlled it. This unit may transport 1 mech or 1 infantry." },
     ],
     agent: { name: "Garv and Gunn", description: "After a player explores a planet: You may exhaust this card; if you do, that player gains 1 trade good." },
+    commander: { name: "Dart and Tai", unlock: "Purge 2 or more relic fragments.", description: "After you explore a planet: You may draw 1 relic fragment of any type." },
+    hero: { name: "Hesh and Prit", description: "ACTION: Gain 3 relics. Purge this card." },
   },
   {
     name: "The Nomad",
