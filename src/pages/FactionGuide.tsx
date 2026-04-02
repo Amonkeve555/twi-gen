@@ -121,9 +121,15 @@ const FactionGuideCard = ({ faction, onDetailClick }: { faction: Faction; onDeta
                 <FactionDetail icon={<Zap className="h-4 w-4" />} label="Faction Technologies">
                   <div className="flex flex-wrap gap-2">
                     {faction.factionTech.map((t) => (
-                      <TechChip key={t.name} tech={t} onClick={() => onTechClick(t, faction)} />
+                      <TechChip key={t.name} tech={t} onClick={() => onDetailClick({ kind: "tech", tech: t, faction })} />
                     ))}
                   </div>
+                </FactionDetail>
+              )}
+
+              {faction.agent && (
+                <FactionDetail icon={<User className="h-4 w-4" />} label="Agent">
+                  <p className="text-sm"><span className="font-semibold text-primary">{faction.agent.name}</span> — {faction.agent.description}</p>
                 </FactionDetail>
               )}
 
@@ -135,18 +141,51 @@ const FactionGuideCard = ({ faction, onDetailClick }: { faction: Faction; onDeta
 
               {faction.startingUnits && (
                 <FactionDetail icon={<Shield className="h-4 w-4" />} label="Starting Units">
-                  <p className="text-sm">{faction.startingUnits}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {parseUnitsFromString(faction.startingUnits).map((unitName) => {
+                      const refKey = Object.keys(UNIT_REFERENCE).find((k) => unitName.toLowerCase().includes(k.toLowerCase()));
+                      if (refKey) {
+                        return (
+                          <button
+                            key={unitName}
+                            onClick={(e) => { e.stopPropagation(); onDetailClick({ kind: "unit", name: refKey, description: UNIT_REFERENCE[refKey] }); }}
+                            className="px-2.5 py-1 rounded text-xs font-body font-medium transition-all duration-200 border cursor-pointer hover:scale-105 active:scale-95 border-muted-foreground/30 text-muted-foreground hover:text-foreground hover:border-foreground/40 bg-muted/20"
+                          >
+                            {unitName}
+                          </button>
+                        );
+                      }
+                      return <span key={unitName} className="px-2.5 py-1 rounded text-xs font-body text-muted-foreground">{unitName}</span>;
+                    })}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">{faction.startingUnits}</p>
                 </FactionDetail>
               )}
 
               {faction.startingTech && faction.startingTech.length > 0 && (
                 <FactionDetail icon={<Cpu className="h-4 w-4" />} label="Starting Tech">
                   <div className="flex flex-wrap gap-2">
-                    {faction.startingTech.map((t) => (
-                      <span key={t} className="px-2 py-0.5 rounded text-xs bg-primary/10 text-primary border border-primary/20">
-                        {t}
-                      </span>
-                    ))}
+                    {faction.startingTech.map((t) => {
+                      const genTech = GENERIC_TECH[t];
+                      if (genTech) {
+                        const color = TECH_TYPE_COLORS[genTech.type] || "0 0% 50%";
+                        return (
+                          <button
+                            key={t}
+                            onClick={(e) => { e.stopPropagation(); onDetailClick({ kind: "generic_tech", name: t, type: genTech.type, description: genTech.description }); }}
+                            className="px-2.5 py-1 rounded text-xs font-body font-medium transition-all duration-200 border cursor-pointer hover:scale-105 active:scale-95"
+                            style={{
+                              borderColor: `hsl(${color} / 0.4)`,
+                              color: `hsl(${color})`,
+                              background: `hsl(${color} / 0.1)`,
+                            }}
+                          >
+                            {t}
+                          </button>
+                        );
+                      }
+                      return <span key={t} className="px-2 py-0.5 rounded text-xs bg-primary/10 text-primary border border-primary/20">{t}</span>;
+                    })}
                   </div>
                 </FactionDetail>
               )}
