@@ -541,6 +541,8 @@ export const POK_FACTIONS: Faction[] = [
       { name: "Memoria II", type: "unit", prerequisites: "BBY", description: "Cost 8 / Combat 5(×2) / Move 2 / Capacity 6 / Sustain Damage. During combat against your ships in this system, your opponent' fighters and ground forces cannot make combat rolls." },
     ],
     agent: { name: "Artuno the Betrayer", description: "After a player activates a system that contains 1 or more of their ships: You may exhaust this card to allow that player to spend 3 trade goods to place 1 cruiser from their reinforcements in the active system." },
+    commander: { name: "Navarch Feng", unlock: "Have your flagship on the game board.", description: "During combat in a system that contains your flagship: Apply +1 to the result of each of your unit's combat rolls." },
+    hero: { name: "The Thundarian", description: "ACTION: Place this card face-up in your play area. Your flagship gains Sustain Damage and its combat value becomes 3. At the end of the status phase, purge this card." },
   },
   {
     name: "The Titans of Ul",
