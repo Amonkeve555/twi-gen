@@ -583,5 +583,7 @@ export const POK_FACTIONS: Faction[] = [
       { name: "Vortex", type: "red", prerequisites: "R", description: "ACTION: Exhaust this card to choose another player' non-structure unit in a system that is adjacent to 1 or more of your units that have Capacity; capture that unit." },
     ],
     agent: { name: "It Feeds on Carrion", description: "After a player's unit is destroyed: You may exhaust this card; if you do, the player who destroyed that unit may place 1 infantry from their reinforcements on a planet they control in that system." },
+    commander: { name: "Riftwalker Meian", unlock: "Have 2 or more captured units.", description: "After you win a space combat: You may replace 1 of the loser's non-structure units with 1 of your own from your reinforcements." },
+    hero: { name: "Kordhek Yeel", description: "ACTION: Place all captured units on planets you control in your home system. These units are now your units. Purge this card." },
   },
 ];
