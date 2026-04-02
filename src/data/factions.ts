@@ -39,6 +39,8 @@ export interface Faction {
   strategyTip?: string;
   factionTech?: FactionTech[];
   agent?: FactionAgent;
+  commander?: FactionCommander;
+  hero?: FactionHero;
 }
 
 // Generic tech reference for starting techs
