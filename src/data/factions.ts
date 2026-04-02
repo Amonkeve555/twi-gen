@@ -97,6 +97,8 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "Letani Warrior II", type: "unit", prerequisites: "GG", description: "Cost 1 / Combat 8(×2). After this unit is destroyed, roll 1 die. If the result is 6 or greater, place the unit on this card. At the start of your next turn, place each unit that is on this card on a planet you control in your home system." },
     ],
     agent: { name: "Letani Ospha", description: "After a player activates a system: You may exhaust this card to allow that player to replace 1 of their infantry in the active system with 1 infantry from their reinforcements." },
+    commander: { name: "Dirzuga Rophal", unlock: "Have 12 or more ground forces on the game board.", description: "After any player produces 1 or more units: You may place 1 infantry from your reinforcements on any planet you control." },
+    hero: { name: "Letani Miasmiala", description: "ACTION: Place this card face-up in your play area. At the start of each status phase, place 2 infantry from your reinforcements on any planet you control. At the start of the agenda phase, remove this card." },
   },
   {
     name: "The Barony of Letnev",
