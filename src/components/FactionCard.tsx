@@ -1,4 +1,6 @@
 import { motion } from "framer-motion";
+import { Info } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import type { Faction } from "@/data/factions";
 
 interface FactionCardProps {
@@ -8,6 +10,13 @@ interface FactionCardProps {
 }
 
 const FactionCard = ({ playerName, faction, index }: FactionCardProps) => {
+  const navigate = useNavigate();
+
+  const openGuide = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/factions?search=${encodeURIComponent(faction.name)}`);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 30, scale: 0.9 }}
@@ -37,15 +46,24 @@ const FactionCard = ({ playerName, faction, index }: FactionCardProps) => {
         <p className="text-muted-foreground text-base font-body uppercase tracking-[0.15em] mb-1">
           {playerName}
         </p>
-        <h3
-          className="font-display text-xl font-bold tracking-wide"
-          style={{
-            color: `hsl(${faction.color})`,
-            textShadow: `0 0 12px hsl(${faction.color} / 0.4)`,
-          }}
-        >
-          {faction.name}
-        </h3>
+        <div className="flex items-center justify-between">
+          <h3
+            className="font-display text-xl font-bold tracking-wide"
+            style={{
+              color: `hsl(${faction.color})`,
+              textShadow: `0 0 12px hsl(${faction.color} / 0.4)`,
+            }}
+          >
+            {faction.name}
+          </h3>
+          <button
+            onClick={openGuide}
+            className="p-1.5 rounded hover:bg-secondary/80 transition-colors opacity-60 hover:opacity-100"
+            title="View faction details"
+          >
+            <Info className="h-4 w-4 text-muted-foreground" />
+          </button>
+        </div>
       </div>
 
       {/* Background glow */}
