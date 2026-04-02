@@ -265,6 +265,8 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "Mirror Computing", type: "yellow", prerequisites: "YYY", description: "When you spend trade goods, each trade good is worth 2 resources or 2 influence instead of 1." },
     ],
     agent: { name: "Suffi An", description: "After a player activates a system that contains 1 or more of their ships: You may exhaust this card to allow that player to produce 1 ship in that system; the produced ship must have a cost equal to or lower than the highest-cost ship that player has in that system." },
+    commander: { name: "S'Ula Mentarion", unlock: "Have 4 or more ships in 2 or more systems.", description: "During your turn: You may take 1 trade good from a player who has more trade goods than you." },
+    hero: { name: "Iperia Mentak", description: "ACTION: Each other player gives you all of their trade goods. Purge this card." },
   },
   {
     name: "The Naalu Collective",
