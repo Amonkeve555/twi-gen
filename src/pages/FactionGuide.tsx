@@ -51,7 +51,20 @@ const TechChip = ({ tech, onClick }: { tech: FactionTech; onClick: () => void })
   );
 };
 
-const FactionGuideCard = ({ faction, onTechClick }: { faction: Faction; onTechClick: (tech: FactionTech, faction: Faction) => void }) => {
+type DetailDialogData = 
+  | { kind: "tech"; tech: FactionTech; faction: Faction }
+  | { kind: "generic_tech"; name: string; type: string; description: string }
+  | { kind: "unit"; name: string; description: string };
+
+const parseUnitsFromString = (units: string): string[] => {
+  return units.split(",").map((s) => {
+    const trimmed = s.trim();
+    const match = trimmed.match(/^\d+\s+(.+)$/);
+    return match ? match[1].replace(/s$/, "") : trimmed;
+  }).filter((v, i, a) => a.indexOf(v) === i);
+};
+
+const FactionGuideCard = ({ faction, onDetailClick }: { faction: Faction; onDetailClick: (data: DetailDialogData) => void }) => {
   const [expanded, setExpanded] = useState(false);
 
   return (
