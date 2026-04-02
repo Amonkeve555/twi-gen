@@ -478,6 +478,8 @@ export const POK_FACTIONS: Faction[] = [
       { name: "Voidwatch", type: "green", prerequisites: "G", description: "After a player activates a system that contains your units: You may exhaust this card; if so, during this tactical action, the other player cannot use ANTI-FIGHTER BARRAGE." },
     ],
     agent: { name: "Acamar", description: "After a player activates a system: You may exhaust this card to allow that player to remove 1 of their command tokens from the game board and place it in their reinforcements." },
+    commander: { name: "Xuange", unlock: "Have units in or adjacent to 2 or more anomalies.", description: "Other players must spend 1 influence to activate a system that is adjacent to 1 or more of your systems that contain your ships." },
+    hero: { name: "Conservator Procyon", description: "ACTION: Place this card face-up in your play area. Other players cannot activate systems that contain your structures. At the end of the status phase, purge this card." },
   },
   {
     name: "The Mahact Gene-Sorcerers",
