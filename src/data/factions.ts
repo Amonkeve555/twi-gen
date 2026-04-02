@@ -202,6 +202,8 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "Spec Ops II", type: "unit", prerequisites: "GG", description: "Cost 1(×2) / Combat 6. After this unit is destroyed, roll 1 die. If the result is 5 or greater, place the unit on this card. At the start of your next turn, place each unit on this card on a planet you control in your home system." },
     ],
     agent: { name: "Evelyn Delouis", description: "After a player activates a system: You may exhaust this card to allow that player to remove 1 of their infantry from the game board and place it on a planet they control in the active system." },
+    commander: { name: "Claire Gibson", unlock: "Have 3 or more structures on the game board.", description: "After you produce units: You may place up to 2 infantry from your reinforcements on any planet you control." },
+    hero: { name: "Jace X. 4th Air Legion", description: "ACTION: Place this card face-up in your play area. For the rest of this game round, your infantry on planets you control gain Sustain Damage. Purge this card at the end of the game round." },
   },
   {
     name: "The Ghosts of Creuss",
