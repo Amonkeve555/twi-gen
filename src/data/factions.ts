@@ -370,6 +370,8 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "Hegemonic Trade Policy", type: "yellow", prerequisites: "YY", description: "Exhaust this card when 1 or more of your units use Production; swap the resource and influence values of 1 planet you control for this production." },
     ],
     agent: { name: "Berekar Berekon", description: "When a player would spend a command token during the secondary ability of a strategy card: You may exhaust this card; that player does not spend that command token." },
+    commander: { name: "Rickar Rickani", unlock: "Control Mecatol Rex or enter a home system during a tactical action.", description: "When you gain control of a planet: You may produce 1 unit on that planet." },
+    hero: { name: "Mathis Mathinus", description: "ACTION: During this game round, when you explore a planet, draw 3 cards instead of 1 and choose which to resolve. Purge this card." },
   },
   {
     name: "The Xxcha Kingdom",
