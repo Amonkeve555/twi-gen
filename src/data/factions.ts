@@ -457,6 +457,8 @@ export const POK_FACTIONS: Faction[] = [
       { name: "Strike Wing Alpha II", type: "unit", prerequisites: "YR", description: "Cost 2 / Combat 7 / Move 3 / Capacity 1 / Anti-Fighter Barrage 6(×3). This unit can transport 1 infantry or 1 mech." },
     ],
     agent: { name: "Trillossa Aun Mirik", description: "At the start of a combat round: You may exhaust this card to choose a player in the active system; that player may reroll any of their dice that did not produce a hit." },
+    commander: { name: "Trrakan Aun Zulok", unlock: "Have units in 3 or more systems that contain no planets.", description: "At the end of a player's tactical action, if you have 1 or more ships in the active system: You may place 1 destroyer from your reinforcements in the active system." },
+    hero: { name: "Mirik Aun Sissiri", description: "ACTION: Place this card face-up in your play area. For each combat this game round: apply +2 to Anti-Fighter Barrage rolls. At the end of the game round, purge this card." },
   },
   {
     name: "The Empyrean",
