@@ -328,6 +328,8 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "Valkyrja Gate", type: "blue", prerequisites: "BB", description: "After you activate a system that does not contain your ships: You may exhaust this card to place 1 infantry and 1 mech from your reinforcements on a planet you control in that system." },
     ],
     agent: { name: "T'ro", description: "At the start of a ground combat round: You may exhaust this card to choose a player in the active system; that player may reroll any number of their dice during this combat round." },
+    commander: { name: "G'hom Sek'kus", unlock: "Win a combat.", description: "At the start of a combat round: Apply +1 to the result of each of your unit's combat rolls during this round." },
+    hero: { name: "Sh'val, Harbinger", description: "ACTION: Place this card face-up in your play area. For each combat you win this game round, gain 1 victory point. At the end of the game round, purge this card." },
   },
   {
     name: "The Universities of Jol-Nar",
