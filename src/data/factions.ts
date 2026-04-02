@@ -349,6 +349,8 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "J.N.S. Hylarim", type: "unit", prerequisites: "BB", description: "Cost 8 / Combat 6(×2) / Move 2 / Capacity 3 / Sustain Damage. When making a combat roll for this ship, each result of 9 or 10 (before applying modifiers) produces 2 additional hits." },
     ],
     agent: { name: "Doctor Sucaban", description: "When a player spends a command token from their strategy pool to resolve the secondary ability of a technology strategy card: You may exhaust this card to allow that player to research 1 technology for free." },
+    commander: { name: "Ta Zern", unlock: "Own 8 or more technologies.", description: "When you research a technology: You may exhaust 1 of your technologies to ignore 1 prerequisite." },
+    hero: { name: "Rin, The Master's Legacy", description: "ACTION: For each non-faction technology you own, you may replace it with any technology of the same color. Purge this card." },
   },
   {
     name: "The Winnu",
