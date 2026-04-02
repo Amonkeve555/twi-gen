@@ -118,6 +118,8 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "Non-Euclidean Shielding", type: "red", prerequisites: "RR", description: "When 1 of your units uses \"Sustain Damage,\" cancel 2 hits instead of 1." },
     ],
     agent: { name: "Darktalon Treilla", description: "At the start of a combat round: You may exhaust this card to choose a player in the active system; that player may spend 2 trade goods to apply +1 to the result of each of their unit's combat rolls during this combat round." },
+    commander: { name: "Rear Admiral Farran", unlock: "Have 5 or more non-fighter ships in 1 system.", description: "After 1 of your units uses Sustain Damage: You may spend 1 trade good to repair that unit." },
+    hero: { name: "Dark Talons Treilla", description: "ACTION: Place this card face-up in your play area. During this game round, apply +2 to the move value and +2 to the combat value of each of your dreadnoughts. At the end of this game round, purge this card." },
   },
   {
     name: "The Clan of Saar",
