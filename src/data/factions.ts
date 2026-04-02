@@ -160,6 +160,8 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "Prototype War Sun II", type: "unit", prerequisites: "RRR", description: "Cost 10(×3) / Combat 3(×3) / Move 3 / Capacity 6 / Sustain Damage / Bombardment 3(×3). Other players' units in this system lose \"Planetary Shield.\"" },
     ],
     agent: { name: "Umbat", description: "After a player activates a system that contains 1 or more of their war suns or their flagship: You may exhaust this card; that player may produce up to 2 units in that system, applying +2 to the production limit of that system." },
+    commander: { name: "Magmus", unlock: "Have a war sun on the game board.", description: "You may spend 1 trade good when you use the secondary ability of the Warfare strategy card to use the primary ability instead." },
+    hero: { name: "Adjudicator Ba'al", description: "ACTION: Place this card face-up in your play area. Your war suns gain SUSTAIN DAMAGE. At the end of the status phase, purge this card." },
   },
   {
     name: "The Emirates of Hacan",
