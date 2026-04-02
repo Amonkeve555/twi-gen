@@ -181,6 +181,8 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "Quantum Datahub Node", type: "yellow", prerequisites: "YYY", description: "At the end of the strategy phase, you may spend 1 token from your strategy pool to swap 1 of your strategy cards with a strategy card that was not picked." },
     ],
     agent: { name: "Carth of Golden Sands", description: "At the start of a player's turn: You may exhaust this card to allow that player to replenish their commodities; if you do, replenish your commodities." },
+    commander: { name: "Gila the Silvertongue", unlock: "Have 10 or more trade goods.", description: "After you resolve a transaction: You may gain 1 trade good." },
+    hero: { name: "Harrugh Gefhara", description: "ACTION: Each other player may give you 1 trade good; for each trade good you receive, you may give that player up to 3 trade goods. Purge this card." },
   },
   {
     name: "The Federation of Sol",
