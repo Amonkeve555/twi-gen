@@ -307,6 +307,8 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "Valefar Assimilator Y", type: "green", prerequisites: "", description: "When you research a technology, you may exhaust this card to ignore prerequisites and research a non-faction technology that 1 other player has already researched, even if it is not on your faction sheet." },
     ],
     agent: { name: "Nekro Malleon", description: "At the start of a player's turn: You may exhaust this card to allow that player to draw 1 action card." },
+    commander: { name: "Nekro Acidos", unlock: "Own 3 or more technologies.", description: "After you gain a technology: You may draw 1 action card." },
+    hero: { name: "UNIT.DSGN.FLAYESH", description: "ACTION: Destroy any number of your ground forces on the game board. For each unit you destroyed, you may place 1 unit of any type from your reinforcements on a planet you control. Purge this card." },
   },
   {
     name: "Sardakk N'orr",
