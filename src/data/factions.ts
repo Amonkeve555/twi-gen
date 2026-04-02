@@ -244,6 +244,8 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "Super Dreadnought II", type: "unit", prerequisites: "BBR", description: "Cost 4 / Combat 4 / Move 2 / Capacity 2 / Sustain Damage / Bombardment 4. This unit may transport up to 2 fighters or ground forces." },
     ],
     agent: { name: "I48S", description: "After a player activates a system that contains 1 or more of their dreadnoughts or their flagship: You may exhaust this card to allow that player to replace 1 of their infantry in the active system with 1 mech from their reinforcements." },
+    commander: { name: "2RAM", unlock: "Have your flagship or your war sun on the game board.", description: "When you produce units: You may spend influence to use as resources." },
+    hero: { name: "Ibna Vel Sansen", description: "ACTION: For each planet you control, place 1 mech on that planet from your reinforcements. Then purge this card." },
   },
   {
     name: "The Mentak Coalition",
