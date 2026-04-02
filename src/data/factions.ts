@@ -562,6 +562,8 @@ export const POK_FACTIONS: Faction[] = [
       { name: "Saturn Engine II", type: "unit", prerequisites: "GBRY", description: "Cost 2 / Combat 7 / Move 3 / Capacity 1 / Sustain Damage. This unit may transport 1 infantry or 1 mech." },
     ],
     agent: { name: "Hecatoncheires", description: "After a player explores a planet: You may exhaust this card to allow that player to place 1 PDS or 1 infantry from their reinforcements on that planet." },
+    commander: { name: "Tungstantus", unlock: "Have 5 or more PDS or structures on the game board.", description: "When you use Production: You may produce 1 PDS or 1 infantry for free." },
+    hero: { name: "Ul the Progenitor", description: "ACTION: Place this card face-up in your play area. Your PDS gain Space Cannon 3 and lose Planetary Shield. At the end of the status phase, purge this card." },
   },
   {
     name: "The Vuil'Raith Cabal",
