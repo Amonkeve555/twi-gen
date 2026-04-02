@@ -1,3 +1,10 @@
+export interface FactionTech {
+  name: string;
+  type: "unit" | "green" | "blue" | "yellow" | "red";
+  prerequisites?: string;
+  description: string;
+}
+
 export interface Faction {
   name: string;
   shortName: string;
@@ -8,6 +15,7 @@ export interface Faction {
   startingTech?: string[];
   commodities?: number;
   strategyTip?: string;
+  factionTech?: FactionTech[];
 }
 
 export const TI4_FACTIONS: Faction[] = [
