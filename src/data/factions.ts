@@ -1,3 +1,10 @@
+export interface FactionTech {
+  name: string;
+  type: "unit" | "green" | "blue" | "yellow" | "red";
+  prerequisites?: string;
+  description: string;
+}
+
 export interface Faction {
   name: string;
   shortName: string;
@@ -8,6 +15,7 @@ export interface Faction {
   startingTech?: string[];
   commodities?: number;
   strategyTip?: string;
+  factionTech?: FactionTech[];
 }
 
 export const TI4_FACTIONS: Faction[] = [
@@ -24,6 +32,10 @@ export const TI4_FACTIONS: Faction[] = [
     startingTech: ["Magen Defense Grid"],
     commodities: 3,
     strategyTip: "Focus on spreading infantry across planets early. Your Mitosis ability snowballs over time. Prioritize Warfare or Production to maximize unit output.",
+    factionTech: [
+      { name: "Bioplasmosis", type: "green", prerequisites: "GG", description: "At the end of the status phase, you may remove any number of infantry from planets you control and place them on 1 or more planets you control in the same or adjacent systems." },
+      { name: "Letani Warrior II", type: "unit", prerequisites: "GG", description: "Cost 1 / Combat 8(×2). After this unit is destroyed, roll 1 die. If the result is 6 or greater, place the unit on this card. At the start of your next turn, place each unit that is on this card on a planet you control in your home system." },
+    ],
   },
   {
     name: "The Barony of Letnev",
@@ -38,6 +50,10 @@ export const TI4_FACTIONS: Faction[] = [
     startingTech: ["Antimass Deflectors", "Plasma Scoring"],
     commodities: 2,
     strategyTip: "Leverage your Armada ability to field massive fleets. Spend trade goods aggressively for combat bonuses. The Barony excels at military dominance.",
+    factionTech: [
+      { name: "L4 Disruptors", type: "yellow", prerequisites: "Y", description: "During an invasion in a system that contains 1 or more of your units, you may exhaust this card to prevent the \"Space Cannon Defense\" step of the invasion." },
+      { name: "Non-Euclidean Shielding", type: "red", prerequisites: "RR", description: "When 1 of your units uses \"Sustain Damage,\" cancel 2 hits instead of 1." },
+    ],
   },
   {
     name: "The Clan of Saar",
@@ -52,6 +68,10 @@ export const TI4_FACTIONS: Faction[] = [
     startingTech: ["Antimass Deflectors"],
     commodities: 3,
     strategyTip: "Stay mobile. Your floating space docks mean you never need to defend a home system. Expand aggressively and use Scavenge to fuel your economy.",
+    factionTech: [
+      { name: "Chaos Mapping", type: "blue", prerequisites: "B", description: "Other players cannot activate asteroid fields that contain 1 or more of your units. At the start of your turn, you may produce 1 unit in a system that contains an asteroid field and 1 or more of your units." },
+      { name: "Floating Factory II", type: "unit", prerequisites: "YY", description: "Capacity 5 / Move 2 / Production 7. This unit is placed in a space area instead of on a planet. This unit can move and retreat as if it were a ship. It cannot be stored in or transported by a ship." },
+    ],
   },
   {
     name: "The Embers of Muaat",
@@ -66,6 +86,10 @@ export const TI4_FACTIONS: Faction[] = [
     startingTech: ["Plasma Scoring"],
     commodities: 4,
     strategyTip: "Your War Sun start is your biggest asset—protect it early. Use Star Forge to generate free units. Rush War Sun II tech for devastating fleets.",
+    factionTech: [
+      { name: "Magmus Reactor", type: "red", prerequisites: "RR", description: "Your ships can move into supernovas. After 1 or more of your units use Production in a system that either contains a war sun or is adjacent to a supernova, reduce the combined cost of the produced units by 1." },
+      { name: "Prototype War Sun II", type: "unit", prerequisites: "RRR", description: "Cost 10(×3) / Combat 3(×3) / Move 3 / Capacity 6 / Sustain Damage / Bombardment 3(×3). Other players' units in this system lose \"Planetary Shield.\"" },
+    ],
   },
   {
     name: "The Emirates of Hacan",
@@ -80,6 +104,10 @@ export const TI4_FACTIONS: Faction[] = [
     startingTech: ["Antimass Deflectors", "Sarween Tools"],
     commodities: 6,
     strategyTip: "You are the trade king. Use your massive commodity pool and Guild Ships to broker deals across the galaxy. Economic dominance is your path to victory.",
+    factionTech: [
+      { name: "Production Biomes", type: "green", prerequisites: "GG", description: "ACTION: Exhaust this card and spend 1 token from your strategy pool to gain 4 trade goods and choose 1 other player; that player gains 2 trade goods." },
+      { name: "Quantum Datahub Node", type: "yellow", prerequisites: "YYY", description: "At the end of the strategy phase, you may spend 1 token from your strategy pool to swap 1 of your strategy cards with a strategy card that was not picked." },
+    ],
   },
   {
     name: "The Federation of Sol",
@@ -94,6 +122,10 @@ export const TI4_FACTIONS: Faction[] = [
     startingTech: ["Antimass Deflectors", "Neural Motivator"],
     commodities: 4,
     strategyTip: "Use Orbital Drop to contest planets without moving fleets. Versatile gives you action economy advantage. Sol is flexible—adapt to the table's dynamics.",
+    factionTech: [
+      { name: "Advanced Carrier II", type: "unit", prerequisites: "BB", description: "Cost 3 / Combat 9 / Move 2 / Capacity 8 / Sustain Damage. When this unit is destroyed, units it was transporting may be placed in the system' space area." },
+      { name: "Spec Ops II", type: "unit", prerequisites: "GG", description: "Cost 1(×2) / Combat 6. After this unit is destroyed, roll 1 die. If the result is 5 or greater, place the unit on this card. At the start of your next turn, place each unit on this card on a planet you control in your home system." },
+    ],
   },
   {
     name: "The Ghosts of Creuss",
@@ -108,6 +140,10 @@ export const TI4_FACTIONS: Faction[] = [
     startingTech: ["Gravity Drive"],
     commodities: 4,
     strategyTip: "Wormhole control is your superpower. Place wormholes strategically for surprise attacks and easy scoring. Your mobility is unmatched when wormholes are on the board.",
+    factionTech: [
+      { name: "Dimensional Splicer", type: "red", prerequisites: "R", description: "At the start of a space combat in a system that contains a wormhole and 1 or more of your ships, you may produce 1 hit against your opponent' ships." },
+      { name: "Wormhole Generator II", type: "blue", prerequisites: "BBB", description: "At the start of the status phase, place or move a Creuss wormhole token into either a system that contains a planet you control or a non-home system that is adjacent to a system that contains a planet you control." },
+    ],
   },
   {
     name: "The L1Z1X Mindnet",
@@ -122,6 +158,10 @@ export const TI4_FACTIONS: Faction[] = [
     startingTech: ["Neural Motivator", "Plasma Scoring"],
     commodities: 2,
     strategyTip: "Harrow makes your dreadnoughts terrifying in ground combat. Assimilate stolen infrastructure to fuel your expansion. Play aggressively—your units are built for war.",
+    factionTech: [
+      { name: "Inheritance Systems", type: "yellow", prerequisites: "YY", description: "You may exhaust this card and spend 2 resources when you research a technology. If you do, ignore all of that technology' prerequisites." },
+      { name: "Super Dreadnought II", type: "unit", prerequisites: "BBR", description: "Cost 4 / Combat 4 / Move 2 / Capacity 2 / Sustain Damage / Bombardment 4. This unit may transport up to 2 fighters or ground forces." },
+    ],
   },
   {
     name: "The Mentak Coalition",
@@ -136,6 +176,10 @@ export const TI4_FACTIONS: Faction[] = [
     startingTech: ["Sarween Tools", "Plasma Scoring"],
     commodities: 2,
     strategyTip: "Pillage is your economic engine—use it every chance you get. Ambush makes your smaller ships dangerous. Build a cruiser-heavy fleet for maximum efficiency.",
+    factionTech: [
+      { name: "Salvage Operations", type: "yellow", prerequisites: "YY", description: "After you win or lose a space combat, gain 1 trade good; if you won, you may also produce 1 ship in that system of any ship type that was destroyed during the combat." },
+      { name: "Mirror Computing", type: "yellow", prerequisites: "YYY", description: "When you spend trade goods, each trade good is worth 2 resources or 2 influence instead of 1." },
+    ],
   },
   {
     name: "The Naalu Collective",
@@ -150,6 +194,10 @@ export const TI4_FACTIONS: Faction[] = [
     startingTech: ["Neural Motivator", "Sarween Tools"],
     commodities: 3,
     strategyTip: "Going first every round is enormously powerful. Use Telepathic to always act before your opponents. Score objectives before others can interfere.",
+    factionTech: [
+      { name: "Neuroglaive", type: "green", prerequisites: "GGG", description: "After another player activates a system that contains 1 or more of your ships, that player removes 1 token from their fleet pool and places it in their reinforcements." },
+      { name: "Hybrid Crystal Fighter II", type: "unit", prerequisites: "GB", description: "Cost 1(×2) / Combat 7 / Move 2. This unit may move without being transported. Each fighter in excess of your ships' capacity counts as 1/2 capacity." },
+    ],
   },
   {
     name: "The Nekro Virus",
@@ -164,6 +212,10 @@ export const TI4_FACTIONS: Faction[] = [
     startingTech: ["Dacxive Animators"],
     commodities: 3,
     strategyTip: "You gain tech through combat, not research. Attack frequently to steal technologies. Predict agenda outcomes wisely for free tech gains.",
+    factionTech: [
+      { name: "Valefar Assimilator X", type: "green", prerequisites: "", description: "When you research a technology, you may exhaust this card to ignore prerequisites and research a non-faction technology that 1 other player has already researched, even if it is not on your faction sheet." },
+      { name: "Valefar Assimilator Y", type: "green", prerequisites: "", description: "When you research a technology, you may exhaust this card to ignore prerequisites and research a non-faction technology that 1 other player has already researched, even if it is not on your faction sheet." },
+    ],
   },
   {
     name: "Sardakk N'orr",
@@ -178,6 +230,10 @@ export const TI4_FACTIONS: Faction[] = [
     startingTech: [],
     commodities: 3,
     strategyTip: "Your +1 combat bonus is devastating. You start with no tech, so plan your tech path carefully. Prioritize combat-boosting technologies to become unstoppable.",
+    factionTech: [
+      { name: "Exotrireme II", type: "unit", prerequisites: "BBR", description: "Cost 4 / Combat 5 / Move 2 / Capacity 1 / Sustain Damage / Bombardment 4(×2). After a round of space combat, you may destroy this unit to destroy up to 2 of your opponent' ships." },
+      { name: "Valkyrja Gate", type: "blue", prerequisites: "BB", description: "After you activate a system that does not contain your ships: You may exhaust this card to place 1 infantry and 1 mech from your reinforcements on a planet you control in that system." },
+    ],
   },
   {
     name: "The Universities of Jol-Nar",
@@ -192,6 +248,10 @@ export const TI4_FACTIONS: Faction[] = [
     startingTech: ["Antimass Deflectors", "Neural Motivator", "Sarween Tools", "Plasma Scoring"],
     commodities: 4,
     strategyTip: "You start with 4 technologies—an enormous advantage. Rush high-tier tech to offset Fragile. Avoid direct combat when possible; let your tech carry you.",
+    factionTech: [
+      { name: "E-Res Siphons", type: "yellow", prerequisites: "YY", description: "After another player activates a system that contains 1 or more of your ships, gain 4 trade goods." },
+      { name: "J.N.S. Hylarim", type: "unit", prerequisites: "BB", description: "Cost 8 / Combat 6(×2) / Move 2 / Capacity 3 / Sustain Damage. When making a combat roll for this ship, each result of 9 or 10 (before applying modifiers) produces 2 additional hits." },
+    ],
   },
   {
     name: "The Winnu",
@@ -206,6 +266,10 @@ export const TI4_FACTIONS: Faction[] = [
     startingTech: [],
     commodities: 3,
     strategyTip: "Rush Mecatol Rex—Blood Ties makes it free. Control of the center gives you VP and leverage. Build a strong fleet to hold Mecatol against challengers.",
+    factionTech: [
+      { name: "Lazax Gate Folding", type: "blue", prerequisites: "BB", description: "During your tactical actions, if you do not control Mecatol Rex, you may exhaust this card to place a Creuss wormhole token in the Mecatol Rex system." },
+      { name: "Hegemonic Trade Policy", type: "yellow", prerequisites: "YY", description: "Exhaust this card when 1 or more of your units use Production; swap the resource and influence values of 1 planet you control for this production." },
+    ],
   },
   {
     name: "The Xxcha Kingdom",
@@ -220,6 +284,10 @@ export const TI4_FACTIONS: Faction[] = [
     startingTech: ["Graviton Laser System"],
     commodities: 4,
     strategyTip: "You excel in the political game. Use Quash to control the Agenda phase. PDS networks with Graviton Laser System create powerful defensive zones.",
+    factionTech: [
+      { name: "Instinct Training", type: "green", prerequisites: "GG", description: "You may exhaust this card and spend 1 token from your strategy pool when another player plays an action card; cancel that action card." },
+      { name: "Nullification Field", type: "yellow", prerequisites: "YY", description: "After another player activates a system that contains 1 or more of your ships, you may exhaust this card and spend 1 token from your fleet pool; that player removes 1 ship from the active system and places it in their reinforcements." },
+    ],
   },
   {
     name: "The Yin Brotherhood",
@@ -234,6 +302,10 @@ export const TI4_FACTIONS: Faction[] = [
     startingTech: ["Sarween Tools"],
     commodities: 2,
     strategyTip: "Devotion turns your smaller ships into guaranteed hits. Indoctrination helps you take planets efficiently. Build a swarm of expendable ships for maximum combat value.",
+    factionTech: [
+      { name: "Impulse Core", type: "yellow", prerequisites: "YY", description: "At the start of a space combat, you may destroy 1 of your cruisers or destroyers in the active system to produce 1 hit against your opponent' ships; this hit must be assigned to 1 of your opponent' non-fighter ships if able." },
+      { name: "Yin Spinner", type: "green", prerequisites: "GG", description: "After you produce 1 or more units, place 1 infantry from your reinforcements on a planet you control in that system' production." },
+    ],
   },
   {
     name: "The Yssaril Tribes",
@@ -248,6 +320,10 @@ export const TI4_FACTIONS: Faction[] = [
     startingTech: ["Neural Motivator"],
     commodities: 3,
     strategyTip: "Action card advantage is your superpower. Use Stall Tactics to always act last when it matters. Hoard action cards for devastating combo plays.",
+    factionTech: [
+      { name: "Mageon Implants", type: "green", prerequisites: "GGG", description: "ACTION: Exhaust this card to look at another player' hand of action cards. Choose 1 of those cards and add it to your hand." },
+      { name: "Transparasteel Plating", type: "green", prerequisites: "G", description: "During your turn of the action phase, players cannot play action cards." },
+    ],
   },
 ];
 
@@ -265,6 +341,10 @@ export const POK_FACTIONS: Faction[] = [
     startingTech: ["Neural Motivator", "Sarween Tools"],
     commodities: 3,
     strategyTip: "Raid Formation makes your destroyers lethal—excess AFB hits kill capital ships. Zeal gives incredible flexibility for re-activating systems.",
+    factionTech: [
+      { name: "Aerie Hololattice", type: "yellow", prerequisites: "Y", description: "Other players cannot use the secondary abilities of your strategy cards. When you resolve the primary ability of a strategy card, you may resolve the secondary ability of that card without spending a command token." },
+      { name: "Strike Wing Alpha II", type: "unit", prerequisites: "YR", description: "Cost 2 / Combat 7 / Move 3 / Capacity 1 / Anti-Fighter Barrage 6(×3). This unit can transport 1 infantry or 1 mech." },
+    ],
   },
   {
     name: "The Empyrean",
@@ -279,6 +359,10 @@ export const POK_FACTIONS: Faction[] = [
     startingTech: ["Dark Energy Tap"],
     commodities: 4,
     strategyTip: "Use Aetherpassage as a diplomatic tool—offer passage in exchange for favors. Your flexibility in negotiation is your greatest strength.",
+    factionTech: [
+      { name: "Aetherstream", type: "blue", prerequisites: "BB", description: "After you or one of your neighbors activates a system that is adjacent to an anomaly: You may apply +1 to the move value of all of the moving player' ships during this tactical action." },
+      { name: "Voidwatch", type: "green", prerequisites: "G", description: "After a player activates a system that contains your units: You may exhaust this card; if so, during this tactical action, the other player cannot use ANTI-FIGHTER BARRAGE." },
+    ],
   },
   {
     name: "The Mahact Gene-Sorcerers",
@@ -293,6 +377,10 @@ export const POK_FACTIONS: Faction[] = [
     startingTech: ["Bio-Stims", "Predictive Intelligence"],
     commodities: 3,
     strategyTip: "Win combats to steal command tokens and commander abilities. Mahact grows stronger with every victory. Target players with the best commanders first.",
+    factionTech: [
+      { name: "Genetic Recombination", type: "green", prerequisites: "G", description: "You may exhaust this card before a player casts votes; that player must cast at least 1 vote for an outcome of your choice or abstain from this agenda. You cannot use this ability against the player who nominated this agenda." },
+      { name: "Crimson Legionnaire II", type: "unit", prerequisites: "GG", description: "Cost 1(×2) / Combat 7. After this unit is destroyed, if the active player is not you, place this unit on your faction sheet; at the start of your next turn, place each unit on your faction sheet on a planet you control in your home system." },
+    ],
   },
   {
     name: "The Naaz-Rokha Alliance",
@@ -307,6 +395,10 @@ export const POK_FACTIONS: Faction[] = [
     startingTech: ["Psychoarchaeology", "AI Development Algorithm"],
     commodities: 3,
     strategyTip: "Explore aggressively to accumulate relic fragments. Fabrication turns fragments into relics or command tokens. Double exploration draws give you massive discovery advantage.",
+    factionTech: [
+      { name: "Supercharge", type: "red", prerequisites: "R", description: "At the start of a combat round, you may exhaust this card to apply +1 to the result of each of your unit' combat rolls during this combat round." },
+      { name: "Z-Grav Eddying II", type: "unit", prerequisites: "GY", description: "Cost 2 / Combat 8 / Move 2. After this unit moves, if it is in the space area of an anomaly, you may explore that planet as if you controlled it. This unit may transport 1 mech or 1 infantry." },
+    ],
   },
   {
     name: "The Nomad",
@@ -321,6 +413,10 @@ export const POK_FACTIONS: Faction[] = [
     startingTech: ["Sling Relay"],
     commodities: 4,
     strategyTip: "Your flagship is your mobile base of operations. Future Sight gives you agenda phase intelligence. Use The Cavalry promissory note as a powerful diplomatic bargaining chip.",
+    factionTech: [
+      { name: "Temporal Command Suite", type: "yellow", prerequisites: "Y", description: "After any player' agent is exhausted, you may exhaust this card to ready that agent. If you ready another player' agent, you may perform a transaction with that player." },
+      { name: "Memoria II", type: "unit", prerequisites: "BBY", description: "Cost 8 / Combat 5(×2) / Move 2 / Capacity 6 / Sustain Damage. During combat against your ships in this system, your opponent' fighters and ground forces cannot make combat rolls." },
+    ],
   },
   {
     name: "The Titans of Ul",
@@ -335,6 +431,10 @@ export const POK_FACTIONS: Faction[] = [
     startingTech: ["Antimass Deflectors", "Scanlink Drone Network"],
     commodities: 2,
     strategyTip: "Spread sleeper tokens everywhere, then awaken them into PDS networks. Your defensive infrastructure becomes nearly impenetrable. Control the map through zone denial.",
+    factionTech: [
+      { name: "Hel-Titan II", type: "unit", prerequisites: "RY", description: "Production 1 / Sustain Damage / Space Cannon 5. This unit is treated as both a structure and a ground force. It cannot be transported. You may use this unit' Space Cannon against ships that are in its system." },
+      { name: "Saturn Engine II", type: "unit", prerequisites: "GBRY", description: "Cost 2 / Combat 7 / Move 3 / Capacity 1 / Sustain Damage. This unit may transport 1 infantry or 1 mech." },
+    ],
   },
   {
     name: "The Vuil'Raith Cabal",
@@ -349,5 +449,9 @@ export const POK_FACTIONS: Faction[] = [
     startingTech: ["Self Assembly Routines"],
     commodities: 2,
     strategyTip: "Capture enemy units instead of destroying them—then purge them for command tokens. The Rift means your ships are never truly lost. Fight often to fuel your war machine.",
+    factionTech: [
+      { name: "Dimensional Tear II", type: "unit", prerequisites: "RR", description: "Production 7. When you activate a system that contains a dimensional tear space dock, you may remove up to 2 of your captured units and place them in the active system as your units." },
+      { name: "Vortex", type: "red", prerequisites: "R", description: "ACTION: Exhaust this card to choose another player' non-structure unit in a system that is adjacent to 1 or more of your units that have Capacity; capture that unit." },
+    ],
   },
 ];

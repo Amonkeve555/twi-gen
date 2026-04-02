@@ -1,11 +1,28 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, ChevronDown, ChevronUp, ArrowLeft, Swords, Shield, Cpu, Package, Lightbulb, FileText } from "lucide-react";
+import { Search, ChevronDown, ChevronUp, ArrowLeft, Swords, Shield, Cpu, Package, Lightbulb, FileText, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import StarField from "@/components/StarField";
-import { TI4_FACTIONS, POK_FACTIONS, type Faction } from "@/data/factions";
+import { TI4_FACTIONS, POK_FACTIONS, type Faction, type FactionTech } from "@/data/factions";
+
+const TECH_TYPE_COLORS: Record<string, string> = {
+  unit: "180 60% 50%",
+  green: "120 60% 40%",
+  blue: "210 70% 55%",
+  yellow: "45 90% 50%",
+  red: "0 70% 50%",
+};
+
+const TECH_TYPE_LABELS: Record<string, string> = {
+  unit: "Unit Upgrade",
+  green: "Biotic",
+  blue: "Propulsion",
+  yellow: "Cybernetic",
+  red: "Warfare",
+};
 
 const FactionDetail = ({ icon, label, children }: { icon: React.ReactNode; label: string; children: React.ReactNode }) => (
   <div className="flex gap-3 items-start">
@@ -17,7 +34,24 @@ const FactionDetail = ({ icon, label, children }: { icon: React.ReactNode; label
   </div>
 );
 
-const FactionGuideCard = ({ faction }: { faction: Faction }) => {
+const TechChip = ({ tech, onClick }: { tech: FactionTech; onClick: () => void }) => {
+  const color = TECH_TYPE_COLORS[tech.type] || "0 0% 50%";
+  return (
+    <button
+      onClick={(e) => { e.stopPropagation(); onClick(); }}
+      className="px-2.5 py-1 rounded text-xs font-body font-medium transition-all duration-200 border cursor-pointer hover:scale-105 active:scale-95"
+      style={{
+        borderColor: `hsl(${color} / 0.4)`,
+        color: `hsl(${color})`,
+        background: `hsl(${color} / 0.1)`,
+      }}
+    >
+      {tech.name}
+    </button>
+  );
+};
+
+const FactionGuideCard = ({ faction, onTechClick }: { faction: Faction; onTechClick: (tech: FactionTech, faction: Faction) => void }) => {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -67,6 +101,16 @@ const FactionGuideCard = ({ faction }: { faction: Faction }) => {
                       <li key={i} className="text-sm">{a}</li>
                     ))}
                   </ul>
+                </FactionDetail>
+              )}
+
+              {faction.factionTech && faction.factionTech.length > 0 && (
+                <FactionDetail icon={<Zap className="h-4 w-4" />} label="Faction Technologies">
+                  <div className="flex flex-wrap gap-2">
+                    {faction.factionTech.map((t) => (
+                      <TechChip key={t.name} tech={t} onClick={() => onTechClick(t, faction)} />
+                    ))}
+                  </div>
                 </FactionDetail>
               )}
 
@@ -122,6 +166,7 @@ const FactionGuide = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [showPok, setShowPok] = useState(true);
+  const [selectedTech, setSelectedTech] = useState<{ tech: FactionTech; faction: Faction } | null>(null);
 
   const factions = useMemo(() => {
     const all = [...TI4_FACTIONS, ...(showPok ? POK_FACTIONS : [])];
@@ -132,6 +177,7 @@ const FactionGuide = () => {
         f.name.toLowerCase().includes(q) ||
         f.shortName.toLowerCase().includes(q) ||
         f.abilities?.some((a) => a.toLowerCase().includes(q)) ||
+        f.factionTech?.some((t) => t.name.toLowerCase().includes(q)) ||
         f.strategyTip?.toLowerCase().includes(q)
     );
   }, [search, showPok]);
@@ -156,7 +202,7 @@ const FactionGuide = () => {
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search factions, abilities, strategies..."
+              placeholder="Search factions, abilities, technologies..."
               className="pl-10 bg-background/50 border-border font-body"
             />
           </div>
@@ -175,7 +221,11 @@ const FactionGuide = () => {
 
         <div className="space-y-3">
           {factions.map((faction) => (
-            <FactionGuideCard key={faction.name} faction={faction} />
+            <FactionGuideCard
+              key={faction.name}
+              faction={faction}
+              onTechClick={(tech, faction) => setSelectedTech({ tech, faction })}
+            />
           ))}
           {factions.length === 0 && (
             <p className="text-center text-muted-foreground font-body text-base py-8">No factions match your search.</p>
@@ -193,6 +243,64 @@ const FactionGuide = () => {
           </Button>
         </div>
       </div>
+
+      {/* Tech Detail Dialog */}
+      <Dialog open={!!selectedTech} onOpenChange={() => setSelectedTech(null)}>
+        <DialogContent className="glass imperial-border max-w-md">
+          {selectedTech && (() => {
+            const { tech, faction } = selectedTech;
+            const color = TECH_TYPE_COLORS[tech.type] || "0 0% 50%";
+            return (
+              <>
+                <DialogHeader>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span
+                      className="px-2 py-0.5 rounded text-[10px] font-display uppercase tracking-[0.15em] border"
+                      style={{
+                        borderColor: `hsl(${color} / 0.4)`,
+                        color: `hsl(${color})`,
+                        background: `hsl(${color} / 0.15)`,
+                      }}
+                    >
+                      {TECH_TYPE_LABELS[tech.type] || tech.type}
+                    </span>
+                    <span className="text-xs text-muted-foreground font-body">
+                      {faction.shortName}
+                    </span>
+                  </div>
+                  <DialogTitle className="font-display text-xl uppercase tracking-[0.1em]" style={{ color: `hsl(${color})` }}>
+                    {tech.name}
+                  </DialogTitle>
+                  {tech.prerequisites && (
+                    <DialogDescription className="font-body text-xs text-muted-foreground">
+                      Prerequisites: {tech.prerequisites.split("").map((c, i) => {
+                        const preReqColor = TECH_TYPE_COLORS[
+                          c === "G" ? "green" : c === "B" ? "blue" : c === "Y" ? "yellow" : c === "R" ? "red" : "unit"
+                        ];
+                        return (
+                          <span
+                            key={i}
+                            className="inline-block w-4 h-4 rounded-full mx-0.5 align-middle border"
+                            style={{
+                              background: `hsl(${preReqColor} / 0.3)`,
+                              borderColor: `hsl(${preReqColor} / 0.6)`,
+                            }}
+                          />
+                        );
+                      })}
+                    </DialogDescription>
+                  )}
+                </DialogHeader>
+                <div className="mt-2">
+                  <p className="text-sm font-body text-foreground leading-relaxed">
+                    {tech.description}
+                  </p>
+                </div>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
