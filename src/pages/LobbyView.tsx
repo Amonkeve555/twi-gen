@@ -149,7 +149,6 @@ const LobbyView = () => {
                             >
                               {f.name}
                             </span>
-                            </span>
                           ))}
                         </div>
                       )}
