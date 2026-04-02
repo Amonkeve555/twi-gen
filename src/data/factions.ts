@@ -433,6 +433,8 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "Transparasteel Plating", type: "green", prerequisites: "G", description: "During your turn of the action phase, players cannot play action cards." },
     ],
     agent: { name: "Ssruu", description: "After a player activates a system: You may exhaust this card to allow that player to look at the top 2 cards of their deck; they place 1 on top and 1 on the bottom." },
+    commander: { name: "So Ata", unlock: "Have 7 or more action cards in your hand.", description: "After you draw 1 or more action cards: You may draw 1 additional action card." },
+    hero: { name: "Kyver, Blade and Key", description: "ACTION: Each other player places 2 random action cards from their hand face-up in your play area. Take any of those cards into your hand. Return the rest. Purge this card." },
   },
 ];
 
