@@ -10,6 +10,17 @@ export interface FactionAgent {
   description: string;
 }
 
+export interface FactionCommander {
+  name: string;
+  unlock: string;
+  description: string;
+}
+
+export interface FactionHero {
+  name: string;
+  description: string;
+}
+
 export interface StartingUnitEntry {
   name: string;
   count: number;
