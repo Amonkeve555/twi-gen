@@ -139,6 +139,8 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "Floating Factory II", type: "unit", prerequisites: "YY", description: "Capacity 5 / Move 2 / Production 7. This unit is placed in a space area instead of on a planet. This unit can move and retreat as if it were a ship. It cannot be stored in or transported by a ship." },
     ],
     agent: { name: "Captain Mendosa", description: "After a player activates a system that contains 1 or more of your ships: You may exhaust this card to allow that player to gain 1 trade good." },
+    commander: { name: "Elder Harka", unlock: "Have units in 3 systems that do not contain planets.", description: "After you gain control of a planet: You may gain 1 trade good or draw 1 action card." },
+    hero: { name: "Clan Noskovak", description: "ACTION: Remove each of your ground forces from the game board and place them on planets you control in any systems that contain your ships. Purge this card." },
   },
   {
     name: "The Embers of Muaat",
