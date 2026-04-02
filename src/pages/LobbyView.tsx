@@ -142,8 +142,10 @@ const LobbyView = () => {
                           {factions.map((f) => (
                              <span
                               key={f.name}
-                              className="text-sm font-body px-2 py-0.5 rounded border border-border"
+                              className="text-sm font-body px-2 py-0.5 rounded border border-border cursor-pointer hover:opacity-80 transition-opacity"
                               style={{ background: `hsl(${f.color} / 0.2)` }}
+                              onClick={() => navigate(`/factions?search=${encodeURIComponent(f.name)}`)}
+                              title="View faction details"
                             >
                               {f.name}
                             </span>

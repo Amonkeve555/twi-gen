@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, ChevronDown, ChevronUp, ArrowLeft, Swords, Shield, Cpu, Package, Lightbulb, FileText, Zap, User } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -216,7 +216,8 @@ const FactionGuideCard = ({ faction, onDetailClick }: { faction: Faction; onDeta
 
 const FactionGuide = () => {
   const navigate = useNavigate();
-  const [search, setSearch] = useState("");
+  const [searchParams] = useSearchParams();
+  const [search, setSearch] = useState(searchParams.get("search") ?? "");
   const [showPok, setShowPok] = useState(true);
   const [detailDialog, setDetailDialog] = useState<DetailDialogData | null>(null);
 
