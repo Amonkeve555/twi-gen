@@ -274,6 +274,10 @@ const FactionGuide = () => {
           </div>
         </div>
 
+        <div className="space-y-3 mb-6">
+          <TechTree />
+        </div>
+
         <div className="space-y-3">
           {factions.map((faction) => (
             <FactionGuideCard
