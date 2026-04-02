@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, ChevronDown, ChevronUp, ArrowLeft, Swords, Shield, Cpu, Package, Lightbulb, FileText, Zap, User } from "lucide-react";
+import { Search, ChevronDown, ChevronUp, ArrowLeft, Swords, Shield, Cpu, Package, Lightbulb, FileText, Zap, User, Crown, Star } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -134,6 +134,19 @@ const FactionGuideCard = ({ faction, onDetailClick }: { faction: Faction; onDeta
                 </FactionDetail>
               )}
 
+              {faction.commander && (
+                <FactionDetail icon={<Crown className="h-4 w-4" />} label="Commander">
+                  <p className="text-sm"><span className="font-semibold text-primary">{faction.commander.name}</span> — {faction.commander.description}</p>
+                  <p className="text-xs text-muted-foreground mt-1 italic">Unlock: {faction.commander.unlock}</p>
+                </FactionDetail>
+              )}
+
+              {faction.hero && (
+                <FactionDetail icon={<Star className="h-4 w-4" />} label="Hero">
+                  <p className="text-sm"><span className="font-semibold text-primary">{faction.hero.name}</span> — {faction.hero.description}</p>
+                </FactionDetail>
+              )}
+
               {faction.promissoryNote && (
                 <FactionDetail icon={<FileText className="h-4 w-4" />} label="Promissory Note">
                   <p className="text-sm">{faction.promissoryNote}</p>
@@ -233,6 +246,8 @@ const FactionGuide = () => {
         f.abilities?.some((a) => a.toLowerCase().includes(q)) ||
         f.factionTech?.some((t) => t.name.toLowerCase().includes(q)) ||
         f.agent?.name.toLowerCase().includes(q) ||
+        f.commander?.name.toLowerCase().includes(q) ||
+        f.hero?.name.toLowerCase().includes(q) ||
         f.strategyTip?.toLowerCase().includes(q)
     );
   }, [search, showPok]);

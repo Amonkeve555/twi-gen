@@ -10,6 +10,17 @@ export interface FactionAgent {
   description: string;
 }
 
+export interface FactionCommander {
+  name: string;
+  unlock: string;
+  description: string;
+}
+
+export interface FactionHero {
+  name: string;
+  description: string;
+}
+
 export interface StartingUnitEntry {
   name: string;
   count: number;
@@ -28,6 +39,8 @@ export interface Faction {
   strategyTip?: string;
   factionTech?: FactionTech[];
   agent?: FactionAgent;
+  commander?: FactionCommander;
+  hero?: FactionHero;
 }
 
 // Generic tech reference for starting techs
@@ -84,6 +97,8 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "Letani Warrior II", type: "unit", prerequisites: "GG", description: "Cost 1 / Combat 8(×2). After this unit is destroyed, roll 1 die. If the result is 6 or greater, place the unit on this card. At the start of your next turn, place each unit that is on this card on a planet you control in your home system." },
     ],
     agent: { name: "Letani Ospha", description: "After a player activates a system: You may exhaust this card to allow that player to replace 1 of their infantry in the active system with 1 infantry from their reinforcements." },
+    commander: { name: "Dirzuga Rophal", unlock: "Have 12 or more ground forces on the game board.", description: "After any player produces 1 or more units: You may place 1 infantry from your reinforcements on any planet you control." },
+    hero: { name: "Letani Miasmiala", description: "ACTION: Place this card face-up in your play area. At the start of each status phase, place 2 infantry from your reinforcements on any planet you control. At the start of the agenda phase, remove this card." },
   },
   {
     name: "The Barony of Letnev",
@@ -103,6 +118,8 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "Non-Euclidean Shielding", type: "red", prerequisites: "RR", description: "When 1 of your units uses \"Sustain Damage,\" cancel 2 hits instead of 1." },
     ],
     agent: { name: "Darktalon Treilla", description: "At the start of a combat round: You may exhaust this card to choose a player in the active system; that player may spend 2 trade goods to apply +1 to the result of each of their unit's combat rolls during this combat round." },
+    commander: { name: "Rear Admiral Farran", unlock: "Have 5 or more non-fighter ships in 1 system.", description: "After 1 of your units uses Sustain Damage: You may spend 1 trade good to repair that unit." },
+    hero: { name: "Dark Talons Treilla", description: "ACTION: Place this card face-up in your play area. During this game round, apply +2 to the move value and +2 to the combat value of each of your dreadnoughts. At the end of this game round, purge this card." },
   },
   {
     name: "The Clan of Saar",
@@ -122,6 +139,8 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "Floating Factory II", type: "unit", prerequisites: "YY", description: "Capacity 5 / Move 2 / Production 7. This unit is placed in a space area instead of on a planet. This unit can move and retreat as if it were a ship. It cannot be stored in or transported by a ship." },
     ],
     agent: { name: "Captain Mendosa", description: "After a player activates a system that contains 1 or more of your ships: You may exhaust this card to allow that player to gain 1 trade good." },
+    commander: { name: "Elder Harka", unlock: "Have units in 3 systems that do not contain planets.", description: "After you gain control of a planet: You may gain 1 trade good or draw 1 action card." },
+    hero: { name: "Clan Noskovak", description: "ACTION: Remove each of your ground forces from the game board and place them on planets you control in any systems that contain your ships. Purge this card." },
   },
   {
     name: "The Embers of Muaat",
@@ -141,6 +160,8 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "Prototype War Sun II", type: "unit", prerequisites: "RRR", description: "Cost 10(×3) / Combat 3(×3) / Move 3 / Capacity 6 / Sustain Damage / Bombardment 3(×3). Other players' units in this system lose \"Planetary Shield.\"" },
     ],
     agent: { name: "Umbat", description: "After a player activates a system that contains 1 or more of their war suns or their flagship: You may exhaust this card; that player may produce up to 2 units in that system, applying +2 to the production limit of that system." },
+    commander: { name: "Magmus", unlock: "Have a war sun on the game board.", description: "You may spend 1 trade good when you use the secondary ability of the Warfare strategy card to use the primary ability instead." },
+    hero: { name: "Adjudicator Ba'al", description: "ACTION: Place this card face-up in your play area. Your war suns gain SUSTAIN DAMAGE. At the end of the status phase, purge this card." },
   },
   {
     name: "The Emirates of Hacan",
@@ -160,6 +181,8 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "Quantum Datahub Node", type: "yellow", prerequisites: "YYY", description: "At the end of the strategy phase, you may spend 1 token from your strategy pool to swap 1 of your strategy cards with a strategy card that was not picked." },
     ],
     agent: { name: "Carth of Golden Sands", description: "At the start of a player's turn: You may exhaust this card to allow that player to replenish their commodities; if you do, replenish your commodities." },
+    commander: { name: "Gila the Silvertongue", unlock: "Have 10 or more trade goods.", description: "After you resolve a transaction: You may gain 1 trade good." },
+    hero: { name: "Harrugh Gefhara", description: "ACTION: Each other player may give you 1 trade good; for each trade good you receive, you may give that player up to 3 trade goods. Purge this card." },
   },
   {
     name: "The Federation of Sol",
@@ -179,6 +202,8 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "Spec Ops II", type: "unit", prerequisites: "GG", description: "Cost 1(×2) / Combat 6. After this unit is destroyed, roll 1 die. If the result is 5 or greater, place the unit on this card. At the start of your next turn, place each unit on this card on a planet you control in your home system." },
     ],
     agent: { name: "Evelyn Delouis", description: "After a player activates a system: You may exhaust this card to allow that player to remove 1 of their infantry from the game board and place it on a planet they control in the active system." },
+    commander: { name: "Claire Gibson", unlock: "Have 3 or more structures on the game board.", description: "After you produce units: You may place up to 2 infantry from your reinforcements on any planet you control." },
+    hero: { name: "Jace X. 4th Air Legion", description: "ACTION: Place this card face-up in your play area. For the rest of this game round, your infantry on planets you control gain Sustain Damage. Purge this card at the end of the game round." },
   },
   {
     name: "The Ghosts of Creuss",
@@ -198,6 +223,8 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "Wormhole Generator II", type: "blue", prerequisites: "BBB", description: "At the start of the status phase, place or move a Creuss wormhole token into either a system that contains a planet you control or a non-home system that is adjacent to a system that contains a planet you control." },
     ],
     agent: { name: "Emissary Taivra", description: "After a player activates a system that contains a non-delta wormhole: You may exhaust this card to allow that player to apply +1 to the move value of each of their ships during this tactical action that started in or adjacent to a wormhole." },
+    commander: { name: "Sai Seravus", unlock: "Have units in or adjacent to 3 or more wormholes.", description: "During your turn, you may place 1 Creuss wormhole token in a non-home system that contains 1 or more of your ships." },
+    hero: { name: "Ixthael", description: "ACTION: Place this card face-up in your play area. All systems that contain a wormhole are adjacent to all other systems that contain a wormhole. At the end of the status phase, purge this card." },
   },
   {
     name: "The L1Z1X Mindnet",
@@ -217,6 +244,8 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "Super Dreadnought II", type: "unit", prerequisites: "BBR", description: "Cost 4 / Combat 4 / Move 2 / Capacity 2 / Sustain Damage / Bombardment 4. This unit may transport up to 2 fighters or ground forces." },
     ],
     agent: { name: "I48S", description: "After a player activates a system that contains 1 or more of their dreadnoughts or their flagship: You may exhaust this card to allow that player to replace 1 of their infantry in the active system with 1 mech from their reinforcements." },
+    commander: { name: "2RAM", unlock: "Have your flagship or your war sun on the game board.", description: "When you produce units: You may spend influence to use as resources." },
+    hero: { name: "Ibna Vel Sansen", description: "ACTION: For each planet you control, place 1 mech on that planet from your reinforcements. Then purge this card." },
   },
   {
     name: "The Mentak Coalition",
@@ -236,6 +265,8 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "Mirror Computing", type: "yellow", prerequisites: "YYY", description: "When you spend trade goods, each trade good is worth 2 resources or 2 influence instead of 1." },
     ],
     agent: { name: "Suffi An", description: "After a player activates a system that contains 1 or more of their ships: You may exhaust this card to allow that player to produce 1 ship in that system; the produced ship must have a cost equal to or lower than the highest-cost ship that player has in that system." },
+    commander: { name: "S'Ula Mentarion", unlock: "Have 4 or more ships in 2 or more systems.", description: "During your turn: You may take 1 trade good from a player who has more trade goods than you." },
+    hero: { name: "Iperia Mentak", description: "ACTION: Each other player gives you all of their trade goods. Purge this card." },
   },
   {
     name: "The Naalu Collective",
@@ -255,6 +286,8 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "Hybrid Crystal Fighter II", type: "unit", prerequisites: "GB", description: "Cost 1(×2) / Combat 7 / Move 2. This unit may move without being transported. Each fighter in excess of your ships' capacity counts as 1/2 capacity." },
     ],
     agent: { name: "Z'eu", description: "After a player activates a system that contains 1 or more of their fighters: You may exhaust this card to allow that player to place 2 fighters from their reinforcements in the active system." },
+    commander: { name: "M'aban", unlock: "Have 6 or more fighters on the game board.", description: "During combat: Apply +1 to the result of each of your fighters' combat rolls." },
+    hero: { name: "The Oracle", description: "ACTION: Place this card face-up in your play area. You are always first in initiative order. At the start of the status phase, purge this card." },
   },
   {
     name: "The Nekro Virus",
@@ -274,6 +307,8 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "Valefar Assimilator Y", type: "green", prerequisites: "", description: "When you research a technology, you may exhaust this card to ignore prerequisites and research a non-faction technology that 1 other player has already researched, even if it is not on your faction sheet." },
     ],
     agent: { name: "Nekro Malleon", description: "At the start of a player's turn: You may exhaust this card to allow that player to draw 1 action card." },
+    commander: { name: "Nekro Acidos", unlock: "Own 3 or more technologies.", description: "After you gain a technology: You may draw 1 action card." },
+    hero: { name: "UNIT.DSGN.FLAYESH", description: "ACTION: Destroy any number of your ground forces on the game board. For each unit you destroyed, you may place 1 unit of any type from your reinforcements on a planet you control. Purge this card." },
   },
   {
     name: "Sardakk N'orr",
@@ -293,6 +328,8 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "Valkyrja Gate", type: "blue", prerequisites: "BB", description: "After you activate a system that does not contain your ships: You may exhaust this card to place 1 infantry and 1 mech from your reinforcements on a planet you control in that system." },
     ],
     agent: { name: "T'ro", description: "At the start of a ground combat round: You may exhaust this card to choose a player in the active system; that player may reroll any number of their dice during this combat round." },
+    commander: { name: "G'hom Sek'kus", unlock: "Win a combat.", description: "At the start of a combat round: Apply +1 to the result of each of your unit's combat rolls during this round." },
+    hero: { name: "Sh'val, Harbinger", description: "ACTION: Place this card face-up in your play area. For each combat you win this game round, gain 1 victory point. At the end of the game round, purge this card." },
   },
   {
     name: "The Universities of Jol-Nar",
@@ -312,6 +349,8 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "J.N.S. Hylarim", type: "unit", prerequisites: "BB", description: "Cost 8 / Combat 6(×2) / Move 2 / Capacity 3 / Sustain Damage. When making a combat roll for this ship, each result of 9 or 10 (before applying modifiers) produces 2 additional hits." },
     ],
     agent: { name: "Doctor Sucaban", description: "When a player spends a command token from their strategy pool to resolve the secondary ability of a technology strategy card: You may exhaust this card to allow that player to research 1 technology for free." },
+    commander: { name: "Ta Zern", unlock: "Own 8 or more technologies.", description: "When you research a technology: You may exhaust 1 of your technologies to ignore 1 prerequisite." },
+    hero: { name: "Rin, The Master's Legacy", description: "ACTION: For each non-faction technology you own, you may replace it with any technology of the same color. Purge this card." },
   },
   {
     name: "The Winnu",
@@ -331,6 +370,8 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "Hegemonic Trade Policy", type: "yellow", prerequisites: "YY", description: "Exhaust this card when 1 or more of your units use Production; swap the resource and influence values of 1 planet you control for this production." },
     ],
     agent: { name: "Berekar Berekon", description: "When a player would spend a command token during the secondary ability of a strategy card: You may exhaust this card; that player does not spend that command token." },
+    commander: { name: "Rickar Rickani", unlock: "Control Mecatol Rex or enter a home system during a tactical action.", description: "When you gain control of a planet: You may produce 1 unit on that planet." },
+    hero: { name: "Mathis Mathinus", description: "ACTION: During this game round, when you explore a planet, draw 3 cards instead of 1 and choose which to resolve. Purge this card." },
   },
   {
     name: "The Xxcha Kingdom",
@@ -350,6 +391,8 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "Nullification Field", type: "yellow", prerequisites: "YY", description: "After another player activates a system that contains 1 or more of your ships, you may exhaust this card and spend 1 token from your fleet pool; that player removes 1 ship from the active system and places it in their reinforcements." },
     ],
     agent: { name: "Elder Qanoj", description: "After an agenda is revealed: You may exhaust this card to read the next card in the agenda deck; place it face up or face down on top of the deck." },
+    commander: { name: "Xxekir Grom", unlock: "Have 3 or more PDS on the game board.", description: "After another player activates a system that contains 1 or more of your PDS: You may exhaust this card to use 1 of your PDS' Space Cannon ability." },
+    hero: { name: "Xxcha Ancestor", description: "ACTION: After an agenda is revealed, you may cast 5 additional votes for any outcome. Purge this card." },
   },
   {
     name: "The Yin Brotherhood",
@@ -369,6 +412,8 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "Yin Spinner", type: "green", prerequisites: "GG", description: "After you produce 1 or more units, place 1 infantry from your reinforcements on a planet you control in that system' production." },
     ],
     agent: { name: "Brother Milor", description: "When a player commits 1 or more units to a planet: You may exhaust this card to choose 1 of that player's ground forces on that planet; that ground force does not participate in ground combat on this planet during this invasion." },
+    commander: { name: "Brother Omar", unlock: "Control a planet in another player's home system.", description: "When 1 or more of your units use Bombardment or Space Cannon: 1 of those units may use its Bombardment or Space Cannon ability 1 additional time." },
+    hero: { name: "Danara Yin", description: "ACTION: Choose 1 system that contains your flagship; each other player's non-structure units in that system are destroyed. Purge this card." },
   },
   {
     name: "The Yssaril Tribes",
@@ -388,6 +433,8 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "Transparasteel Plating", type: "green", prerequisites: "G", description: "During your turn of the action phase, players cannot play action cards." },
     ],
     agent: { name: "Ssruu", description: "After a player activates a system: You may exhaust this card to allow that player to look at the top 2 cards of their deck; they place 1 on top and 1 on the bottom." },
+    commander: { name: "So Ata", unlock: "Have 7 or more action cards in your hand.", description: "After you draw 1 or more action cards: You may draw 1 additional action card." },
+    hero: { name: "Kyver, Blade and Key", description: "ACTION: Each other player places 2 random action cards from their hand face-up in your play area. Take any of those cards into your hand. Return the rest. Purge this card." },
   },
 ];
 
@@ -410,6 +457,8 @@ export const POK_FACTIONS: Faction[] = [
       { name: "Strike Wing Alpha II", type: "unit", prerequisites: "YR", description: "Cost 2 / Combat 7 / Move 3 / Capacity 1 / Anti-Fighter Barrage 6(×3). This unit can transport 1 infantry or 1 mech." },
     ],
     agent: { name: "Trillossa Aun Mirik", description: "At the start of a combat round: You may exhaust this card to choose a player in the active system; that player may reroll any of their dice that did not produce a hit." },
+    commander: { name: "Trrakan Aun Zulok", unlock: "Have units in 3 or more systems that contain no planets.", description: "At the end of a player's tactical action, if you have 1 or more ships in the active system: You may place 1 destroyer from your reinforcements in the active system." },
+    hero: { name: "Mirik Aun Sissiri", description: "ACTION: Place this card face-up in your play area. For each combat this game round: apply +2 to Anti-Fighter Barrage rolls. At the end of the game round, purge this card." },
   },
   {
     name: "The Empyrean",
@@ -429,6 +478,8 @@ export const POK_FACTIONS: Faction[] = [
       { name: "Voidwatch", type: "green", prerequisites: "G", description: "After a player activates a system that contains your units: You may exhaust this card; if so, during this tactical action, the other player cannot use ANTI-FIGHTER BARRAGE." },
     ],
     agent: { name: "Acamar", description: "After a player activates a system: You may exhaust this card to allow that player to remove 1 of their command tokens from the game board and place it in their reinforcements." },
+    commander: { name: "Xuange", unlock: "Have units in or adjacent to 2 or more anomalies.", description: "Other players must spend 1 influence to activate a system that is adjacent to 1 or more of your systems that contain your ships." },
+    hero: { name: "Conservator Procyon", description: "ACTION: Place this card face-up in your play area. Other players cannot activate systems that contain your structures. At the end of the status phase, purge this card." },
   },
   {
     name: "The Mahact Gene-Sorcerers",
@@ -448,6 +499,8 @@ export const POK_FACTIONS: Faction[] = [
       { name: "Crimson Legionnaire II", type: "unit", prerequisites: "GG", description: "Cost 1(×2) / Combat 7. After this unit is destroyed, if the active player is not you, place this unit on your faction sheet; at the start of your next turn, place each unit on your faction sheet on a planet you control in your home system." },
     ],
     agent: { name: "Jae Mir Kan", description: "After a player resolves a tactical action: You may exhaust this card to allow that player to remove 1 of their command tokens from the game board and place it in their reinforcements." },
+    commander: { name: "Il Na Vansen", unlock: "Have another player's command token in your fleet pool.", description: "At the start of combat: You may spend 1 token from your fleet pool that matches another player's faction to apply -2 to the combat value of that player's units during this combat." },
+    hero: { name: "Airo Sheredyn, Scion of the Throne", description: "ACTION: For each other player's command token in your fleet pool, you may purge that token. For each token purged, gain 1 victory point. Purge this card." },
   },
   {
     name: "The Naaz-Rokha Alliance",
@@ -467,6 +520,8 @@ export const POK_FACTIONS: Faction[] = [
       { name: "Z-Grav Eddying II", type: "unit", prerequisites: "GY", description: "Cost 2 / Combat 8 / Move 2. After this unit moves, if it is in the space area of an anomaly, you may explore that planet as if you controlled it. This unit may transport 1 mech or 1 infantry." },
     ],
     agent: { name: "Garv and Gunn", description: "After a player explores a planet: You may exhaust this card; if you do, that player gains 1 trade good." },
+    commander: { name: "Dart and Tai", unlock: "Purge 2 or more relic fragments.", description: "After you explore a planet: You may draw 1 relic fragment of any type." },
+    hero: { name: "Hesh and Prit", description: "ACTION: Gain 3 relics. Purge this card." },
   },
   {
     name: "The Nomad",
@@ -486,6 +541,8 @@ export const POK_FACTIONS: Faction[] = [
       { name: "Memoria II", type: "unit", prerequisites: "BBY", description: "Cost 8 / Combat 5(×2) / Move 2 / Capacity 6 / Sustain Damage. During combat against your ships in this system, your opponent' fighters and ground forces cannot make combat rolls." },
     ],
     agent: { name: "Artuno the Betrayer", description: "After a player activates a system that contains 1 or more of their ships: You may exhaust this card to allow that player to spend 3 trade goods to place 1 cruiser from their reinforcements in the active system." },
+    commander: { name: "Navarch Feng", unlock: "Have your flagship on the game board.", description: "During combat in a system that contains your flagship: Apply +1 to the result of each of your unit's combat rolls." },
+    hero: { name: "The Thundarian", description: "ACTION: Place this card face-up in your play area. Your flagship gains Sustain Damage and its combat value becomes 3. At the end of the status phase, purge this card." },
   },
   {
     name: "The Titans of Ul",
@@ -505,6 +562,8 @@ export const POK_FACTIONS: Faction[] = [
       { name: "Saturn Engine II", type: "unit", prerequisites: "GBRY", description: "Cost 2 / Combat 7 / Move 3 / Capacity 1 / Sustain Damage. This unit may transport 1 infantry or 1 mech." },
     ],
     agent: { name: "Hecatoncheires", description: "After a player explores a planet: You may exhaust this card to allow that player to place 1 PDS or 1 infantry from their reinforcements on that planet." },
+    commander: { name: "Tungstantus", unlock: "Have 5 or more PDS or structures on the game board.", description: "When you use Production: You may produce 1 PDS or 1 infantry for free." },
+    hero: { name: "Ul the Progenitor", description: "ACTION: Place this card face-up in your play area. Your PDS gain Space Cannon 3 and lose Planetary Shield. At the end of the status phase, purge this card." },
   },
   {
     name: "The Vuil'Raith Cabal",
@@ -524,5 +583,7 @@ export const POK_FACTIONS: Faction[] = [
       { name: "Vortex", type: "red", prerequisites: "R", description: "ACTION: Exhaust this card to choose another player' non-structure unit in a system that is adjacent to 1 or more of your units that have Capacity; capture that unit." },
     ],
     agent: { name: "It Feeds on Carrion", description: "After a player's unit is destroyed: You may exhaust this card; if you do, the player who destroyed that unit may place 1 infantry from their reinforcements on a planet they control in that system." },
+    commander: { name: "Riftwalker Meian", unlock: "Have 2 or more captured units.", description: "After you win a space combat: You may replace 1 of the loser's non-structure units with 1 of your own from your reinforcements." },
+    hero: { name: "Kordhek Yeel", description: "ACTION: Place all captured units on planets you control in your home system. These units are now your units. Purge this card." },
   },
 ];
