@@ -1,12 +1,12 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, ChevronDown, ChevronUp, ArrowLeft, Swords, Shield, Cpu, Package, Lightbulb, FileText, Zap } from "lucide-react";
+import { Search, ChevronDown, ChevronUp, ArrowLeft, Swords, Shield, Cpu, Package, Lightbulb, FileText, Zap, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import StarField from "@/components/StarField";
-import { TI4_FACTIONS, POK_FACTIONS, type Faction, type FactionTech } from "@/data/factions";
+import { TI4_FACTIONS, POK_FACTIONS, GENERIC_TECH, UNIT_REFERENCE, type Faction, type FactionTech } from "@/data/factions";
 
 const TECH_TYPE_COLORS: Record<string, string> = {
   unit: "180 60% 50%",
@@ -51,7 +51,20 @@ const TechChip = ({ tech, onClick }: { tech: FactionTech; onClick: () => void })
   );
 };
 
-const FactionGuideCard = ({ faction, onTechClick }: { faction: Faction; onTechClick: (tech: FactionTech, faction: Faction) => void }) => {
+type DetailDialogData = 
+  | { kind: "tech"; tech: FactionTech; faction: Faction }
+  | { kind: "generic_tech"; name: string; type: string; description: string }
+  | { kind: "unit"; name: string; description: string };
+
+const parseUnitsFromString = (units: string): string[] => {
+  return units.split(",").map((s) => {
+    const trimmed = s.trim();
+    const match = trimmed.match(/^\d+\s+(.+)$/);
+    return match ? match[1].replace(/s$/, "") : trimmed;
+  }).filter((v, i, a) => a.indexOf(v) === i);
+};
+
+const FactionGuideCard = ({ faction, onDetailClick }: { faction: Faction; onDetailClick: (data: DetailDialogData) => void }) => {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -108,9 +121,15 @@ const FactionGuideCard = ({ faction, onTechClick }: { faction: Faction; onTechCl
                 <FactionDetail icon={<Zap className="h-4 w-4" />} label="Faction Technologies">
                   <div className="flex flex-wrap gap-2">
                     {faction.factionTech.map((t) => (
-                      <TechChip key={t.name} tech={t} onClick={() => onTechClick(t, faction)} />
+                      <TechChip key={t.name} tech={t} onClick={() => onDetailClick({ kind: "tech", tech: t, faction })} />
                     ))}
                   </div>
+                </FactionDetail>
+              )}
+
+              {faction.agent && (
+                <FactionDetail icon={<User className="h-4 w-4" />} label="Agent">
+                  <p className="text-sm"><span className="font-semibold text-primary">{faction.agent.name}</span> — {faction.agent.description}</p>
                 </FactionDetail>
               )}
 
@@ -122,18 +141,51 @@ const FactionGuideCard = ({ faction, onTechClick }: { faction: Faction; onTechCl
 
               {faction.startingUnits && (
                 <FactionDetail icon={<Shield className="h-4 w-4" />} label="Starting Units">
-                  <p className="text-sm">{faction.startingUnits}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {parseUnitsFromString(faction.startingUnits).map((unitName) => {
+                      const refKey = Object.keys(UNIT_REFERENCE).find((k) => unitName.toLowerCase().includes(k.toLowerCase()));
+                      if (refKey) {
+                        return (
+                          <button
+                            key={unitName}
+                            onClick={(e) => { e.stopPropagation(); onDetailClick({ kind: "unit", name: refKey, description: UNIT_REFERENCE[refKey] }); }}
+                            className="px-2.5 py-1 rounded text-xs font-body font-medium transition-all duration-200 border cursor-pointer hover:scale-105 active:scale-95 border-muted-foreground/30 text-muted-foreground hover:text-foreground hover:border-foreground/40 bg-muted/20"
+                          >
+                            {unitName}
+                          </button>
+                        );
+                      }
+                      return <span key={unitName} className="px-2.5 py-1 rounded text-xs font-body text-muted-foreground">{unitName}</span>;
+                    })}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">{faction.startingUnits}</p>
                 </FactionDetail>
               )}
 
               {faction.startingTech && faction.startingTech.length > 0 && (
                 <FactionDetail icon={<Cpu className="h-4 w-4" />} label="Starting Tech">
                   <div className="flex flex-wrap gap-2">
-                    {faction.startingTech.map((t) => (
-                      <span key={t} className="px-2 py-0.5 rounded text-xs bg-primary/10 text-primary border border-primary/20">
-                        {t}
-                      </span>
-                    ))}
+                    {faction.startingTech.map((t) => {
+                      const genTech = GENERIC_TECH[t];
+                      if (genTech) {
+                        const color = TECH_TYPE_COLORS[genTech.type] || "0 0% 50%";
+                        return (
+                          <button
+                            key={t}
+                            onClick={(e) => { e.stopPropagation(); onDetailClick({ kind: "generic_tech", name: t, type: genTech.type, description: genTech.description }); }}
+                            className="px-2.5 py-1 rounded text-xs font-body font-medium transition-all duration-200 border cursor-pointer hover:scale-105 active:scale-95"
+                            style={{
+                              borderColor: `hsl(${color} / 0.4)`,
+                              color: `hsl(${color})`,
+                              background: `hsl(${color} / 0.1)`,
+                            }}
+                          >
+                            {t}
+                          </button>
+                        );
+                      }
+                      return <span key={t} className="px-2 py-0.5 rounded text-xs bg-primary/10 text-primary border border-primary/20">{t}</span>;
+                    })}
                   </div>
                 </FactionDetail>
               )}
@@ -166,7 +218,7 @@ const FactionGuide = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [showPok, setShowPok] = useState(true);
-  const [selectedTech, setSelectedTech] = useState<{ tech: FactionTech; faction: Faction } | null>(null);
+  const [detailDialog, setDetailDialog] = useState<DetailDialogData | null>(null);
 
   const factions = useMemo(() => {
     const all = [...TI4_FACTIONS, ...(showPok ? POK_FACTIONS : [])];
@@ -178,6 +230,7 @@ const FactionGuide = () => {
         f.shortName.toLowerCase().includes(q) ||
         f.abilities?.some((a) => a.toLowerCase().includes(q)) ||
         f.factionTech?.some((t) => t.name.toLowerCase().includes(q)) ||
+        f.agent?.name.toLowerCase().includes(q) ||
         f.strategyTip?.toLowerCase().includes(q)
     );
   }, [search, showPok]);
@@ -202,7 +255,7 @@ const FactionGuide = () => {
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search factions, abilities, technologies..."
+              placeholder="Search factions, abilities, technologies, agents..."
               className="pl-10 bg-background/50 border-border font-body"
             />
           </div>
@@ -224,7 +277,7 @@ const FactionGuide = () => {
             <FactionGuideCard
               key={faction.name}
               faction={faction}
-              onTechClick={(tech, faction) => setSelectedTech({ tech, faction })}
+              onDetailClick={setDetailDialog}
             />
           ))}
           {factions.length === 0 && (
@@ -244,60 +297,110 @@ const FactionGuide = () => {
         </div>
       </div>
 
-      {/* Tech Detail Dialog */}
-      <Dialog open={!!selectedTech} onOpenChange={() => setSelectedTech(null)}>
+      {/* Detail Dialog */}
+      <Dialog open={!!detailDialog} onOpenChange={() => setDetailDialog(null)}>
         <DialogContent className="glass imperial-border max-w-md">
-          {selectedTech && (() => {
-            const { tech, faction } = selectedTech;
-            const color = TECH_TYPE_COLORS[tech.type] || "0 0% 50%";
-            return (
-              <>
-                <DialogHeader>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span
-                      className="px-2 py-0.5 rounded text-[10px] font-display uppercase tracking-[0.15em] border"
-                      style={{
-                        borderColor: `hsl(${color} / 0.4)`,
-                        color: `hsl(${color})`,
-                        background: `hsl(${color} / 0.15)`,
-                      }}
-                    >
-                      {TECH_TYPE_LABELS[tech.type] || tech.type}
-                    </span>
-                    <span className="text-xs text-muted-foreground font-body">
-                      {faction.shortName}
-                    </span>
+          {detailDialog && (() => {
+            if (detailDialog.kind === "tech") {
+              const { tech, faction } = detailDialog;
+              const color = TECH_TYPE_COLORS[tech.type] || "0 0% 50%";
+              return (
+                <>
+                  <DialogHeader>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span
+                        className="px-2 py-0.5 rounded text-[10px] font-display uppercase tracking-[0.15em] border"
+                        style={{
+                          borderColor: `hsl(${color} / 0.4)`,
+                          color: `hsl(${color})`,
+                          background: `hsl(${color} / 0.15)`,
+                        }}
+                      >
+                        {TECH_TYPE_LABELS[tech.type] || tech.type}
+                      </span>
+                      <span className="text-xs text-muted-foreground font-body">{faction.shortName}</span>
+                    </div>
+                    <DialogTitle className="font-display text-xl uppercase tracking-[0.1em]" style={{ color: `hsl(${color})` }}>
+                      {tech.name}
+                    </DialogTitle>
+                    {tech.prerequisites && (
+                      <DialogDescription className="font-body text-xs text-muted-foreground">
+                        Prerequisites: {tech.prerequisites.split("").map((c, i) => {
+                          const preReqColor = TECH_TYPE_COLORS[
+                            c === "G" ? "green" : c === "B" ? "blue" : c === "Y" ? "yellow" : c === "R" ? "red" : "unit"
+                          ];
+                          return (
+                            <span
+                              key={i}
+                              className="inline-block w-4 h-4 rounded-full mx-0.5 align-middle border"
+                              style={{ background: `hsl(${preReqColor} / 0.3)`, borderColor: `hsl(${preReqColor} / 0.6)` }}
+                            />
+                          );
+                        })}
+                      </DialogDescription>
+                    )}
+                  </DialogHeader>
+                  <div className="mt-2">
+                    <p className="text-sm font-body text-foreground leading-relaxed">{tech.description}</p>
                   </div>
-                  <DialogTitle className="font-display text-xl uppercase tracking-[0.1em]" style={{ color: `hsl(${color})` }}>
-                    {tech.name}
-                  </DialogTitle>
-                  {tech.prerequisites && (
-                    <DialogDescription className="font-body text-xs text-muted-foreground">
-                      Prerequisites: {tech.prerequisites.split("").map((c, i) => {
-                        const preReqColor = TECH_TYPE_COLORS[
-                          c === "G" ? "green" : c === "B" ? "blue" : c === "Y" ? "yellow" : c === "R" ? "red" : "unit"
-                        ];
-                        return (
-                          <span
-                            key={i}
-                            className="inline-block w-4 h-4 rounded-full mx-0.5 align-middle border"
-                            style={{
-                              background: `hsl(${preReqColor} / 0.3)`,
-                              borderColor: `hsl(${preReqColor} / 0.6)`,
-                            }}
-                          />
-                        );
-                      })}
-                    </DialogDescription>
-                  )}
-                </DialogHeader>
-                <div className="mt-2">
-                  <p className="text-sm font-body text-foreground leading-relaxed">
-                    {tech.description}
-                  </p>
-                </div>
-              </>
-            );
+                </>
+              );
+            }
+
+            if (detailDialog.kind === "generic_tech") {
+              const { name, type, description } = detailDialog;
+              const color = TECH_TYPE_COLORS[type] || "0 0% 50%";
+              return (
+                <>
+                  <DialogHeader>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span
+                        className="px-2 py-0.5 rounded text-[10px] font-display uppercase tracking-[0.15em] border"
+                        style={{
+                          borderColor: `hsl(${color} / 0.4)`,
+                          color: `hsl(${color})`,
+                          background: `hsl(${color} / 0.15)`,
+                        }}
+                      >
+                        {TECH_TYPE_LABELS[type] || type}
+                      </span>
+                      <span className="text-xs text-muted-foreground font-body">Starting Tech</span>
+                    </div>
+                    <DialogTitle className="font-display text-xl uppercase tracking-[0.1em]" style={{ color: `hsl(${color})` }}>
+                      {name}
+                    </DialogTitle>
+                    <DialogDescription className="sr-only">Technology details</DialogDescription>
+                  </DialogHeader>
+                  <div className="mt-2">
+                    <p className="text-sm font-body text-foreground leading-relaxed">{description}</p>
+                  </div>
+                </>
+              );
+            }
+
+            if (detailDialog.kind === "unit") {
+              const { name, description } = detailDialog;
+              return (
+                <>
+                  <DialogHeader>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-display uppercase tracking-[0.15em] border border-muted-foreground/40 text-muted-foreground bg-muted/20">
+                        Unit
+                      </span>
+                    </div>
+                    <DialogTitle className="font-display text-xl uppercase tracking-[0.1em] text-foreground">
+                      {name}
+                    </DialogTitle>
+                    <DialogDescription className="sr-only">Unit details</DialogDescription>
+                  </DialogHeader>
+                  <div className="mt-2">
+                    <p className="text-sm font-body text-foreground leading-relaxed">{description}</p>
+                  </div>
+                </>
+              );
+            }
+
+            return null;
           })()}
         </DialogContent>
       </Dialog>
