@@ -391,6 +391,8 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "Nullification Field", type: "yellow", prerequisites: "YY", description: "After another player activates a system that contains 1 or more of your ships, you may exhaust this card and spend 1 token from your fleet pool; that player removes 1 ship from the active system and places it in their reinforcements." },
     ],
     agent: { name: "Elder Qanoj", description: "After an agenda is revealed: You may exhaust this card to read the next card in the agenda deck; place it face up or face down on top of the deck." },
+    commander: { name: "Xxekir Grom", unlock: "Have 3 or more PDS on the game board.", description: "After another player activates a system that contains 1 or more of your PDS: You may exhaust this card to use 1 of your PDS' Space Cannon ability." },
+    hero: { name: "Xxcha Ancestor", description: "ACTION: After an agenda is revealed, you may cast 5 additional votes for any outcome. Purge this card." },
   },
   {
     name: "The Yin Brotherhood",
