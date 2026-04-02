@@ -134,7 +134,20 @@ const FactionGuideCard = ({ faction, onDetailClick }: { faction: Faction; onDeta
                 </FactionDetail>
               )}
 
-              {faction.promissoryNote && (
+              {faction.commander && (
+                <FactionDetail icon={<Crown className="h-4 w-4" />} label="Commander">
+                  <p className="text-sm"><span className="font-semibold text-primary">{faction.commander.name}</span> — {faction.commander.description}</p>
+                  <p className="text-xs text-muted-foreground mt-1 italic">Unlock: {faction.commander.unlock}</p>
+                </FactionDetail>
+              )}
+
+              {faction.hero && (
+                <FactionDetail icon={<Star className="h-4 w-4" />} label="Hero">
+                  <p className="text-sm"><span className="font-semibold text-primary">{faction.hero.name}</span> — {faction.hero.description}</p>
+                </FactionDetail>
+              )}
+
+
                 <FactionDetail icon={<FileText className="h-4 w-4" />} label="Promissory Note">
                   <p className="text-sm">{faction.promissoryNote}</p>
                 </FactionDetail>
