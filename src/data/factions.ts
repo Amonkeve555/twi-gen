@@ -499,6 +499,8 @@ export const POK_FACTIONS: Faction[] = [
       { name: "Crimson Legionnaire II", type: "unit", prerequisites: "GG", description: "Cost 1(×2) / Combat 7. After this unit is destroyed, if the active player is not you, place this unit on your faction sheet; at the start of your next turn, place each unit on your faction sheet on a planet you control in your home system." },
     ],
     agent: { name: "Jae Mir Kan", description: "After a player resolves a tactical action: You may exhaust this card to allow that player to remove 1 of their command tokens from the game board and place it in their reinforcements." },
+    commander: { name: "Il Na Vansen", unlock: "Have another player's command token in your fleet pool.", description: "At the start of combat: You may spend 1 token from your fleet pool that matches another player's faction to apply -2 to the combat value of that player's units during this combat." },
+    hero: { name: "Airo Sheredyn, Scion of the Throne", description: "ACTION: For each other player's command token in your fleet pool, you may purge that token. For each token purged, gain 1 victory point. Purge this card." },
   },
   {
     name: "The Naaz-Rokha Alliance",
