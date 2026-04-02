@@ -83,6 +83,7 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "Bioplasmosis", type: "green", prerequisites: "GG", description: "At the end of the status phase, you may remove any number of infantry from planets you control and place them on 1 or more planets you control in the same or adjacent systems." },
       { name: "Letani Warrior II", type: "unit", prerequisites: "GG", description: "Cost 1 / Combat 8(×2). After this unit is destroyed, roll 1 die. If the result is 6 or greater, place the unit on this card. At the start of your next turn, place each unit that is on this card on a planet you control in your home system." },
     ],
+    agent: { name: "Letani Ospha", description: "After a player activates a system: You may exhaust this card to allow that player to replace 1 of their infantry in the active system with 1 infantry from their reinforcements." },
   },
   {
     name: "The Barony of Letnev",
@@ -101,6 +102,7 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "L4 Disruptors", type: "yellow", prerequisites: "Y", description: "During an invasion in a system that contains 1 or more of your units, you may exhaust this card to prevent the \"Space Cannon Defense\" step of the invasion." },
       { name: "Non-Euclidean Shielding", type: "red", prerequisites: "RR", description: "When 1 of your units uses \"Sustain Damage,\" cancel 2 hits instead of 1." },
     ],
+    agent: { name: "Darktalon Treilla", description: "At the start of a combat round: You may exhaust this card to choose a player in the active system; that player may spend 2 trade goods to apply +1 to the result of each of their unit's combat rolls during this combat round." },
   },
   {
     name: "The Clan of Saar",
