@@ -147,7 +147,7 @@ const FactionGuideCard = ({ faction, onDetailClick }: { faction: Faction; onDeta
                 </FactionDetail>
               )}
 
-
+              {faction.promissoryNote && (
                 <FactionDetail icon={<FileText className="h-4 w-4" />} label="Promissory Note">
                   <p className="text-sm">{faction.promissoryNote}</p>
                 </FactionDetail>
