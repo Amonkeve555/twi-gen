@@ -246,6 +246,8 @@ const FactionGuide = () => {
         f.abilities?.some((a) => a.toLowerCase().includes(q)) ||
         f.factionTech?.some((t) => t.name.toLowerCase().includes(q)) ||
         f.agent?.name.toLowerCase().includes(q) ||
+        f.commander?.name.toLowerCase().includes(q) ||
+        f.hero?.name.toLowerCase().includes(q) ||
         f.strategyTip?.toLowerCase().includes(q)
     );
   }, [search, showPok]);
