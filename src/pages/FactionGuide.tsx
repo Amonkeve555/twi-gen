@@ -1,12 +1,12 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, ChevronDown, ChevronUp, ArrowLeft, Swords, Shield, Cpu, Package, Lightbulb, FileText, Zap } from "lucide-react";
+import { Search, ChevronDown, ChevronUp, ArrowLeft, Swords, Shield, Cpu, Package, Lightbulb, FileText, Zap, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import StarField from "@/components/StarField";
-import { TI4_FACTIONS, POK_FACTIONS, type Faction, type FactionTech } from "@/data/factions";
+import { TI4_FACTIONS, POK_FACTIONS, GENERIC_TECH, UNIT_REFERENCE, type Faction, type FactionTech } from "@/data/factions";
 
 const TECH_TYPE_COLORS: Record<string, string> = {
   unit: "180 60% 50%",
