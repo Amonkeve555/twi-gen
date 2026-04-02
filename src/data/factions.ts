@@ -412,6 +412,8 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "Yin Spinner", type: "green", prerequisites: "GG", description: "After you produce 1 or more units, place 1 infantry from your reinforcements on a planet you control in that system' production." },
     ],
     agent: { name: "Brother Milor", description: "When a player commits 1 or more units to a planet: You may exhaust this card to choose 1 of that player's ground forces on that planet; that ground force does not participate in ground combat on this planet during this invasion." },
+    commander: { name: "Brother Omar", unlock: "Control a planet in another player's home system.", description: "When 1 or more of your units use Bombardment or Space Cannon: 1 of those units may use its Bombardment or Space Cannon ability 1 additional time." },
+    hero: { name: "Danara Yin", description: "ACTION: Choose 1 system that contains your flagship; each other player's non-structure units in that system are destroyed. Purge this card." },
   },
   {
     name: "The Yssaril Tribes",
