@@ -32,6 +32,10 @@ export const TI4_FACTIONS: Faction[] = [
     startingTech: ["Magen Defense Grid"],
     commodities: 3,
     strategyTip: "Focus on spreading infantry across planets early. Your Mitosis ability snowballs over time. Prioritize Warfare or Production to maximize unit output.",
+    factionTech: [
+      { name: "Bioplasmosis", type: "green", prerequisites: "GG", description: "At the end of the status phase, you may remove any number of infantry from planets you control and place them on 1 or more planets you control in the same or adjacent systems." },
+      { name: "Letani Warrior II", type: "unit", prerequisites: "GG", description: "Cost 1 / Combat 8(×2). After this unit is destroyed, roll 1 die. If the result is 6 or greater, place the unit on this card. At the start of your next turn, place each unit that is on this card on a planet you control in your home system." },
+    ],
   },
   {
     name: "The Barony of Letnev",
