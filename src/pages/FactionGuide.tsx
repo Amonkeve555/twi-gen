@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import StarField from "@/components/StarField";
 import { TI4_FACTIONS, POK_FACTIONS, GENERIC_TECH, UNIT_REFERENCE, type Faction, type FactionTech } from "@/data/factions";
+import TechTree from "@/components/TechTree";
 
 const TECH_TYPE_COLORS: Record<string, string> = {
   unit: "180 60% 50%",
@@ -271,6 +272,10 @@ const FactionGuide = () => {
               <span className="font-body text-sm text-muted-foreground">Include Prophecy of Kings</span>
             </label>
           </div>
+        </div>
+
+        <div className="space-y-3 mb-6">
+          <TechTree />
         </div>
 
         <div className="space-y-3">
