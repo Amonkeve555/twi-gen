@@ -5,6 +5,16 @@ export interface FactionTech {
   description: string;
 }
 
+export interface FactionAgent {
+  name: string;
+  description: string;
+}
+
+export interface StartingUnitEntry {
+  name: string;
+  count: number;
+}
+
 export interface Faction {
   name: string;
   shortName: string;
@@ -12,11 +22,48 @@ export interface Faction {
   abilities?: string[];
   promissoryNote?: string;
   startingUnits?: string;
+  startingUnitsParsed?: StartingUnitEntry[];
   startingTech?: string[];
   commodities?: number;
   strategyTip?: string;
   factionTech?: FactionTech[];
+  agent?: FactionAgent;
 }
+
+// Generic tech reference for starting techs
+export const GENERIC_TECH: Record<string, { type: "green" | "blue" | "yellow" | "red"; description: string }> = {
+  "Antimass Deflectors": { type: "blue", description: "Your ships can move into and through asteroid fields. When other players' units use Space Cannon against your units, apply −1 to the result of each die roll." },
+  "Plasma Scoring": { type: "red", description: "When 1 or more of your units use Bombardment or Space Cannon, 1 of those units may roll 1 additional die." },
+  "Neural Motivator": { type: "green", description: "During the status phase, draw 2 action cards instead of 1." },
+  "Sarween Tools": { type: "yellow", description: "When 1 or more of your units use Production, reduce the combined cost of the produced units by 1." },
+  "Gravity Drive": { type: "blue", description: "After you activate a system, apply +1 to the move value of 1 of your ships during this tactical action." },
+  "Magen Defense Grid": { type: "red", description: "At the start of ground combat on a planet that contains 1 or more of your units that have Planetary Shield, your opponent cannot make combat rolls during the first round of ground combat." },
+  "Graviton Laser System": { type: "yellow", description: "You may exhaust this card before 1 or more of your units use Space Cannon; hits produced by those units must be assigned to non-fighter ships." },
+  "Dacxive Animators": { type: "green", description: "After you win a ground combat, you may place 1 infantry from your reinforcements on that planet." },
+  "Dark Energy Tap": { type: "blue", description: "After you perform a tactical action in a system that contains a frontier token, if you have 1 or more ships in that system, explore that frontier token." },
+  "Bio-Stims": { type: "green", description: "You may exhaust this card at the end of your turn to ready 1 of your other technologies." },
+  "Predictive Intelligence": { type: "yellow", description: "At the end of your turn, you may exhaust this card to redistribute your command tokens." },
+  "Psychoarchaeology": { type: "green", description: "You can use technology specialties on planets you control without exhausting them. During the action phase, you may exhaust a planet you control that has a technology specialty to gain 1 trade good." },
+  "AI Development Algorithm": { type: "red", description: "When you research a unit upgrade technology, you may exhaust this card to ignore any 1 prerequisite." },
+  "Sling Relay": { type: "yellow", description: "During a ground combat, if your opponent is the active player, you may exhaust this card to produce 1 infantry on that planet." },
+  "Scanlink Drone Network": { type: "yellow", description: "When you activate a system, you may explore each planet in that system that contains 1 or more of your units." },
+  "Self Assembly Routines": { type: "red", description: "After 1 or more of your units is destroyed during combat, you may place 1 mech from your reinforcements on the planet or in the space area of that system." },
+};
+
+// Unit reference
+export const UNIT_REFERENCE: Record<string, string> = {
+  "Carrier": "Cost 3 / Combat 9 / Move 1 / Capacity 4. Transports ground forces and fighters across the galaxy.",
+  "Cruiser": "Cost 2 / Combat 7 / Move 2. Fast, affordable warship ideal for hit-and-run tactics.",
+  "Destroyer": "Cost 1 / Combat 9 / Move 2 / Anti-Fighter Barrage 9(×2). Cheap screening ship effective against fighters.",
+  "Dreadnought": "Cost 4 / Combat 5 / Move 1 / Capacity 1 / Sustain Damage / Bombardment 5. Heavy capital ship with planet bombardment.",
+  "Fighter": "Cost 1(×2) / Combat 9. Cheap combat unit. Must be supported by capacity.",
+  "Infantry": "Cost 1(×2) / Combat 8. Basic ground force for controlling planets.",
+  "PDS": "Planetary Shield / Space Cannon 6. Stationary defense structure on planets.",
+  "Space Dock": "Production 7. Produces units on the planet where it is placed.",
+  "War Sun": "Cost 12(×3) / Combat 3(×3) / Move 2 / Capacity 6 / Sustain Damage / Bombardment 3(×3). Devastating super-unit that negates Planetary Shield.",
+  "Flagship": "Unique to each faction. Powerful capital ship with a special ability.",
+  "Mech": "Cost 2 / Combat 6 / Sustain Damage. Durable ground force with a faction-specific ability.",
+};
 
 export const TI4_FACTIONS: Faction[] = [
   {
