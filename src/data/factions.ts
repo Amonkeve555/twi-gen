@@ -286,6 +286,8 @@ export const TI4_FACTIONS: Faction[] = [
       { name: "Hybrid Crystal Fighter II", type: "unit", prerequisites: "GB", description: "Cost 1(×2) / Combat 7 / Move 2. This unit may move without being transported. Each fighter in excess of your ships' capacity counts as 1/2 capacity." },
     ],
     agent: { name: "Z'eu", description: "After a player activates a system that contains 1 or more of their fighters: You may exhaust this card to allow that player to place 2 fighters from their reinforcements in the active system." },
+    commander: { name: "M'aban", unlock: "Have 6 or more fighters on the game board.", description: "During combat: Apply +1 to the result of each of your fighters' combat rolls." },
+    hero: { name: "The Oracle", description: "ACTION: Place this card face-up in your play area. You are always first in initiative order. At the start of the status phase, purge this card." },
   },
   {
     name: "The Nekro Virus",
