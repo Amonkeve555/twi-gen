@@ -286,6 +286,7 @@ const GameDay = () => {
             <ArrowLeft className="mr-2 h-3 w-3" />
             Back to Lobby
           </Button>
+          <ClaimPlayerDialog players={players} lobbyId={lobby.id} />
           {!isHost && lobby?.host_password && (
             <ClaimHostDialog lobbyId={lobby.id} lobbyHostPassword={lobby.host_password as string} />
           )}

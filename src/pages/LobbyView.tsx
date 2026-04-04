@@ -199,6 +199,7 @@ const LobbyView = () => {
                 <ArrowLeft className="mr-2 h-3 w-3" />
                 Home
               </Button>
+              <ClaimPlayerDialog players={players} lobbyId={lobby.id} />
               {!isHost && lobby.host_password && (
                 <ClaimHostDialog lobbyId={lobby.id} lobbyHostPassword={lobby.host_password as string} />
               )}
