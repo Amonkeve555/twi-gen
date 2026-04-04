@@ -1,21 +1,30 @@
 
 
-## Show All Active Lobbies to Everyone
+## Fix: Player Can't Pick Faction on Different Device
 
 ### Problem
-The home page only fetches lobbies where the current session is the host or a joined player. On a new device, you see no lobbies because your session ID doesn't match any records.
+Session IDs are stored in `localStorage`, meaning they're unique per browser/device. If Swifftik opens the game on a different browser or device than the one they used to join, `myPlayer` resolves to `undefined` because the session ID doesn't match. The GameDay page then shows no faction choice UI for them.
 
 ### Solution
-Replace the session-filtered fetch with a single query that fetches **all non-completed lobbies**. Determine the user's role (host/player/none) client-side.
+Add a "Claim Player" mechanism on the GameDay page (and optionally LobbyView) so a user on a new device can associate themselves with an existing player entry.
 
-### Changes — `src/pages/Index.tsx`
+### Changes
 
-Replace the `fetchActiveLobbies` logic (lines 52–108) with:
+**1. Add "Claim Player" dialog to GameDay page (`src/pages/GameDay.tsx`)**
+- When `myPlayer` is `undefined` (no matching session), show a list of unclaimed/unmatched players with a "This is me" button next to each
+- Clicking it updates that player's `session_id` in the database to the current device's session ID
+- After claiming, the faction choice UI appears normally
 
-1. Fetch **all** lobbies where `status != 'completed'`, ordered by `created_at desc`
-2. Fetch the current session's `lobby_players` entries to determine role
-3. For each lobby, set role as `"host"` (if `host_session_id` matches), `"player"` (if in lobby_players), or `"—"` (not involved)
-4. Fetch player counts for all returned lobbies
+**2. Add same capability to LobbyView (`src/pages/LobbyView.tsx`)**
+- If the current session doesn't match any player in the lobby, show a "Rejoin as..." section listing all players, letting the user claim their identity
+- This covers the case where someone switches devices during the token-picking phase too
 
-This way, any device visiting the site sees all active games and can navigate to one, then use the host password to claim host privileges.
+**3. Optional safeguard**
+- Only show "claim" for players who haven't been active recently, or require confirmation (to prevent accidentally stealing another player's slot)
+- A simple approach: just allow it freely since the group is physically together and can coordinate
+
+### Technical Detail
+- Both pages already have access to `players` and `sessionId`
+- The update is a single Supabase call: `supabase.from("lobby_players").update({ session_id: sessionId }).eq("id", playerId)`
+- After updating, the real-time subscription will refetch and `myPlayer` will resolve correctly
 
