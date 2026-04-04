@@ -20,7 +20,7 @@ export const TECH_TREE: TechTreeNode[] = [
   { name: "Antimass Deflectors", type: "blue", tier: 1, prerequisites: "", description: "Your ships can move into and through asteroid fields. When other players' units use Space Cannon against your units, apply −1 to the result of each die roll." },
   { name: "Dark Energy Tap", type: "blue", tier: 1, prerequisites: "", description: "After you perform a tactical action in a system that contains a frontier token, if you have 1 or more ships in that system, explore that frontier token." },
   { name: "Gravity Drive", type: "blue", tier: 2, prerequisites: "B", description: "After you activate a system, apply +1 to the move value of 1 of your ships during this tactical action." },
-  { name: "Sling Relay", type: "blue", tier: 2, prerequisites: "BB", description: "During a ground combat, if your opponent is the active player, you may exhaust this card to produce 1 infantry on that planet." },
+  { name: "Sling Relay", type: "blue", tier: 1, prerequisites: "", description: "During a ground combat, if your opponent is the active player, you may exhaust this card to produce 1 infantry on that planet." },
   { name: "Fleet Logistics", type: "blue", tier: 3, prerequisites: "BB", description: "During each of your turns, you may perform 2 actions instead of 1." },
   { name: "Light/Wave Deflector", type: "blue", tier: 3, prerequisites: "BBB", description: "Your ships can move through systems that contain other players' ships." },
 
