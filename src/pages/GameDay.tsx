@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Trophy, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ClaimHostDialog from "@/components/ClaimHostDialog";
+import ClaimPlayerDialog from "@/components/ClaimPlayerDialog";
 import { Input } from "@/components/ui/input";
 import StarField from "@/components/StarField";
 import FactionCard from "@/components/FactionCard";
