@@ -58,7 +58,7 @@ export const GENERIC_TECH: Record<string, { type: "green" | "blue" | "yellow" | 
   "Predictive Intelligence": { type: "yellow", description: "At the end of your turn, you may exhaust this card to redistribute your command tokens." },
   "Psychoarchaeology": { type: "green", description: "You can use technology specialties on planets you control without exhausting them. During the action phase, you may exhaust a planet you control that has a technology specialty to gain 1 trade good." },
   "AI Development Algorithm": { type: "red", description: "When you research a unit upgrade technology, you may exhaust this card to ignore any 1 prerequisite." },
-  "Sling Relay": { type: "yellow", description: "During a ground combat, if your opponent is the active player, you may exhaust this card to produce 1 infantry on that planet." },
+  "Sling Relay": { type: "blue", description: "During a ground combat, if your opponent is the active player, you may exhaust this card to produce 1 infantry on that planet." },
   "Scanlink Drone Network": { type: "yellow", description: "When you activate a system, you may explore each planet in that system that contains 1 or more of your units." },
   "Self Assembly Routines": { type: "red", description: "After 1 or more of your units is destroyed during combat, you may place 1 mech from your reinforcements on the planet or in the space area of that system." },
 };
