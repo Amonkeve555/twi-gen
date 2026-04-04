@@ -20,7 +20,7 @@ export const TECH_TREE: TechTreeNode[] = [
   { name: "Antimass Deflectors", type: "blue", tier: 1, prerequisites: "", description: "Your ships can move into and through asteroid fields. When other players' units use Space Cannon against your units, apply −1 to the result of each die roll." },
   { name: "Dark Energy Tap", type: "blue", tier: 1, prerequisites: "", description: "After you perform a tactical action in a system that contains a frontier token, if you have 1 or more ships in that system, explore that frontier token." },
   { name: "Gravity Drive", type: "blue", tier: 2, prerequisites: "B", description: "After you activate a system, apply +1 to the move value of 1 of your ships during this tactical action." },
-  { name: "Transit Diodes", type: "blue", tier: 2, prerequisites: "BB", description: "You may exhaust this card at the start of a tactical action to place up to 4 of your ground forces from other systems on 1 or more planets you control in the active system." },
+  { name: "Sling Relay", type: "blue", tier: 2, prerequisites: "BB", description: "During a ground combat, if your opponent is the active player, you may exhaust this card to produce 1 infantry on that planet." },
   { name: "Fleet Logistics", type: "blue", tier: 3, prerequisites: "BB", description: "During each of your turns, you may perform 2 actions instead of 1." },
   { name: "Light/Wave Deflector", type: "blue", tier: 3, prerequisites: "BBB", description: "Your ships can move through systems that contain other players' ships." },
 
@@ -30,7 +30,7 @@ export const TECH_TREE: TechTreeNode[] = [
   { name: "Graviton Laser System", type: "yellow", tier: 2, prerequisites: "Y", description: "You may exhaust this card before 1 or more of your units use Space Cannon; hits produced by those units must be assigned to non-fighter ships." },
   { name: "Predictive Intelligence", type: "yellow", tier: 2, prerequisites: "Y", description: "At the end of your turn, you may exhaust this card to redistribute your command tokens." },
   { name: "Integrated Economy", type: "yellow", tier: 3, prerequisites: "YYY", description: "After you gain control of a planet, you may produce any number of units on that planet that have a combined cost equal to or less than that planet's resource value." },
-  { name: "Sling Relay", type: "yellow", tier: 2, prerequisites: "Y", description: "During a ground combat, if your opponent is the active player, you may exhaust this card to produce 1 infantry on that planet." },
+  { name: "Transit Diodes", type: "yellow", tier: 2, prerequisites: "YY", description: "You may exhaust this card at the start of a tactical action to place up to 4 of your ground forces from other systems on 1 or more planets you control in the active system." },
 
   // === WARFARE (Red) ===
   { name: "Plasma Scoring", type: "red", tier: 1, prerequisites: "", description: "When 1 or more of your units use Bombardment or Space Cannon, 1 of those units may roll 1 additional die." },
