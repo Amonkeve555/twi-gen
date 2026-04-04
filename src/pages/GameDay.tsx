@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Trophy, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ClaimHostDialog from "@/components/ClaimHostDialog";
+import ClaimPlayerDialog from "@/components/ClaimPlayerDialog";
 import { Input } from "@/components/ui/input";
 import StarField from "@/components/StarField";
 import FactionCard from "@/components/FactionCard";
@@ -285,6 +286,7 @@ const GameDay = () => {
             <ArrowLeft className="mr-2 h-3 w-3" />
             Back to Lobby
           </Button>
+          <ClaimPlayerDialog players={players} lobbyId={lobby.id} />
           {!isHost && lobby?.host_password && (
             <ClaimHostDialog lobbyId={lobby.id} lobbyHostPassword={lobby.host_password as string} />
           )}

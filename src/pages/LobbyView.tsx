@@ -2,6 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Copy, Check, Users, Clock, ArrowLeft, Trash2, UserMinus, KeyRound } from "lucide-react";
 import ClaimHostDialog from "@/components/ClaimHostDialog";
+import ClaimPlayerDialog from "@/components/ClaimPlayerDialog";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -198,6 +199,7 @@ const LobbyView = () => {
                 <ArrowLeft className="mr-2 h-3 w-3" />
                 Home
               </Button>
+              <ClaimPlayerDialog players={players} lobbyId={lobby.id} />
               {!isHost && lobby.host_password && (
                 <ClaimHostDialog lobbyId={lobby.id} lobbyHostPassword={lobby.host_password as string} />
               )}
