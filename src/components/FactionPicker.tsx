@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Loader2 } from "lucide-react";
 import type { Faction } from "@/data/factions";
 import { cn } from "@/lib/utils";
 
@@ -9,6 +10,7 @@ interface FactionPickerProps {
   forbiddenRelaxed?: boolean; // if true, forbidden is shown but still clickable
   onSelect: (faction: Faction) => void;
   disabled?: boolean;
+  pendingFaction?: string | null; // name of faction currently being claimed
 }
 
 const FactionPicker = ({
@@ -18,7 +20,9 @@ const FactionPicker = ({
   forbiddenRelaxed,
   onSelect,
   disabled,
+  pendingFaction,
 }: FactionPickerProps) => {
+  const isClaiming = !!pendingFaction;
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
       {factions.map((f) => {
