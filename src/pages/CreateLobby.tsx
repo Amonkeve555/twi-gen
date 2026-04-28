@@ -10,18 +10,25 @@ import { supabase } from "@/integrations/supabase/client";
 import { getSessionId } from "@/lib/sessionId";
 import { generateInviteCode } from "@/lib/inviteCode";
 import { TI4_FACTIONS, POK_FACTIONS, type Faction } from "@/data/factions";
+import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
+import { toast } from "sonner";
 
 const CreateLobby = () => {
   const navigate = useNavigate();
-  const [hostName, setHostName] = useState("Host");
+  const { user } = useAuth();
+  const { profile } = useProfile();
+  const [hostName, setHostName] = useState("");
   const [maxPlayers, setMaxPlayers] = useState(3);
   const [picksPerPlayer, setPicksPerPlayer] = useState(1);
   const [includePok, setIncludePok] = useState(false);
   const [excludedFactions, setExcludedFactions] = useState<Set<string>>(new Set());
-  const [hostPassword, setHostPassword] = useState("");
   const [creating, setCreating] = useState(false);
   const [createdCode, setCreatedCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
+  // Default host name from profile nickname
+  const effectiveHostName = hostName.trim() || profile?.nickname || "Host";
 
   const availableFactions = useMemo(() => {
     return [...TI4_FACTIONS, ...(includePok ? POK_FACTIONS : [])].filter(
@@ -29,7 +36,7 @@ const CreateLobby = () => {
     );
   }, [includePok, excludedFactions]);
 
-  const canCreate = availableFactions.length >= maxPlayers * picksPerPlayer && hostPassword.trim().length > 0;
+  const canCreate = availableFactions.length >= maxPlayers * picksPerPlayer;
 
   const toggleFaction = useCallback((name: string) => {
     setExcludedFactions((prev) => {
@@ -41,11 +48,11 @@ const CreateLobby = () => {
   }, []);
 
   const createLobby = async () => {
+    if (!user) return;
     setCreating(true);
     const code = generateInviteCode();
     const sessionId = getSessionId();
 
-    // Shuffle factions and create token mapping
     const shuffled = [...availableFactions].sort(() => Math.random() - 0.5);
     const tokenMapping: Record<string, Faction> = {};
     shuffled.forEach((f, i) => tokenMapping[String(i + 1)] = f);
@@ -58,15 +65,17 @@ const CreateLobby = () => {
 
     const { error } = await supabase.from("lobbies").insert([{
       invite_code: code,
-      host_session_id: sessionId,
-      host_name: hostName,
-      host_password: hostPassword,
+      host_session_id: sessionId, // legacy (kept NOT NULL in schema)
+      host_user_id: user.id,
+      host_name: effectiveHostName,
+      host_password: "", // legacy column, no longer used
       settings: JSON.parse(JSON.stringify(settings)),
       token_mapping: JSON.parse(JSON.stringify(tokenMapping)),
     }]);
 
     if (error) {
       console.error(error);
+      toast.error(error.message);
       setCreating(false);
       return;
     }
@@ -98,28 +107,17 @@ const CreateLobby = () => {
             <div className="glass imperial-border rounded p-6 space-y-6 mb-6">
               <div className="space-y-3">
                 <h2 className="font-display text-sm uppercase tracking-[0.2em] text-primary text-glow">
-                  Host Name
+                  Lobby Name
                 </h2>
                 <Input
                   value={hostName}
                   onChange={(e) => setHostName(e.target.value)}
+                  placeholder={profile?.nickname ?? "Host"}
                   className="bg-input border-border font-body text-foreground focus:border-primary/40 rounded"
                 />
-              </div>
-
-              <div className="imperial-divider" />
-
-              <div className="space-y-3">
-                <h2 className="font-display text-sm uppercase tracking-[0.2em] text-primary text-glow">
-                  Host Password
-                </h2>
-                <Input
-                  type="password"
-                  value={hostPassword}
-                  onChange={(e) => setHostPassword(e.target.value)}
-                  placeholder="Set a password to manage this lobby from any device"
-                  className="bg-input border-border font-body text-foreground focus:border-primary/40 rounded"
-                />
+                <p className="font-body text-xs text-muted-foreground">
+                  Leave blank to use your nickname.
+                </p>
               </div>
 
               <div className="imperial-divider" />

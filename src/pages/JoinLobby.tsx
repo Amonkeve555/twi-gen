@@ -1,40 +1,40 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { toast } from "sonner";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import StarField from "@/components/StarField";
 import TokenGrid from "@/components/TokenGrid";
 import FactionCard from "@/components/FactionCard";
 import { supabase } from "@/integrations/supabase/client";
 import { getSessionId } from "@/lib/sessionId";
 import { useLobby, type LobbySettings } from "@/hooks/useLobby";
+import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import type { Faction } from "@/data/factions";
 
-type JoinPhase = "name" | "pick" | "done";
+type JoinPhase = "intro" | "pick" | "done";
 
 const JoinLobby = () => {
   const { inviteCode } = useParams<{ inviteCode: string }>();
   const navigate = useNavigate();
   const { lobby, players, loading, error } = useLobby(inviteCode);
-  const sessionId = getSessionId();
+  const { user } = useAuth();
+  const { profile } = useProfile();
 
-  const [playerName, setPlayerName] = useState("");
-  const [phase, setPhase] = useState<JoinPhase>("name");
+  const [phase, setPhase] = useState<JoinPhase>("intro");
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [tokenPicks, setTokenPicks] = useState<number[]>([]);
   const [assignedFactions, setAssignedFactions] = useState<Faction[]>([]);
+  const [joining, setJoining] = useState(false);
 
-  // Check if already joined
-  const existingPlayer = players.find((p) => p.session_id === sessionId);
+  const existingPlayer = players.find((p) => p.user_id === user?.id);
 
   const settings = lobby?.settings as LobbySettings | undefined;
   const tokenMapping = lobby?.token_mapping as Record<string, Faction> | null;
   const totalTokens = settings?.factions?.length ?? 0;
   const picksPerPlayer = settings?.picks_per_player ?? 1;
 
-  // Build taken tokens map from all players
   const takenTokens = useMemo(() => {
     const map = new Map<number, number>();
     players.forEach((p, pIdx) => {
@@ -45,24 +45,39 @@ const JoinLobby = () => {
 
   const isFull = players.length >= (settings?.max_players ?? 99);
 
-  const joinLobby = async () => {
-    if (!lobby || !playerName.trim()) return;
+  // Resume in-progress pick
+  useEffect(() => {
+    if (existingPlayer && phase === "intro") {
+      const picks = existingPlayer.token_picks ?? [];
+      const factions = (existingPlayer.assigned_factions as unknown as Faction[]) ?? [];
+      setPlayerId(existingPlayer.id);
+      setTokenPicks(picks);
+      setAssignedFactions(factions);
+      if (picks.length >= picksPerPlayer) setPhase("done");
+      else setPhase("pick");
+    }
+  }, [existingPlayer, phase, picksPerPlayer]);
 
+  const joinLobby = async () => {
+    if (!lobby || !user || !profile?.nickname) return;
+    setJoining(true);
+    const sessionId = getSessionId();
     const { data, error: err } = await supabase
       .from("lobby_players")
       .insert({
         lobby_id: lobby.id,
         session_id: sessionId,
-        player_name: playerName.trim(),
+        user_id: user.id,
+        player_name: profile.nickname,
       })
       .select("id")
       .single();
-
+    setJoining(false);
     if (err) {
       console.error(err);
+      toast.error(err.message);
       return;
     }
-
     setPlayerId(data.id);
     setPhase("pick");
   };
@@ -70,35 +85,22 @@ const JoinLobby = () => {
   const selectToken = useCallback(
     async (tokenId: number) => {
       if (!lobby || !playerId) return;
-
       const { data, error: err } = await supabase.rpc("claim_token", {
         p_lobby_id: lobby.id,
         p_player_id: playerId,
         p_token_id: tokenId,
       });
-
       if (err) {
         toast.error("Failed to claim token");
         console.error(err);
         return;
       }
-
       const result = data as { success?: boolean; error?: string; faction?: Faction };
-
-      if (result.error) {
-        toast.error(result.error);
-        return;
-      }
-
+      if (result.error) { toast.error(result.error); return; }
       const newPicks = [...tokenPicks, tokenId];
       setTokenPicks(newPicks);
-      if (result.faction) {
-        setAssignedFactions((prev) => [...prev, result.faction as Faction]);
-      }
-
-      if (newPicks.length >= picksPerPlayer) {
-        setPhase("done");
-      }
+      if (result.faction) setAssignedFactions((prev) => [...prev, result.faction as Faction]);
+      if (newPicks.length >= picksPerPlayer) setPhase("done");
     },
     [lobby, tokenPicks, playerId, picksPerPlayer]
   );
@@ -128,37 +130,7 @@ const JoinLobby = () => {
     );
   }
 
-  // If player already joined and picked
-  if (existingPlayer && existingPlayer.token_picks && existingPlayer.token_picks.length >= picksPerPlayer) {
-    return (
-      <div className="min-h-screen relative">
-        <StarField />
-        <div className="relative z-10 max-w-2xl mx-auto px-4 py-12 space-y-6">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center">
-            <h1 className="font-display text-3xl text-primary text-glow mb-2">
-              You've already picked!
-            </h1>
-            <p className="font-body text-muted-foreground">{existingPlayer.player_name}</p>
-          </motion.div>
-
-          <div className="glass imperial-border rounded p-6 space-y-3">
-            <h2 className="font-display text-base uppercase tracking-[0.2em] text-primary text-glow text-center mb-4">
-              Your Factions
-            </h2>
-            {(existingPlayer.assigned_factions as unknown as Faction[])?.map((f, i) => (
-              <FactionCard key={f.name} playerName={existingPlayer.player_name} faction={f} index={i} />
-            ))}
-          </div>
-
-          <div className="flex justify-center">
-            <Button onClick={() => navigate(`/lobby/${inviteCode}`)} className="font-display text-sm uppercase tracking-[0.2em] glow-primary px-10 py-6 bg-primary text-primary-foreground hover:bg-primary/90">
-              View Lobby
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const playerName = profile?.nickname ?? "Player";
 
   return (
     <div className="min-h-screen relative">
@@ -174,33 +146,27 @@ const JoinLobby = () => {
           <div className="imperial-divider w-48 mx-auto mt-4" />
         </motion.div>
 
-        {phase === "name" && (
+        {phase === "intro" && !existingPlayer && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
             {isFull ? (
               <div className="glass imperial-border rounded p-6 text-center">
                 <p className="font-display text-destructive">Lobby is full ({settings?.max_players} players)</p>
               </div>
             ) : (
-              <div className="glass imperial-border rounded p-6 space-y-4">
-                 <h2 className="font-display text-base uppercase tracking-[0.2em] text-primary text-glow">
-                   Enter Your Name
+              <div className="glass imperial-border rounded p-6 space-y-4 text-center">
+                <h2 className="font-display text-base uppercase tracking-[0.2em] text-primary text-glow">
+                  Joining as
                 </h2>
-                <Input
-                  value={playerName}
-                  onChange={(e) => setPlayerName(e.target.value)}
-                  placeholder="Your name"
-                  className="bg-input border-border font-body text-foreground focus:border-primary/40 rounded"
-                  onKeyDown={(e) => e.key === "Enter" && joinLobby()}
-                />
+                <p className="font-display text-2xl text-primary">{playerName}</p>
                 <p className="font-body text-base text-muted-foreground">
                   {players.length}/{settings?.max_players} players joined · {picksPerPlayer} pick{picksPerPlayer > 1 ? "s" : ""} per player
                 </p>
                 <Button
                   onClick={joinLobby}
-                  disabled={!playerName.trim()}
+                  disabled={joining}
                   className="w-full font-display text-sm uppercase tracking-[0.2em] glow-primary bg-primary text-primary-foreground hover:bg-primary/90"
                 >
-                  Join Game
+                  {joining ? "Joining..." : "Join Game"}
                 </Button>
               </div>
             )}
@@ -218,7 +184,6 @@ const JoinLobby = () => {
                 Pick {tokenPicks.length + 1} of {picksPerPlayer}
               </p>
             </div>
-
             <TokenGrid
               totalTokens={totalTokens}
               takenTokens={takenTokens}
@@ -251,6 +216,9 @@ const JoinLobby = () => {
             </div>
           </motion.div>
         )}
+
+        {/* keep tokenMapping referenced */}
+        {false && tokenMapping && null}
       </div>
     </div>
   );
