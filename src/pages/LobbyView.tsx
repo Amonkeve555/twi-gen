@@ -1,7 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Copy, Check, Users, Clock, ArrowLeft, Trash2, UserMinus } from "lucide-react";
+import { Copy, Check, Users, Clock, ArrowLeft, Trash2, UserMinus, RotateCcw } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import StarField from "@/components/StarField";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +16,7 @@ const LobbyView = () => {
   const { lobby, players, loading, error } = useLobby(inviteCode);
   const [copied, setCopied] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const { user } = useAuth();
 
   const settings = lobby?.settings as LobbySettings | undefined;
@@ -50,6 +52,27 @@ const LobbyView = () => {
   const kickPlayer = async (playerId: string, playerName: string) => {
     if (!confirm(`Kick ${playerName} from the lobby?`)) return;
     await supabase.from("lobby_players").delete().eq("id", playerId);
+  };
+
+  const resetDraft = async () => {
+    if (!lobby) return;
+    if (!confirm("Reset all draft picks? Players will need to pick again. Token mappings will be re-randomized.")) return;
+    setResetting(true);
+    const { data, error: err } = await supabase.rpc("reset_lobby_draft", {
+      p_lobby_id: lobby.id,
+    });
+    setResetting(false);
+    if (err) {
+      toast.error("Failed to reset draft");
+      console.error(err);
+      return;
+    }
+    const result = data as { success?: boolean; error?: string };
+    if (result.error) {
+      toast.error(result.error);
+      return;
+    }
+    toast.success("Draft reset");
   };
 
   if (loading) {
@@ -202,16 +225,28 @@ const LobbyView = () => {
                 Home
               </Button>
               {isHost && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={deleteLobby}
-                  disabled={deleting}
-                  className="font-display text-xs uppercase tracking-[0.15em] border-destructive/40 text-destructive hover:bg-destructive/10"
-                >
-                  <Trash2 className="mr-2 h-3 w-3" />
-                  {deleting ? "Deleting..." : "Delete Lobby"}
-                </Button>
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={resetDraft}
+                    disabled={resetting}
+                    className="font-display text-xs uppercase tracking-[0.15em] border-amber-500/40 text-amber-400 hover:bg-amber-500/10"
+                  >
+                    <RotateCcw className="mr-2 h-3 w-3" />
+                    {resetting ? "Resetting..." : "Reset Draft"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={deleteLobby}
+                    disabled={deleting}
+                    className="font-display text-xs uppercase tracking-[0.15em] border-destructive/40 text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="mr-2 h-3 w-3" />
+                    {deleting ? "Deleting..." : "Delete Lobby"}
+                  </Button>
+                </>
               )}
             </div>
           </div>
