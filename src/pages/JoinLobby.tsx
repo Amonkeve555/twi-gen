@@ -275,19 +275,37 @@ const JoinLobby = () => {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
             <div className="text-center glass imperial-border rounded p-4">
               <p className="text-muted-foreground text-base font-body uppercase tracking-[0.15em] mb-1">
-                Selecting tokens
+                {isFreeMode ? "Choose your faction" : "Selecting tokens"}
               </p>
               <p className="font-display text-xl text-primary text-glow">{playerName}</p>
-              <p className="text-muted-foreground text-base font-body mt-1">
-                Pick {tokenPicks.length + 1} of {picksPerPlayer}
-              </p>
+              {!isFreeMode && (
+                <p className="text-muted-foreground text-base font-body mt-1">
+                  Pick {tokenPicks.length + 1} of {picksPerPlayer}
+                </p>
+              )}
+              {isNoRepeat && lastFactionName && (
+                <p className="text-amber-400 text-sm font-body mt-2">
+                  No-repeat: {lastFactionName} blocked (last game)
+                </p>
+              )}
             </div>
-            <TokenGrid
-              totalTokens={totalTokens}
-              takenTokens={takenTokens}
-              players={players.map((p) => p.player_name)}
-              onSelectToken={selectToken}
-            />
+            {isFreeMode ? (
+              <FactionPicker
+                factions={settings?.factions ?? []}
+                takenFactions={takenFactions}
+                forbiddenFaction={draftMode === "free_no_repeat" ? lastFactionName : null}
+                forbiddenRelaxed={freeForbiddenRelaxed}
+                onSelect={selectFaction}
+              />
+            ) : (
+              <TokenGrid
+                totalTokens={totalTokens}
+                takenTokens={takenTokens}
+                players={players.map((p) => p.player_name)}
+                onSelectToken={selectToken}
+                forbiddenTokens={forbiddenTokens}
+              />
+            )}
           </motion.div>
         )}
 
