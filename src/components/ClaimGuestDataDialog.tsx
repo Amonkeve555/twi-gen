@@ -119,7 +119,11 @@ const ClaimGuestDataDialog = forwardRef<ClaimGuestDataHandle>((_, ref) => {
   const toggle = (sid: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
-      next.has(sid) ? next.delete(sid) : next.add(sid);
+      if (next.has(sid)) {
+        next.delete(sid);
+      } else {
+        next.add(sid);
+      }
       return next;
     });
   };
