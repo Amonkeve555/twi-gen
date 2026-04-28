@@ -3,14 +3,12 @@ import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Trophy, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import ClaimHostDialog from "@/components/ClaimHostDialog";
-import ClaimPlayerDialog from "@/components/ClaimPlayerDialog";
 import { Input } from "@/components/ui/input";
 import StarField from "@/components/StarField";
 import FactionCard from "@/components/FactionCard";
 import { supabase } from "@/integrations/supabase/client";
-import { useLobby, type LobbySettings, type LobbyPlayerRow } from "@/hooks/useLobby";
-import { getSessionId } from "@/lib/sessionId";
+import { useLobby, type LobbySettings } from "@/hooks/useLobby";
+import { useAuth } from "@/hooks/useAuth";
 import type { Faction } from "@/data/factions";
 
 type GameDayPhase = "choose" | "results";
@@ -19,16 +17,16 @@ const GameDay = () => {
   const { inviteCode } = useParams<{ inviteCode: string }>();
   const navigate = useNavigate();
   const { lobby, players, loading, error } = useLobby(inviteCode);
-  const sessionId = getSessionId();
+  const { user } = useAuth();
   const [phase, setPhase] = useState<GameDayPhase>("choose");
   const [resultData, setResultData] = useState<Map<string, { vp: string; rank: string }>>(new Map());
   const [saving, setSaving] = useState(false);
 
   const settings = lobby?.settings as LobbySettings | undefined;
   const picksPerPlayer = settings?.picks_per_player ?? 1;
-  const isHost = lobby?.host_session_id === sessionId;
+  const isHost = !!user && lobby?.host_user_id === user.id;
 
-  const myPlayer = players.find((p) => p.session_id === sessionId);
+  const myPlayer = players.find((p) => p.user_id === user?.id);
   const myFactions = (myPlayer?.assigned_factions as unknown as Faction[]) ?? [];
   const hasChosen = !!myPlayer?.chosen_faction;
 
@@ -286,10 +284,6 @@ const GameDay = () => {
             <ArrowLeft className="mr-2 h-3 w-3" />
             Back to Lobby
           </Button>
-          <ClaimPlayerDialog players={players} lobbyId={lobby.id} />
-          {!isHost && lobby?.host_password && (
-            <ClaimHostDialog lobbyId={lobby.id} lobbyHostPassword={lobby.host_password as string} />
-          )}
         </div>
       </div>
     </div>

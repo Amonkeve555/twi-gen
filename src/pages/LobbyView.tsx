@@ -1,18 +1,12 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Copy, Check, Users, Clock, ArrowLeft, Trash2, UserMinus, KeyRound } from "lucide-react";
-import ClaimHostDialog from "@/components/ClaimHostDialog";
-import ClaimPlayerDialog from "@/components/ClaimPlayerDialog";
+import { Copy, Check, Users, Clock, ArrowLeft, Trash2, UserMinus } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
-} from "@/components/ui/dialog";
 import StarField from "@/components/StarField";
 import { supabase } from "@/integrations/supabase/client";
 import { useLobby, type LobbySettings } from "@/hooks/useLobby";
-import { getSessionId } from "@/lib/sessionId";
+import { useAuth } from "@/hooks/useAuth";
 import type { Faction } from "@/data/factions";
 
 const LobbyView = () => {
@@ -21,14 +15,11 @@ const LobbyView = () => {
   const { lobby, players, loading, error } = useLobby(inviteCode);
   const [copied, setCopied] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [pwDialogOpen, setPwDialogOpen] = useState(false);
-  const [newPassword, setNewPassword] = useState("");
-  const [savingPw, setSavingPw] = useState(false);
-  const sessionId = getSessionId();
+  const { user } = useAuth();
 
   const settings = lobby?.settings as LobbySettings | undefined;
   const picksPerPlayer = settings?.picks_per_player ?? 1;
-  const isHost = lobby?.host_session_id === sessionId;
+  const isHost = !!user && lobby?.host_user_id === user.id;
   const allPicked = players.length >= (settings?.max_players ?? 99) &&
     players.every((p) => (p.token_picks?.length ?? 0) >= picksPerPlayer);
 
@@ -48,15 +39,6 @@ const LobbyView = () => {
   const kickPlayer = async (playerId: string, playerName: string) => {
     if (!confirm(`Kick ${playerName} from the lobby?`)) return;
     await supabase.from("lobby_players").delete().eq("id", playerId);
-  };
-
-  const savePassword = async () => {
-    if (!lobby) return;
-    setSavingPw(true);
-    await supabase.from("lobbies").update({ host_password: newPassword }).eq("id", lobby.id);
-    setSavingPw(false);
-    setPwDialogOpen(false);
-    setNewPassword("");
   };
 
   if (loading) {
@@ -84,6 +66,8 @@ const LobbyView = () => {
     );
   }
 
+  const inLobby = !!user && players.some((p) => p.user_id === user.id);
+
   return (
     <div className="min-h-screen relative">
       <StarField />
@@ -102,26 +86,15 @@ const LobbyView = () => {
         </motion.div>
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-          {/* Status */}
           <div className="glass imperial-border rounded p-4 text-center">
             <div className="flex items-center justify-center gap-2 text-muted-foreground font-body text-base flex-wrap">
               <Users className="h-4 w-4" />
               <span>{players.length}/{settings?.max_players} players</span>
               <span className="mx-2">·</span>
               <span>{picksPerPlayer} pick{picksPerPlayer > 1 ? "s" : ""} each</span>
-              <span className="mx-2">·</span>
-              <span className="flex items-center gap-1">
-                <KeyRound className="h-3.5 w-3.5" />
-                {lobby.host_password ? (
-                  <span className="text-green-400">Password set</span>
-                ) : (
-                  <span className="text-muted-foreground/60">No password</span>
-                )}
-              </span>
             </div>
           </div>
 
-          {/* Player List */}
           <div className="glass imperial-border rounded p-6 space-y-3">
             <h2 className="font-display text-base uppercase tracking-[0.2em] text-primary text-glow mb-4">
               Players
@@ -141,7 +114,7 @@ const LobbyView = () => {
                       {hasPicked && factions && (
                         <div className="flex gap-1 mt-1">
                           {factions.map((f) => (
-                             <span
+                            <span
                               key={f.name}
                               className="text-sm font-body px-2 py-0.5 rounded border border-border cursor-pointer hover:opacity-80 transition-opacity"
                               style={{ background: `hsl(${f.color} / 0.2)` }}
@@ -178,8 +151,16 @@ const LobbyView = () => {
             )}
           </div>
 
-          {/* Actions */}
           <div className="flex flex-col items-center gap-3">
+            {!inLobby && !isHost && (
+              <Button
+                onClick={() => navigate(`/join/${inviteCode}`)}
+                size="lg"
+                className="font-display text-sm uppercase tracking-[0.2em] glow-primary px-10 py-6 bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                Join This Lobby
+              </Button>
+            )}
             {allPicked && (
               <Button
                 onClick={() => navigate(`/lobby/${inviteCode}/gameday`)}
@@ -199,67 +180,21 @@ const LobbyView = () => {
                 <ArrowLeft className="mr-2 h-3 w-3" />
                 Home
               </Button>
-              <ClaimPlayerDialog players={players} lobbyId={lobby.id} />
-              {!isHost && lobby.host_password && (
-                <ClaimHostDialog lobbyId={lobby.id} lobbyHostPassword={lobby.host_password as string} />
-              )}
               {isHost && (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => { setNewPassword(lobby.host_password || ""); setPwDialogOpen(true); }}
-                    className="font-display text-xs uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40"
-                  >
-                    <KeyRound className="mr-2 h-3 w-3" />
-                    {lobby.host_password ? "Change Password" : "Set Password"}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={deleteLobby}
-                    disabled={deleting}
-                    className="font-display text-xs uppercase tracking-[0.15em] border-destructive/40 text-destructive hover:bg-destructive/10"
-                  >
-                    <Trash2 className="mr-2 h-3 w-3" />
-                    {deleting ? "Deleting..." : "Delete Lobby"}
-                  </Button>
-                </>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={deleteLobby}
+                  disabled={deleting}
+                  className="font-display text-xs uppercase tracking-[0.15em] border-destructive/40 text-destructive hover:bg-destructive/10"
+                >
+                  <Trash2 className="mr-2 h-3 w-3" />
+                  {deleting ? "Deleting..." : "Delete Lobby"}
+                </Button>
               )}
             </div>
           </div>
         </motion.div>
-
-        <Dialog open={pwDialogOpen} onOpenChange={setPwDialogOpen}>
-          <DialogContent className="glass imperial-border">
-            <DialogHeader>
-              <DialogTitle className="font-display text-lg uppercase tracking-[0.15em] text-primary">
-                {lobby.host_password ? "Change Host Password" : "Set Host Password"}
-              </DialogTitle>
-              <DialogDescription className="font-body text-base text-muted-foreground">
-                This password lets you claim host access from any device.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <Input
-                type="password"
-                placeholder="Enter password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && newPassword.trim() && savePassword()}
-                className="bg-input border-border font-body text-foreground focus:border-primary/40 rounded"
-              />
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setPwDialogOpen(false)} className="font-display text-xs uppercase tracking-[0.15em]">
-                  Cancel
-                </Button>
-                <Button onClick={savePassword} disabled={savingPw || !newPassword.trim()} className="font-display text-xs uppercase tracking-[0.15em] bg-primary text-primary-foreground hover:bg-primary/90">
-                  {savingPw ? "Saving..." : "Save"}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
     </div>
   );

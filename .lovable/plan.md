@@ -1,30 +1,62 @@
+# Add User Accounts (Cross-Device Identity)
 
+## Goal
 
-## Fix: Player Can't Pick Faction on Different Device
+Replace fragile per-device session IDs with real user accounts. Hosts and players must sign in to create or join lobbies. Existing guest data can be claimed once into the new account.
 
-### Problem
-Session IDs are stored in `localStorage`, meaning they're unique per browser/device. If Swifftik opens the game on a different browser or device than the one they used to join, `myPlayer` resolves to `undefined` because the session ID doesn't match. The GameDay page then shows no faction choice UI for them.
+## What Changes for Users
 
-### Solution
-Add a "Claim Player" mechanism on the GameDay page (and optionally LobbyView) so a user on a new device can associate themselves with an existing player entry.
+- **Sign up / sign in** with email + password or Google. New `/auth` page.
+- **Profile**: each account has a **full name** and a **nickname** (the nickname is what appears in lobbies and stats).
+- **Hosts**: must be signed in to create a lobby. No more host password — ownership is tied to the account.
+- **Players**: must be signed in to join a lobby. Joining auto-uses the account's nickname (no per-lobby name typing).
+- **Cross-device**: open the app on any device, sign in, and your lobbies, picks, and history are right there.
+- **One-time claim**: the first time a returning user signs in, the app offers to claim their old guest player slots and game history (matched by the localStorage session ID still on that device).
 
-### Changes
+## New Auth Flow
 
-**1. Add "Claim Player" dialog to GameDay page (`src/pages/GameDay.tsx`)**
-- When `myPlayer` is `undefined` (no matching session), show a list of unclaimed/unmatched players with a "This is me" button next to each
-- Clicking it updates that player's `session_id` in the database to the current device's session ID
-- After claiming, the faction choice UI appears normally
+1. New `/auth` page with tabs: **Sign In** / **Sign Up**, plus a **Continue with Google** button on both.
+2. App-wide auth guard: visiting `/create`, `/lobby/*`, `/my-lobbies`, `/history`, `/stats` while signed out redirects to `/auth`.
+3. Public pages remain: `/factions`, `/rules`, and `/` (home shows a "Sign in to start" CTA when signed out).
+4. After sign-up, user is taken to a quick **profile setup** step to enter full name + nickname before they can use the app.
+5. Header gets a user menu (avatar/initials, nickname, Sign out, Profile).
 
-**2. Add same capability to LobbyView (`src/pages/LobbyView.tsx`)**
-- If the current session doesn't match any player in the lobby, show a "Rejoin as..." section listing all players, letting the user claim their identity
-- This covers the case where someone switches devices during the token-picking phase too
+## Database Changes
 
-**3. Optional safeguard**
-- Only show "claim" for players who haven't been active recently, or require confirmation (to prevent accidentally stealing another player's slot)
-- A simple approach: just allow it freely since the group is physically together and can coordinate
+- New `profiles` table: `id` (FK → `auth.users`), `full_name`, `nickname` (unique), `created_at`, `updated_at`. RLS: anyone can read; only owner can update.
+- New `user_roles` table + `app_role` enum + `has_role()` security-definer function (standard pattern, future-proofs admin features).
+- `lobbies.host_session_id` → add `host_user_id uuid` (nullable for now to preserve old rows). Eventually drop `host_session_id` + `host_password` once migration is complete.
+- `lobby_players.session_id` → add `user_id uuid` (nullable for old rows). Add unique constraint `(lobby_id, user_id)` once populated.
+- Trigger on `auth.users` insert → create empty `profiles` row.
+- Update RLS on `lobbies` and `lobby_players` to require `auth.uid()` for insert/update/delete (host actions limited to `host_user_id = auth.uid()`).
+- Update `claim_token` RPC to use `user_id` instead of `session_id` for picks.
 
-### Technical Detail
-- Both pages already have access to `players` and `sessionId`
-- The update is a single Supabase call: `supabase.from("lobby_players").update({ session_id: sessionId }).eq("id", playerId)`
-- After updating, the real-time subscription will refetch and `myPlayer` will resolve correctly
+## One-Time Claim Flow
 
+After first sign-in:
+- App reads local `ti4-session-id` from localStorage.
+- Queries `lobby_players` and `lobbies` where `session_id` / `host_session_id` matches AND `user_id` / `host_user_id` is null.
+- Shows a modal: "We found N games and M lobbies on this device. Claim them?"
+- On confirm: bulk-update those rows to set `user_id` / `host_user_id` to the new account.
+- Stores a flag in localStorage so the prompt doesn't appear again on that device.
+
+## Code Changes (high level)
+
+- **New**: `src/pages/Auth.tsx`, `src/pages/ProfileSetup.tsx`, `src/components/AuthGuard.tsx`, `src/components/UserMenu.tsx`, `src/components/ClaimGuestDataDialog.tsx`, `src/hooks/useAuth.ts`, `src/hooks/useProfile.ts`.
+- **Update**: `App.tsx` routes (add `/auth`, `/profile`, wrap protected routes in `AuthGuard`), `Index.tsx` (signed-out CTA), `CreateLobby.tsx` (use `auth.uid()` instead of session ID, drop host password), `JoinLobby.tsx` (auto-name from profile nickname, drop name input), `LobbyView.tsx` + `GameDay.tsx` (resolve `myPlayer` by `user_id`), `useLobby.ts`, `useOnlineGameHistory.ts`, `MyLobbies.tsx`.
+- **Remove**: `ClaimHostDialog.tsx` and `ClaimPlayerDialog.tsx` (no longer needed — identity is global).
+- **Keep but deprecate**: `src/lib/sessionId.ts` (used only for the one-time claim lookup, then ignored).
+
+## Out of Scope
+
+- Email verification customization (use Lovable defaults).
+- Password reset UI (can be added later — `supabase.auth.resetPasswordForEmail` is one call).
+- Friends / social features.
+- Migrating existing host-password-protected lobbies that nobody on this device created — those stay accessible to whichever device originally hosted them until a user claims them.
+
+## Open Questions Already Resolved
+
+- Account scope: required for everyone.
+- Sign-in: email/password + Google.
+- Existing data: one-time claim flow on first sign-in.
+- Identity: profile has both full name and nickname; nickname is shown in-game.

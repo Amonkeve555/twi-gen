@@ -20,6 +20,7 @@ export type Database = {
           host_name: string
           host_password: string
           host_session_id: string
+          host_user_id: string | null
           id: string
           invite_code: string
           settings: Json
@@ -31,6 +32,7 @@ export type Database = {
           host_name?: string
           host_password?: string
           host_session_id: string
+          host_user_id?: string | null
           id?: string
           invite_code: string
           settings?: Json
@@ -42,6 +44,7 @@ export type Database = {
           host_name?: string
           host_password?: string
           host_session_id?: string
+          host_user_id?: string | null
           id?: string
           invite_code?: string
           settings?: Json
@@ -61,6 +64,7 @@ export type Database = {
           rank: number | null
           session_id: string
           token_picks: number[] | null
+          user_id: string | null
           vp: number | null
         }
         Insert: {
@@ -73,6 +77,7 @@ export type Database = {
           rank?: number | null
           session_id: string
           token_picks?: number[] | null
+          user_id?: string | null
           vp?: number | null
         }
         Update: {
@@ -85,6 +90,7 @@ export type Database = {
           rank?: number | null
           session_id?: string
           token_picks?: number[] | null
+          user_id?: string | null
           vp?: number | null
         }
         Relationships: [
@@ -97,6 +103,51 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string | null
+          id: string
+          nickname: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          full_name?: string | null
+          id: string
+          nickname?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          nickname?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -106,9 +157,16 @@ export type Database = {
         Args: { p_lobby_id: string; p_player_id: string; p_token_id: number }
         Returns: Json
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -235,6 +293,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const

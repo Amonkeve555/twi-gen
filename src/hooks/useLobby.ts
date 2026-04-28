@@ -12,6 +12,7 @@ export interface LobbyRow {
   id: string;
   invite_code: string;
   host_session_id: string;
+  host_user_id: string | null;
   host_name: string;
   host_password: string;
   settings: LobbySettings;
@@ -24,6 +25,7 @@ export interface LobbyPlayerRow {
   id: string;
   lobby_id: string;
   session_id: string;
+  user_id: string | null;
   player_name: string;
   token_picks: number[] | null;
   assigned_factions: Faction[] | null;
