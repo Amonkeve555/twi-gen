@@ -55,37 +55,49 @@ const Admin = () => {
 
   const load = useCallback(async () => {
     setLoading(true);
+    try {
+      const [usersRes, playersRes, lobbiesRes] = await Promise.all([
+        supabase.rpc("admin_list_users"),
+        supabase.from("lobby_players").select("session_id, player_name").is("user_id", null),
+        supabase.from("lobbies").select("host_session_id, host_name").is("host_user_id", null),
+      ]);
 
-    const listUsers = supabase.rpc as unknown as AdminListUsersRpc;
-    const [usersRes, playersRes, lobbiesRes] = await Promise.all([
-      listUsers("admin_list_users"),
-      supabase.from("lobby_players").select("session_id, player_name").is("user_id", null),
-      supabase.from("lobbies").select("host_session_id, host_name").is("host_user_id", null),
-    ]);
+      if (usersRes.error) {
+        console.error("admin_list_users failed:", usersRes.error);
+        toast.error(`Users: ${usersRes.error.message}`);
+      } else if (usersRes.data) {
+        setUsers(usersRes.data as AdminUser[]);
+      }
 
-    if (usersRes.data) setUsers(usersRes.data);
+      if (playersRes.error) console.error("lobby_players query failed:", playersRes.error);
+      if (lobbiesRes.error) console.error("lobbies query failed:", lobbiesRes.error);
 
-    const map = new Map<string, GuestIdentity>();
-    for (const p of playersRes.data ?? []) {
-      if (!p.session_id) continue;
-      const it = map.get(p.session_id) ?? { sessionId: p.session_id, names: [], hostedLobbies: 0, playerSlots: 0 };
-      it.playerSlots++;
-      if (p.player_name && !it.names.includes(p.player_name)) it.names.push(p.player_name);
-      map.set(p.session_id, it);
+      const map = new Map<string, GuestIdentity>();
+      for (const p of playersRes.data ?? []) {
+        if (!p.session_id) continue;
+        const it = map.get(p.session_id) ?? { sessionId: p.session_id, names: [], hostedLobbies: 0, playerSlots: 0 };
+        it.playerSlots++;
+        if (p.player_name && !it.names.includes(p.player_name)) it.names.push(p.player_name);
+        map.set(p.session_id, it);
+      }
+      for (const h of lobbiesRes.data ?? []) {
+        if (!h.host_session_id) continue;
+        const it = map.get(h.host_session_id) ?? { sessionId: h.host_session_id, names: [], hostedLobbies: 0, playerSlots: 0 };
+        it.hostedLobbies++;
+        if (h.host_name && !it.names.includes(h.host_name)) it.names.push(h.host_name);
+        map.set(h.host_session_id, it);
+      }
+      setIdentities(
+        Array.from(map.values()).sort(
+          (a, b) => (b.hostedLobbies + b.playerSlots) - (a.hostedLobbies + a.playerSlots)
+        )
+      );
+    } catch (e) {
+      console.error("Admin load failed:", e);
+      toast.error(e instanceof Error ? e.message : "Failed to load admin data");
+    } finally {
+      setLoading(false);
     }
-    for (const h of lobbiesRes.data ?? []) {
-      if (!h.host_session_id) continue;
-      const it = map.get(h.host_session_id) ?? { sessionId: h.host_session_id, names: [], hostedLobbies: 0, playerSlots: 0 };
-      it.hostedLobbies++;
-      if (h.host_name && !it.names.includes(h.host_name)) it.names.push(h.host_name);
-      map.set(h.host_session_id, it);
-    }
-    setIdentities(
-      Array.from(map.values()).sort(
-        (a, b) => (b.hostedLobbies + b.playerSlots) - (a.hostedLobbies + a.playerSlots)
-      )
-    );
-    setLoading(false);
   }, []);
 
   useEffect(() => {
