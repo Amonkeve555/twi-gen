@@ -221,7 +221,11 @@ const Index = () => {
   return (
     <div className="min-h-screen relative">
       <StarField />
+      <ClaimGuestDataDialog />
       <div className="relative z-10 max-w-2xl mx-auto px-4 py-12">
+        <div className="flex justify-end mb-4">
+          <UserMenu />
+        </div>
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
