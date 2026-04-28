@@ -11,7 +11,7 @@ import tiEmblem from "@/assets/ti-emblem.png";
 const History = () => {
   const navigate = useNavigate();
   const { history, deleteGame, clearHistory } = useGameHistory();
-  const { games: onlineGames } = useOnlineGameHistory();
+  const { games: onlineGames, loading: onlineLoading } = useOnlineGameHistory();
 
   const allGames = useMemo(() => {
     const map = new Map();
@@ -67,7 +67,17 @@ const History = () => {
           )}
         </div>
 
-        {allGames.length === 0 ? (
+        {onlineLoading && allGames.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="glass imperial-border rounded p-10 text-center"
+          >
+            <p className="font-display text-sm uppercase tracking-[0.15em] text-muted-foreground">
+              Loading history…
+            </p>
+          </motion.div>
+        ) : allGames.length === 0 ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
