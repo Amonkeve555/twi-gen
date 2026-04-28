@@ -69,10 +69,46 @@ const JoinLobby = () => {
       setPlayerId(existingPlayer.id);
       setTokenPicks(picks);
       setAssignedFactions(factions);
-      if (picks.length >= picksPerPlayer) setPhase("done");
-      else setPhase("pick");
+      const isDone = isFreeMode
+        ? !!existingPlayer.chosen_faction
+        : picks.length >= picksPerPlayer;
+      setPhase(isDone ? "done" : "pick");
     }
-  }, [existingPlayer, phase, picksPerPlayer]);
+  }, [existingPlayer, phase, picksPerPlayer, isFreeMode]);
+
+  // Fetch user's last played faction (for no-repeat modes)
+  useEffect(() => {
+    if (!isNoRepeat || !user) {
+      setLastFactionName(null);
+      return;
+    }
+    let cancelled = false;
+    getLastPlayedFactionName(user.id).then((name) => {
+      if (!cancelled) setLastFactionName(name);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isNoRepeat, user]);
+
+  // Fetch forbidden tokens for token_no_repeat mode
+  useEffect(() => {
+    if (draftMode !== "token_no_repeat" || !lobby || !playerId) {
+      setForbiddenTokens(new Set());
+      return;
+    }
+    let cancelled = false;
+    supabase
+      .rpc("get_forbidden_tokens", { p_lobby_id: lobby.id })
+      .then(({ data }) => {
+        if (cancelled) return;
+        const arr = (data as number[] | null) ?? [];
+        setForbiddenTokens(new Set(arr));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [draftMode, lobby, playerId, players]);
 
   const joinLobby = async () => {
     if (!lobby || !user || !profile?.nickname) return;
@@ -101,6 +137,10 @@ const JoinLobby = () => {
   const selectToken = useCallback(
     async (tokenId: number) => {
       if (!lobby || !playerId) return;
+      if (forbiddenTokens.has(tokenId)) {
+        toast.error("That token maps to the faction you played last game");
+        return;
+      }
       const { data, error: err } = await supabase.rpc("claim_token", {
         p_lobby_id: lobby.id,
         p_player_id: playerId,
@@ -118,8 +158,50 @@ const JoinLobby = () => {
       if (result.faction) setAssignedFactions((prev) => [...prev, result.faction as Faction]);
       if (newPicks.length >= picksPerPlayer) setPhase("done");
     },
-    [lobby, tokenPicks, playerId, picksPerPlayer]
+    [lobby, tokenPicks, playerId, picksPerPlayer, forbiddenTokens]
   );
+
+  const selectFaction = useCallback(
+    async (faction: Faction) => {
+      if (!lobby || !playerId) return;
+      const { data, error: err } = await supabase.rpc("claim_faction", {
+        p_lobby_id: lobby.id,
+        p_player_id: playerId,
+        p_faction: JSON.parse(JSON.stringify(faction)),
+      });
+      if (err) {
+        toast.error("Failed to claim faction");
+        console.error(err);
+        return;
+      }
+      const result = data as { success?: boolean; error?: string };
+      if (result.error) {
+        const msg =
+          result.error === "already_taken"
+            ? "That faction was just taken"
+            : result.error === "previous_faction"
+            ? "You played that faction last game"
+            : result.error;
+        toast.error(msg);
+        return;
+      }
+      setTokenPicks([0]);
+      setAssignedFactions([faction]);
+      setPhase("done");
+    },
+    [lobby, playerId]
+  );
+
+  // For free_no_repeat: relax forbidden if no other faction is available
+  const freeForbiddenRelaxed = useMemo(() => {
+    if (draftMode !== "free_no_repeat" || !lastFactionName) return false;
+    const pool = settings?.factions ?? [];
+    const otherAvailable = pool.some(
+      (f) => f.name !== lastFactionName && !takenFactions.has(f.name)
+    );
+    return !otherAvailable;
+  }, [draftMode, lastFactionName, settings, takenFactions]);
+
 
   if (loading) {
     return (
