@@ -52,7 +52,6 @@ const Index = () => {
     const fetchActiveLobbies = async () => {
       const sessionId = getSessionId();
 
-      // Fetch ALL non-completed lobbies
       const { data: allLobbies } = await supabase
         .from("lobbies")
         .select("*")
@@ -65,15 +64,17 @@ const Index = () => {
         return;
       }
 
-      // Fetch current session's joined lobbies to determine role
-      const { data: myMemberships } = await supabase
-        .from("lobby_players")
-        .select("lobby_id")
-        .eq("session_id", sessionId);
+      const { data: { user } } = await supabase.auth.getUser();
+
+      const { data: myMemberships } = user
+        ? await supabase
+            .from("lobby_players")
+            .select("lobby_id")
+            .or(`user_id.eq.${user.id},session_id.eq.${sessionId}`)
+        : await supabase.from("lobby_players").select("lobby_id").eq("session_id", sessionId);
 
       const joinedSet = new Set((myMemberships ?? []).map((m) => m.lobby_id));
 
-      // Fetch player counts
       const lobbyIds = allLobbies.map((l) => l.id);
       const { data: counts } = await supabase
         .from("lobby_players")
@@ -85,12 +86,15 @@ const Index = () => {
         countMap[c.lobby_id] = (countMap[c.lobby_id] ?? 0) + 1;
       });
 
-      const merged: ActiveLobby[] = allLobbies.map((l) => ({
-        ...l,
-        settings: l.settings as unknown as LobbySettings,
-        role: l.host_session_id === sessionId ? "host" as const : joinedSet.has(l.id) ? "player" as const : "—" as const,
-        player_count: countMap[l.id] ?? 0,
-      }));
+      const merged: ActiveLobby[] = allLobbies.map((l) => {
+        const isHost = (user && l.host_user_id === user.id) || l.host_session_id === sessionId;
+        return {
+          ...l,
+          settings: l.settings as unknown as LobbySettings,
+          role: isHost ? "host" as const : joinedSet.has(l.id) ? "player" as const : "—" as const,
+          player_count: countMap[l.id] ?? 0,
+        };
+      });
 
       setActiveLobbies(merged);
       setLobbiesLoading(false);
