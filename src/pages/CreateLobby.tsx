@@ -12,7 +12,15 @@ import { generateInviteCode } from "@/lib/inviteCode";
 import { TI4_FACTIONS, POK_FACTIONS, type Faction } from "@/data/factions";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
+import type { DraftMode } from "@/hooks/useLobby";
 import { toast } from "sonner";
+
+const DRAFT_MODES: { value: DraftMode; label: string; desc: string }[] = [
+  { value: "token", label: "Token Draft", desc: "Players pick numbered tokens; factions revealed on game day." },
+  { value: "token_no_repeat", label: "Token Draft · No Repeat", desc: "Same as Token Draft, but blocks the faction each player played last game." },
+  { value: "free", label: "Free Pick", desc: "Players directly claim any available faction in the lobby." },
+  { value: "free_no_repeat", label: "Free Pick · No Repeat", desc: "Same as Free Pick, but blocks the faction each player played last game." },
+];
 
 const CreateLobby = () => {
   const navigate = useNavigate();
