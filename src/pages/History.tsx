@@ -133,6 +133,7 @@ const History = () => {
                         <Trash2 className="h-3 w-3" />
                       </Button>
                     )}
+                  </div>
 
                   <div className="imperial-divider mb-3" />
 
