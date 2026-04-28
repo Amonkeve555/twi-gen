@@ -1,14 +1,26 @@
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Trash2, Trophy } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import StarField from "@/components/StarField";
 import { useGameHistory } from "@/hooks/useGameHistory";
+import { useOnlineGameHistory } from "@/hooks/useOnlineGameHistory";
 import tiEmblem from "@/assets/ti-emblem.png";
 
 const History = () => {
   const navigate = useNavigate();
   const { history, deleteGame, clearHistory } = useGameHistory();
+  const { games: onlineGames } = useOnlineGameHistory();
+
+  const allGames = useMemo(() => {
+    const map = new Map();
+    for (const g of history) map.set(g.id, g);
+    for (const g of onlineGames) map.set(g.id, g);
+    return Array.from(map.values()).sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+  }, [history, onlineGames]);
 
   return (
     <div className="min-h-screen relative">
