@@ -83,7 +83,8 @@ const History = () => {
           </motion.div>
         ) : (
           <div className="space-y-4">
-            {history.map((game, gi) => {
+            {allGames.map((game, gi) => {
+              const isOnline = game.id.startsWith("online-");
               const sortedPlayers = [...game.players].sort((a, b) => a.rank - b.rank);
               const winner = sortedPlayers[0];
               const dateStr = new Date(game.date).toLocaleDateString("en-US", {
