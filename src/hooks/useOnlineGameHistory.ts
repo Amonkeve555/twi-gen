@@ -52,9 +52,9 @@ export function useOnlineGameHistory() {
         .map((lobby) => {
           const lobbyPlayers = playersByLobby.get(lobby.id) || [];
           
-          // Only include lobbies where players have results
+          // Include lobbies where players have at least a chosen faction and rank
           const playersWithResults = lobbyPlayers.filter(
-            (p) => p.chosen_faction && p.vp !== null && p.rank !== null
+            (p) => p.chosen_faction && p.rank !== null
           );
           
           if (playersWithResults.length === 0) return null;
@@ -62,7 +62,7 @@ export function useOnlineGameHistory() {
           const playerResults: PlayerResult[] = playersWithResults.map((p) => ({
             player: p.player_name,
             faction: p.chosen_faction as unknown as Faction,
-            vp: p.vp!,
+            vp: p.vp ?? 0,
             rank: p.rank!,
           }));
 

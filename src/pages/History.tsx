@@ -1,14 +1,26 @@
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Trash2, Trophy } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import StarField from "@/components/StarField";
 import { useGameHistory } from "@/hooks/useGameHistory";
+import { useOnlineGameHistory } from "@/hooks/useOnlineGameHistory";
 import tiEmblem from "@/assets/ti-emblem.png";
 
 const History = () => {
   const navigate = useNavigate();
   const { history, deleteGame, clearHistory } = useGameHistory();
+  const { games: onlineGames } = useOnlineGameHistory();
+
+  const allGames = useMemo(() => {
+    const map = new Map();
+    for (const g of history) map.set(g.id, g);
+    for (const g of onlineGames) map.set(g.id, g);
+    return Array.from(map.values()).sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+  }, [history, onlineGames]);
 
   return (
     <div className="min-h-screen relative">
@@ -50,12 +62,12 @@ const History = () => {
               className="font-display text-xs uppercase tracking-[0.15em] border-border text-destructive hover:text-destructive hover:border-destructive/40"
             >
               <Trash2 className="mr-2 h-3 w-3" />
-              Clear All
+              Clear Local
             </Button>
           )}
         </div>
 
-        {history.length === 0 ? (
+        {allGames.length === 0 ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -71,7 +83,8 @@ const History = () => {
           </motion.div>
         ) : (
           <div className="space-y-4">
-            {history.map((game, gi) => {
+            {allGames.map((game, gi) => {
+              const isOnline = game.id.startsWith("online-");
               const sortedPlayers = [...game.players].sort((a, b) => a.rank - b.rank);
               const winner = sortedPlayers[0];
               const dateStr = new Date(game.date).toLocaleDateString("en-US", {
@@ -110,14 +123,16 @@ const History = () => {
                         </p>
                       )}
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => deleteGame(game.id)}
-                      className="h-7 w-7 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
+                    {!isOnline && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => deleteGame(game.id)}
+                        className="h-7 w-7 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    )}
                   </div>
 
                   <div className="imperial-divider mb-3" />
