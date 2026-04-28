@@ -2,10 +2,13 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Faction } from "@/data/factions";
 
+export type DraftMode = "token" | "token_no_repeat" | "free" | "free_no_repeat";
+
 export interface LobbySettings {
   factions: Faction[];
   picks_per_player: number;
   max_players: number;
+  draft_mode?: DraftMode;
 }
 
 export interface LobbyRow {
