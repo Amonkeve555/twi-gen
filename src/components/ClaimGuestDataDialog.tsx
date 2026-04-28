@@ -131,19 +131,23 @@ const ClaimGuestDataDialog = forwardRef<ClaimGuestDataHandle>((_, ref) => {
   const claim = async () => {
     if (!user || selected.size === 0) return;
     setBusy(true);
-    const ids = Array.from(selected);
-    const claimGuestData = supabase.rpc as unknown as ClaimGuestDataRpc;
-    const { data, error } = await claimGuestData("claim_guest_data", { p_session_ids: ids });
-    setBusy(false);
-    if (error || !data?.success) {
-      toast.error(error?.message ?? data?.error ?? "Failed to claim guest data");
-      return;
+    try {
+      const ids = Array.from(selected);
+      const claimGuestData = supabase.rpc as unknown as ClaimGuestDataRpc;
+      const { data, error } = await claimGuestData("claim_guest_data", { p_session_ids: ids });
+      if (error || !data?.success) {
+        toast.error(error?.message ?? data?.error ?? "Failed to claim guest data");
+        return;
+      }
+      localStorage.setItem(CLAIMED_KEY, user.id);
+      toast.success(`Guest data claimed: ${data.hosted_lobbies ?? 0} hosted, ${data.player_slots ?? 0} player slots`);
+      setOpen(false);
+      setTimeout(() => window.location.reload(), 600);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to claim guest data");
+    } finally {
+      setBusy(false);
     }
-    localStorage.setItem(CLAIMED_KEY, user.id);
-    toast.success(`Guest data claimed: ${data.hosted_lobbies ?? 0} hosted, ${data.player_slots ?? 0} player slots`);
-    setOpen(false);
-    // Refresh page so history/stats re-fetch
-    setTimeout(() => window.location.reload(), 600);
   };
 
   const dismiss = () => {
