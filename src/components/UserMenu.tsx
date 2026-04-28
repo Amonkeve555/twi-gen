@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, User as UserIcon, Download } from "lucide-react";
+import { LogOut, User as UserIcon, Download, Shield } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
   DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator,
@@ -9,12 +9,14 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import ClaimGuestDataDialog, { type ClaimGuestDataHandle } from "@/components/ClaimGuestDataDialog";
 
 const UserMenu = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { profile } = useProfile();
+  const { isAdmin } = useIsAdmin();
   const claimRef = useRef<ClaimGuestDataHandle>(null);
 
   if (!user) {
@@ -58,6 +60,11 @@ const UserMenu = () => {
           <DropdownMenuItem onClick={() => claimRef.current?.openManually()} className="font-body cursor-pointer">
             <Download className="mr-2 h-4 w-4" /> Claim Guest Data
           </DropdownMenuItem>
+          {isAdmin && (
+            <DropdownMenuItem onClick={() => navigate("/admin")} className="font-body cursor-pointer">
+              <Shield className="mr-2 h-4 w-4" /> Admin
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem onClick={signOut} className="font-body cursor-pointer">
             <LogOut className="mr-2 h-4 w-4" /> Sign Out
           </DropdownMenuItem>
