@@ -31,6 +31,7 @@ const JoinLobby = () => {
   const [joining, setJoining] = useState(false);
   const [forbiddenTokens, setForbiddenTokens] = useState<Set<number>>(new Set());
   const [lastFactionName, setLastFactionName] = useState<string | null>(null);
+  const [pendingFaction, setPendingFaction] = useState<string | null>(null);
 
   const existingPlayer = players.find((p) => p.user_id === user?.id);
 
@@ -56,8 +57,12 @@ const JoinLobby = () => {
       const cf = p.chosen_faction as unknown as Faction | null;
       if (cf?.name) map.set(cf.name, p.player_name);
     });
+    // Optimistically include pending claim by current player
+    if (pendingFaction && profile?.nickname && !map.has(pendingFaction)) {
+      map.set(pendingFaction, profile.nickname);
+    }
     return map;
-  }, [players]);
+  }, [players, pendingFaction, profile?.nickname]);
 
   const isFull = players.length >= (settings?.max_players ?? 99);
 
@@ -164,6 +169,8 @@ const JoinLobby = () => {
   const selectFaction = useCallback(
     async (faction: Faction) => {
       if (!lobby || !playerId) return;
+      if (pendingFaction) return; // prevent double-click while a claim is in flight
+      setPendingFaction(faction.name);
       const { data, error: err } = await supabase.rpc("claim_faction", {
         p_lobby_id: lobby.id,
         p_player_id: playerId,
@@ -172,6 +179,7 @@ const JoinLobby = () => {
       if (err) {
         toast.error("Failed to claim faction");
         console.error(err);
+        setPendingFaction(null);
         return;
       }
       const result = data as { success?: boolean; error?: string };
@@ -183,13 +191,15 @@ const JoinLobby = () => {
             ? "You played that faction last game"
             : result.error;
         toast.error(msg);
+        setPendingFaction(null);
         return;
       }
       setTokenPicks([0]);
       setAssignedFactions([faction]);
+      setPendingFaction(null);
       setPhase("done");
     },
-    [lobby, playerId]
+    [lobby, playerId, pendingFaction]
   );
 
   // For free_no_repeat: relax forbidden if no other faction is available
@@ -296,6 +306,7 @@ const JoinLobby = () => {
                 forbiddenFaction={draftMode === "free_no_repeat" ? lastFactionName : null}
                 forbiddenRelaxed={freeForbiddenRelaxed}
                 onSelect={selectFaction}
+                pendingFaction={pendingFaction}
               />
             ) : (
               <TokenGrid

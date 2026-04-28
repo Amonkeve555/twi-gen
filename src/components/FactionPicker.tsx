@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Loader2 } from "lucide-react";
 import type { Faction } from "@/data/factions";
 import { cn } from "@/lib/utils";
 
@@ -9,6 +10,7 @@ interface FactionPickerProps {
   forbiddenRelaxed?: boolean; // if true, forbidden is shown but still clickable
   onSelect: (faction: Faction) => void;
   disabled?: boolean;
+  pendingFaction?: string | null; // name of faction currently being claimed
 }
 
 const FactionPicker = ({
@@ -18,14 +20,17 @@ const FactionPicker = ({
   forbiddenRelaxed,
   onSelect,
   disabled,
+  pendingFaction,
 }: FactionPickerProps) => {
+  const isClaiming = !!pendingFaction;
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
       {factions.map((f) => {
         const takenBy = takenFactions.get(f.name);
         const isTaken = !!takenBy;
         const isForbidden = forbiddenFaction === f.name && !forbiddenRelaxed;
-        const isDisabled = disabled || isTaken || isForbidden;
+        const isPending = pendingFaction === f.name;
+        const isDisabled = disabled || isClaiming || isTaken || isForbidden;
 
         return (
           <motion.button
@@ -34,9 +39,12 @@ const FactionPicker = ({
             whileTap={!isDisabled ? { scale: 0.98 } : undefined}
             onClick={() => !isDisabled && onSelect(f)}
             disabled={isDisabled}
+            aria-busy={isPending}
             className={cn(
               "relative glass imperial-border rounded p-4 text-left transition-all",
-              isDisabled
+              isPending
+                ? "border-primary/80 ring-2 ring-primary/40 cursor-wait"
+                : isDisabled
                 ? "opacity-40 cursor-not-allowed"
                 : "hover:border-primary/60 cursor-pointer"
             )}
@@ -52,22 +60,28 @@ const FactionPicker = ({
                 <p className="font-display text-base uppercase tracking-[0.1em] text-primary truncate">
                   {f.name}
                 </p>
-                {isTaken && (
+                {isPending && (
+                  <p className="font-body text-xs text-primary">Claiming...</p>
+                )}
+                {!isPending && isTaken && (
                   <p className="font-body text-xs text-muted-foreground truncate">
                     Taken by {takenBy}
                   </p>
                 )}
-                {isForbidden && !isTaken && (
+                {!isPending && isForbidden && !isTaken && (
                   <p className="font-body text-xs text-destructive">
                     Played last game
                   </p>
                 )}
-                {forbiddenFaction === f.name && forbiddenRelaxed && !isTaken && (
+                {!isPending && forbiddenFaction === f.name && forbiddenRelaxed && !isTaken && (
                   <p className="font-body text-xs text-amber-400">
                     Repeat allowed
                   </p>
                 )}
               </div>
+              {isPending && (
+                <Loader2 className="w-5 h-5 text-primary animate-spin flex-shrink-0" />
+              )}
             </div>
           </motion.button>
         );
