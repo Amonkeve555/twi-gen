@@ -29,11 +29,15 @@ const CreateLobby = () => {
   const [hostName, setHostName] = useState("");
   const [maxPlayers, setMaxPlayers] = useState(3);
   const [picksPerPlayer, setPicksPerPlayer] = useState(1);
+  const [draftMode, setDraftMode] = useState<DraftMode>("token");
   const [includePok, setIncludePok] = useState(false);
   const [excludedFactions, setExcludedFactions] = useState<Set<string>>(new Set());
   const [creating, setCreating] = useState(false);
   const [createdCode, setCreatedCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
+  const isFreeMode = draftMode === "free" || draftMode === "free_no_repeat";
+  const effectivePicksPerPlayer = isFreeMode ? 1 : picksPerPlayer;
 
   // Default host name from profile nickname
   const effectiveHostName = hostName.trim() || profile?.nickname || "Host";
