@@ -15,37 +15,84 @@ export type ClaimGuestDataHandle = {
   openManually: () => Promise<void>;
 };
 
-/** Shown once per device after sign-in, or manually via openManually(). */
+type GuestIdentity = {
+  sessionId: string;
+  names: string[];        // distinct player names ever used with this session ID
+  hostedLobbies: number;  // lobbies hosted by this session ID (still unclaimed)
+  playerSlots: number;    // player rows belonging to this session ID (still unclaimed)
+};
+
 const ClaimGuestDataDialog = forwardRef<ClaimGuestDataHandle>((_, ref) => {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
-  const [hostedCount, setHostedCount] = useState(0);
-  const [playerCount, setPlayerCount] = useState(0);
   const [busy, setBusy] = useState(false);
   const [manual, setManual] = useState(false);
+  const [identities, setIdentities] = useState<GuestIdentity[]>([]);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [deviceSessionId, setDeviceSessionId] = useState<string>("");
+
+  /** Load all unclaimed guest identities (from any device). */
+  const loadIdentities = useCallback(async () => {
+    const localId = getSessionId();
+    setDeviceSessionId(localId);
+
+    // All player rows still unclaimed (user_id null)
+    const { data: players } = await supabase
+      .from("lobby_players")
+      .select("session_id, player_name")
+      .is("user_id", null);
+
+    // All lobbies still unclaimed (host_user_id null)
+    const { data: hosted } = await supabase
+      .from("lobbies")
+      .select("host_session_id, host_name")
+      .is("host_user_id", null);
+
+    const map = new Map<string, GuestIdentity>();
+    for (const p of players ?? []) {
+      if (!p.session_id) continue;
+      const it = map.get(p.session_id) ?? { sessionId: p.session_id, names: [], hostedLobbies: 0, playerSlots: 0 };
+      it.playerSlots++;
+      if (p.player_name && !it.names.includes(p.player_name)) it.names.push(p.player_name);
+      map.set(p.session_id, it);
+    }
+    for (const h of hosted ?? []) {
+      if (!h.host_session_id) continue;
+      const it = map.get(h.host_session_id) ?? { sessionId: h.host_session_id, names: [], hostedLobbies: 0, playerSlots: 0 };
+      it.hostedLobbies++;
+      if (h.host_name && !it.names.includes(h.host_name)) it.names.push(h.host_name);
+      map.set(h.host_session_id, it);
+    }
+
+    // Sort: this device first, then most activity
+    const list = Array.from(map.values()).sort((a, b) => {
+      if (a.sessionId === localId) return -1;
+      if (b.sessionId === localId) return 1;
+      return (b.hostedLobbies + b.playerSlots) - (a.hostedLobbies + a.playerSlots);
+    });
+    setIdentities(list);
+
+    // Pre-select the device session if present
+    const pre = new Set<string>();
+    if (list.some((x) => x.sessionId === localId)) pre.add(localId);
+    setSelected(pre);
+    return list;
+  }, []);
 
   const checkAndOpen = useCallback(async (isManual: boolean) => {
     if (!user) {
       if (isManual) toast.error("Sign in first to claim guest data");
       return;
     }
-    const sessionId = getSessionId();
-    const [{ data: hosted }, { data: joined }] = await Promise.all([
-      supabase.from("lobbies").select("id").eq("host_session_id", sessionId).is("host_user_id", null),
-      supabase.from("lobby_players").select("id").eq("session_id", sessionId).is("user_id", null),
-    ]);
-    const h = hosted?.length ?? 0;
-    const p = joined?.length ?? 0;
-    if (h + p > 0) {
-      setHostedCount(h);
-      setPlayerCount(p);
-      setManual(isManual);
-      setOpen(true);
-    } else {
+    const list = await loadIdentities();
+    if (list.length === 0) {
       localStorage.setItem(CLAIMED_KEY, user.id);
-      if (isManual) toast.info("No guest data found on this device to claim");
+      if (isManual) toast.info("No unclaimed guest data found");
+      return;
     }
-  }, [user]);
+    setManual(isManual);
+    setOpen(true);
+  }, [user, loadIdentities]);
 
   useImperativeHandle(ref, () => ({
     openManually: () => checkAndOpen(true),
@@ -57,13 +104,21 @@ const ClaimGuestDataDialog = forwardRef<ClaimGuestDataHandle>((_, ref) => {
     checkAndOpen(false);
   }, [user, checkAndOpen]);
 
+  const toggle = (sid: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(sid) ? next.delete(sid) : next.add(sid);
+      return next;
+    });
+  };
+
   const claim = async () => {
-    if (!user) return;
+    if (!user || selected.size === 0) return;
     setBusy(true);
-    const sessionId = getSessionId();
+    const ids = Array.from(selected);
     const [hostedRes, playerRes] = await Promise.all([
-      supabase.from("lobbies").update({ host_user_id: user.id }).eq("host_session_id", sessionId).is("host_user_id", null),
-      supabase.from("lobby_players").update({ user_id: user.id }).eq("session_id", sessionId).is("user_id", null),
+      supabase.from("lobbies").update({ host_user_id: user.id }).in("host_session_id", ids).is("host_user_id", null),
+      supabase.from("lobby_players").update({ user_id: user.id }).in("session_id", ids).is("user_id", null),
     ]);
     setBusy(false);
     if (hostedRes.error || playerRes.error) {
@@ -73,6 +128,8 @@ const ClaimGuestDataDialog = forwardRef<ClaimGuestDataHandle>((_, ref) => {
     localStorage.setItem(CLAIMED_KEY, user.id);
     toast.success("Guest data claimed");
     setOpen(false);
+    // Refresh page so history/stats re-fetch
+    setTimeout(() => window.location.reload(), 600);
   };
 
   const dismiss = () => {
@@ -82,25 +139,71 @@ const ClaimGuestDataDialog = forwardRef<ClaimGuestDataHandle>((_, ref) => {
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && dismiss()}>
-      <DialogContent className="glass imperial-border">
+      <DialogContent className="glass imperial-border max-w-lg">
         <DialogHeader>
           <DialogTitle className="font-display text-lg uppercase tracking-[0.15em] text-primary">
             Claim Guest Data
           </DialogTitle>
-          <DialogDescription className="font-body text-base text-muted-foreground">
-            We found previous activity on this device:
-            {hostedCount > 0 && <> <br />• {hostedCount} hosted {hostedCount === 1 ? "lobby" : "lobbies"}</>}
-            {playerCount > 0 && <> <br />• {playerCount} player {playerCount === 1 ? "slot" : "slots"} (including past games)</>}
-            <br /><br />
-            Link them to your account so they appear in your lobbies, history, and stats?
+          <DialogDescription className="font-body text-sm text-muted-foreground">
+            Select the guest identities that were you. Their lobbies, picks and game history will be linked to your account.
+            <br />
+            <span className="text-xs opacity-70">
+              This device's session ID: <code className="text-primary">{deviceSessionId.slice(0, 8)}…</code>
+            </span>
           </DialogDescription>
         </DialogHeader>
+
+        <div className="max-h-72 overflow-y-auto space-y-2 py-2">
+          {identities.length === 0 && (
+            <p className="font-body text-sm text-muted-foreground text-center py-4">
+              No unclaimed guest activity found.
+            </p>
+          )}
+          {identities.map((it) => {
+            const isThisDevice = it.sessionId === deviceSessionId;
+            const isSelected = selected.has(it.sessionId);
+            return (
+              <button
+                key={it.sessionId}
+                type="button"
+                onClick={() => toggle(it.sessionId)}
+                className={`w-full text-left rounded border p-3 transition ${
+                  isSelected
+                    ? "border-primary bg-primary/10"
+                    : "border-border bg-background/40 hover:border-primary/40"
+                }`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="font-body text-sm text-foreground truncate">
+                      {it.names.length > 0 ? it.names.join(", ") : "(no name)"}
+                    </div>
+                    <div className="font-body text-xs text-muted-foreground">
+                      {it.hostedLobbies > 0 && <>Host of {it.hostedLobbies} {it.hostedLobbies === 1 ? "lobby" : "lobbies"} · </>}
+                      {it.playerSlots} player {it.playerSlots === 1 ? "slot" : "slots"}
+                    </div>
+                    <div className="font-body text-[10px] text-muted-foreground/70 mt-1">
+                      <code>{it.sessionId.slice(0, 12)}…</code>
+                      {isThisDevice && <span className="ml-2 text-primary">· this device</span>}
+                    </div>
+                  </div>
+                  <div className={`mt-1 h-4 w-4 rounded-sm border ${isSelected ? "bg-primary border-primary" : "border-muted-foreground/40"}`} />
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
         <DialogFooter className="gap-2">
           <Button variant="outline" onClick={dismiss} disabled={busy} className="font-display text-xs uppercase tracking-[0.15em]">
-            Skip
+            Cancel
           </Button>
-          <Button onClick={claim} disabled={busy} className="font-display text-xs uppercase tracking-[0.15em] bg-primary text-primary-foreground hover:bg-primary/90">
-            {busy ? "Claiming..." : "Claim"}
+          <Button
+            onClick={claim}
+            disabled={busy || selected.size === 0}
+            className="font-display text-xs uppercase tracking-[0.15em] bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            {busy ? "Claiming..." : `Claim ${selected.size > 0 ? `(${selected.size})` : ""}`}
           </Button>
         </DialogFooter>
       </DialogContent>
