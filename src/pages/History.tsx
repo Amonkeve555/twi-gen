@@ -62,12 +62,12 @@ const History = () => {
               className="font-display text-xs uppercase tracking-[0.15em] border-border text-destructive hover:text-destructive hover:border-destructive/40"
             >
               <Trash2 className="mr-2 h-3 w-3" />
-              Clear All
+              Clear Local
             </Button>
           )}
         </div>
 
-        {history.length === 0 ? (
+        {allGames.length === 0 ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
