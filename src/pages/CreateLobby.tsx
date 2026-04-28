@@ -48,7 +48,7 @@ const CreateLobby = () => {
     );
   }, [includePok, excludedFactions]);
 
-  const canCreate = availableFactions.length >= maxPlayers * picksPerPlayer;
+  const canCreate = availableFactions.length >= maxPlayers * effectivePicksPerPlayer;
 
   const toggleFaction = useCallback((name: string) => {
     setExcludedFactions((prev) => {
@@ -65,14 +65,20 @@ const CreateLobby = () => {
     const code = generateInviteCode();
     const sessionId = getSessionId();
 
-    const shuffled = [...availableFactions].sort(() => Math.random() - 0.5);
-    const tokenMapping: Record<string, Faction> = {};
-    shuffled.forEach((f, i) => tokenMapping[String(i + 1)] = f);
+    const isFree = draftMode === "free" || draftMode === "free_no_repeat";
+
+    let tokenMapping: Record<string, Faction> | null = null;
+    if (!isFree) {
+      const shuffled = [...availableFactions].sort(() => Math.random() - 0.5);
+      tokenMapping = {};
+      shuffled.forEach((f, i) => (tokenMapping![String(i + 1)] = f));
+    }
 
     const settings = {
       factions: availableFactions,
-      picks_per_player: picksPerPlayer,
+      picks_per_player: effectivePicksPerPlayer,
       max_players: maxPlayers,
+      draft_mode: draftMode,
     };
 
     const { error } = await supabase.from("lobbies").insert([{
@@ -82,7 +88,7 @@ const CreateLobby = () => {
       host_name: effectiveHostName,
       host_password: "", // legacy column, no longer used
       settings: JSON.parse(JSON.stringify(settings)),
-      token_mapping: JSON.parse(JSON.stringify(tokenMapping)),
+      token_mapping: tokenMapping ? JSON.parse(JSON.stringify(tokenMapping)) : null,
     }]);
 
     if (error) {
