@@ -6,11 +6,13 @@ import { Button } from "@/components/ui/button";
 import StarField from "@/components/StarField";
 import TokenGrid from "@/components/TokenGrid";
 import FactionCard from "@/components/FactionCard";
+import FactionPicker from "@/components/FactionPicker";
 import { supabase } from "@/integrations/supabase/client";
 import { getSessionId } from "@/lib/sessionId";
 import { useLobby, type LobbySettings } from "@/hooks/useLobby";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
+import { getLastPlayedFactionName } from "@/lib/lastPlayedFaction";
 import type { Faction } from "@/data/factions";
 
 type JoinPhase = "intro" | "pick" | "done";
