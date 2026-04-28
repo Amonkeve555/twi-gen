@@ -1,41 +1,49 @@
-## Why it feels slow (it's not the guest accounts)
+## Goal
 
-Your database currently has **1 lobby** and **4 player rows** total — that's nothing. Guest/unclaimed records are not the bottleneck. The slowness comes from **how the pages load**, not how much data they load.
+Give your account `admin` rights and a dedicated **Admin** page where you can:
 
-Concretely:
+1. See all registered users (with profile name/nickname).
+2. See all unclaimed "guest" identities — grouped by `session_id`, with the names used and counts of hosted lobbies / player slots.
+3. Pick a guest identity → pick a target user → **link** (assign all matching `lobbies.host_user_id` and `lobby_players.user_id` to that user).
 
-1. **History and Stats each refetch from scratch.** `useOnlineGameHistory` runs on every mount with no cache, so navigating Home → History → Stats triggers the full query chain twice.
-2. **Three sequential round-trips per visit.** The hook does: (a) fetch hosted lobby IDs, (b) fetch played lobby IDs, (c) fetch lobbies by ID, (d) fetch all players by lobby ID — four awaits, two of them sequential. Each round-trip to Supabase from the browser is ~150–400 ms.
-3. **No loading skeleton on History.** History renders the empty state instantly while data is still loading, then pops in — which reads as "slow / broken".
-4. **Auth call on every fetch.** `supabase.auth.getUser()` hits the network each time instead of using the cached session.
+The infrastructure is already mostly there — `app_role` enum, `user_roles` table, `has_role()` function, and the `claim_guest_data(session_ids[])` RPC all exist. We just need an admin variant that targets *another* user, plus a UI.
 
 ## Plan
 
-### 1. Make the online history hook fast and cached
-- Run the hosted-lobby and played-lobby ID queries **in parallel** (`Promise.all`).
-- Replace `supabase.auth.getUser()` with `supabase.auth.getSession()` (synchronous, no network).
-- Add a tiny module-level cache (Map keyed by user id, ~30 s TTL) so navigating between History and Stats reuses the result instead of refetching.
-- Expose a `refetch()` for manual refresh.
+### 1. Database (one migration)
 
-### 2. Share one hook between History and Stats
-- Both pages already call `useOnlineGameHistory` independently. With the cache above they'll share results automatically — no duplicate network work when switching pages.
+- Grant `admin` role to your account (`marek.sedlak555@gmail.com`, id `bf1319b4-...`) by inserting into `user_roles`.
+- Add a SECURITY DEFINER RPC **`admin_link_guest_data(p_session_ids text[], p_target_user_id uuid)`** that:
+  - Checks `has_role(auth.uid(), 'admin')` and rejects otherwise.
+  - Updates `lobbies.host_user_id` and `lobby_players.user_id` for the given session IDs (only where currently NULL, to stay safe).
+  - Returns `{hosted_lobbies, player_slots}`.
+- Add a SECURITY DEFINER RPC **`admin_list_users()`** that returns `id, email, created_at, full_name, nickname` for every user (joins `auth.users` + `profiles`). Admin-only. This is needed because `auth.users` is not directly readable from the client.
+- Add an RLS policy on `user_roles` so admins can SELECT all rows (currently only own rows are visible).
 
-### 3. Add a proper loading state to History
-- History currently has no `loading` flag wired up. Show the same "Loading…" placeholder Stats uses, so the page doesn't flash the empty state.
+### 2. Frontend
 
-### 4. (Optional, low-effort) Server-side aggregation
-- Not needed at current data volume. Revisit only if completed-lobby count grows past a few hundred. At that point we'd add a `get_user_history` RPC that returns lobbies + players in one round-trip.
+- New hook **`useIsAdmin()`** — checks `user_roles` for the current user.
+- New route **`/admin`** guarded by `AuthGuard` + admin check (redirect home if not admin).
+- New page **`src/pages/Admin.tsx`** with two sections:
+  - **Unclaimed guest identities** — same query the claim dialog already uses (groups unclaimed `lobbies` + `lobby_players` by `session_id`, shows names + counts).
+  - **Users** — list from `admin_list_users()` RPC, searchable by email/nickname.
+  - For each unclaimed identity row: a "Link to user…" button that opens a small dialog to pick a user, then calls `admin_link_guest_data`. Toast on success and refresh the list.
+- Add an **Admin** entry in `UserMenu.tsx`, only shown when `useIsAdmin()` returns true.
 
-## What you'll notice
+### 3. Out of scope
 
-- First visit to History/Stats: ~1 round-trip instead of 3–4 (noticeably snappier).
-- Switching between History and Stats within 30 s: instant (served from cache).
-- No more "empty state then content" flash on History.
+- No changes to the existing self-service `claim_guest_data` flow.
+- No edits to RLS on `lobbies`/`lobby_players` (the new RPC runs SECURITY DEFINER, so it bypasses them).
+- No user deletion / role management UI — this is just a linking tool.
 
-## Files touched
+## Files
 
-- `src/hooks/useOnlineGameHistory.ts` — parallel queries, cached session, in-memory cache, refetch.
-- `src/pages/History.tsx` — consume `loading`, show placeholder.
-- `src/pages/Stats.tsx` — no change needed (already handles `loading`).
+- New: `supabase/migrations/<timestamp>_admin_link_guest.sql`
+- New: `src/hooks/useIsAdmin.ts`
+- New: `src/pages/Admin.tsx`
+- Edited: `src/App.tsx` (add `/admin` route)
+- Edited: `src/components/UserMenu.tsx` (conditional Admin link)
 
-No database or RLS changes. No changes to the guest-claim flow.
+## What you'll be able to do after this ships
+
+Open the user menu → **Admin** → see "Mareček" (and any other guest identities) in one list, click "Link to user…", pick `marek.sedlak555@gmail.com` (or any other account), confirm. The history/stats for that user update on next load.
