@@ -306,6 +306,7 @@ const JoinLobby = () => {
                 forbiddenFaction={draftMode === "free_no_repeat" ? lastFactionName : null}
                 forbiddenRelaxed={freeForbiddenRelaxed}
                 onSelect={selectFaction}
+                pendingFaction={pendingFaction}
               />
             ) : (
               <TokenGrid
