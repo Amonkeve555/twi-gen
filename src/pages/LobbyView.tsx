@@ -16,6 +16,7 @@ const LobbyView = () => {
   const { lobby, players, loading, error } = useLobby(inviteCode);
   const [copied, setCopied] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const { user } = useAuth();
 
   const settings = lobby?.settings as LobbySettings | undefined;
