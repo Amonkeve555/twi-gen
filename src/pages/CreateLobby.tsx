@@ -12,7 +12,15 @@ import { generateInviteCode } from "@/lib/inviteCode";
 import { TI4_FACTIONS, POK_FACTIONS, type Faction } from "@/data/factions";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
+import type { DraftMode } from "@/hooks/useLobby";
 import { toast } from "sonner";
+
+const DRAFT_MODES: { value: DraftMode; label: string; desc: string }[] = [
+  { value: "token", label: "Token Draft", desc: "Players pick numbered tokens; factions revealed on game day." },
+  { value: "token_no_repeat", label: "Token Draft · No Repeat", desc: "Same as Token Draft, but blocks the faction each player played last game." },
+  { value: "free", label: "Free Pick", desc: "Players directly claim any available faction in the lobby." },
+  { value: "free_no_repeat", label: "Free Pick · No Repeat", desc: "Same as Free Pick, but blocks the faction each player played last game." },
+];
 
 const CreateLobby = () => {
   const navigate = useNavigate();
@@ -21,11 +29,15 @@ const CreateLobby = () => {
   const [hostName, setHostName] = useState("");
   const [maxPlayers, setMaxPlayers] = useState(3);
   const [picksPerPlayer, setPicksPerPlayer] = useState(1);
+  const [draftMode, setDraftMode] = useState<DraftMode>("token");
   const [includePok, setIncludePok] = useState(false);
   const [excludedFactions, setExcludedFactions] = useState<Set<string>>(new Set());
   const [creating, setCreating] = useState(false);
   const [createdCode, setCreatedCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
+  const isFreeMode = draftMode === "free" || draftMode === "free_no_repeat";
+  const effectivePicksPerPlayer = isFreeMode ? 1 : picksPerPlayer;
 
   // Default host name from profile nickname
   const effectiveHostName = hostName.trim() || profile?.nickname || "Host";
@@ -36,7 +48,7 @@ const CreateLobby = () => {
     );
   }, [includePok, excludedFactions]);
 
-  const canCreate = availableFactions.length >= maxPlayers * picksPerPlayer;
+  const canCreate = availableFactions.length >= maxPlayers * effectivePicksPerPlayer;
 
   const toggleFaction = useCallback((name: string) => {
     setExcludedFactions((prev) => {
@@ -53,14 +65,20 @@ const CreateLobby = () => {
     const code = generateInviteCode();
     const sessionId = getSessionId();
 
-    const shuffled = [...availableFactions].sort(() => Math.random() - 0.5);
-    const tokenMapping: Record<string, Faction> = {};
-    shuffled.forEach((f, i) => tokenMapping[String(i + 1)] = f);
+    const isFree = draftMode === "free" || draftMode === "free_no_repeat";
+
+    let tokenMapping: Record<string, Faction> | null = null;
+    if (!isFree) {
+      const shuffled = [...availableFactions].sort(() => Math.random() - 0.5);
+      tokenMapping = {};
+      shuffled.forEach((f, i) => (tokenMapping![String(i + 1)] = f));
+    }
 
     const settings = {
       factions: availableFactions,
-      picks_per_player: picksPerPlayer,
+      picks_per_player: effectivePicksPerPlayer,
       max_players: maxPlayers,
+      draft_mode: draftMode,
     };
 
     const { error } = await supabase.from("lobbies").insert([{
@@ -70,7 +88,7 @@ const CreateLobby = () => {
       host_name: effectiveHostName,
       host_password: "", // legacy column, no longer used
       settings: JSON.parse(JSON.stringify(settings)),
-      token_mapping: JSON.parse(JSON.stringify(tokenMapping)),
+      token_mapping: tokenMapping ? JSON.parse(JSON.stringify(tokenMapping)) : null,
     }]);
 
     if (error) {
@@ -147,30 +165,63 @@ const CreateLobby = () => {
 
               <div className="imperial-divider" />
 
-              <div className="flex items-center justify-between">
+              <div className="space-y-3">
                 <h2 className="font-display text-sm uppercase tracking-[0.2em] text-primary text-glow">
-                  Picks per Player
+                  Draft Mode
                 </h2>
-                <div className="flex items-center gap-2">
-                  {[1, 2, 3].map((n) => (
-                    <Button
-                      key={n}
-                      variant={picksPerPlayer === n ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setPicksPerPlayer(n)}
-                      className={`h-8 w-8 font-display text-sm ${
-                        picksPerPlayer === n
-                          ? "bg-primary text-primary-foreground"
-                          : "border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {DRAFT_MODES.map((m) => (
+                    <button
+                      key={m.value}
+                      type="button"
+                      onClick={() => setDraftMode(m.value)}
+                      className={`text-left rounded p-3 border transition-colors ${
+                        draftMode === m.value
+                          ? "border-primary/60 bg-primary/10"
+                          : "border-border bg-secondary/30 hover:border-primary/40"
                       }`}
                     >
-                      {n}
-                    </Button>
+                      <p className="font-display text-sm uppercase tracking-[0.1em] text-primary">
+                        {m.label}
+                      </p>
+                      <p className="font-body text-xs text-muted-foreground mt-1">
+                        {m.desc}
+                      </p>
+                    </button>
                   ))}
                 </div>
               </div>
 
+              {!isFreeMode && (
+                <>
+                  <div className="imperial-divider" />
+                  <div className="flex items-center justify-between">
+                    <h2 className="font-display text-sm uppercase tracking-[0.2em] text-primary text-glow">
+                      Picks per Player
+                    </h2>
+                    <div className="flex items-center gap-2">
+                      {[1, 2, 3].map((n) => (
+                        <Button
+                          key={n}
+                          variant={picksPerPlayer === n ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setPicksPerPlayer(n)}
+                          className={`h-8 w-8 font-display text-sm ${
+                            picksPerPlayer === n
+                              ? "bg-primary text-primary-foreground"
+                              : "border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+                          }`}
+                        >
+                          {n}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+
               <div className="imperial-divider" />
+
 
               <FactionPool
                 includePok={includePok}
@@ -191,7 +242,7 @@ const CreateLobby = () => {
               </Button>
               {!canCreate && (
                 <p className="text-destructive text-sm font-body">
-                  Not enough factions ({availableFactions.length}) for {maxPlayers} players × {picksPerPlayer} picks
+                  Not enough factions ({availableFactions.length}) for {maxPlayers} players × {effectivePicksPerPlayer} picks
                 </p>
               )}
               <Button

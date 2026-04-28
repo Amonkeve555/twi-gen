@@ -19,9 +19,20 @@ const LobbyView = () => {
 
   const settings = lobby?.settings as LobbySettings | undefined;
   const picksPerPlayer = settings?.picks_per_player ?? 1;
+  const draftMode = settings?.draft_mode ?? "token";
+  const isFreeMode = draftMode === "free" || draftMode === "free_no_repeat";
   const isHost = !!user && lobby?.host_user_id === user.id;
   const allPicked = players.length >= (settings?.max_players ?? 99) &&
-    players.every((p) => (p.token_picks?.length ?? 0) >= picksPerPlayer);
+    players.every((p) =>
+      isFreeMode ? p.chosen_faction != null : (p.token_picks?.length ?? 0) >= picksPerPlayer
+    );
+
+  const draftModeLabel: Record<string, string> = {
+    token: "Token Draft",
+    token_no_repeat: "Token Draft · No Repeat",
+    free: "Free Pick",
+    free_no_repeat: "Free Pick · No Repeat",
+  };
 
   const copyLink = () => {
     navigator.clipboard.writeText(`${window.location.origin}/join/${inviteCode}`);
@@ -91,7 +102,13 @@ const LobbyView = () => {
               <Users className="h-4 w-4" />
               <span>{players.length}/{settings?.max_players} players</span>
               <span className="mx-2">·</span>
-              <span>{picksPerPlayer} pick{picksPerPlayer > 1 ? "s" : ""} each</span>
+              <span>{draftModeLabel[draftMode] ?? "Token Draft"}</span>
+              {!isFreeMode && (
+                <>
+                  <span className="mx-2">·</span>
+                  <span>{picksPerPlayer} pick{picksPerPlayer > 1 ? "s" : ""} each</span>
+                </>
+              )}
             </div>
           </div>
 
@@ -105,8 +122,12 @@ const LobbyView = () => {
               </p>
             ) : (
               players.map((p) => {
-                const hasPicked = (p.token_picks?.length ?? 0) >= picksPerPlayer;
-                const factions = p.assigned_factions as unknown as Faction[] | null;
+                const hasPicked = isFreeMode
+                  ? p.chosen_faction != null
+                  : (p.token_picks?.length ?? 0) >= picksPerPlayer;
+                const chosen = p.chosen_faction as unknown as Faction | null;
+                const assigned = p.assigned_factions as unknown as Faction[] | null;
+                const factions: Faction[] | null = isFreeMode && chosen ? [chosen] : assigned;
                 return (
                   <div key={p.id} className="flex items-center justify-between p-3 rounded bg-secondary/50 border border-border">
                     <div>
