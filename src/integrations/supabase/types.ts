@@ -153,6 +153,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_guest_data: { Args: { p_session_ids: string[] }; Returns: Json }
       claim_token: {
         Args: { p_lobby_id: string; p_player_id: string; p_token_id: number }
         Returns: Json
