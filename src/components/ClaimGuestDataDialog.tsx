@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useState, useCallback } from "react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
@@ -10,35 +10,52 @@ import { toast } from "sonner";
 
 const CLAIMED_KEY = "ti4-guest-data-claimed";
 
-/** Shown once per device, after sign-in, to claim legacy guest lobbies/players. */
-const ClaimGuestDataDialog = () => {
+export type ClaimGuestDataHandle = {
+  /** Manually open the claim dialog, ignoring the once-per-device flag. */
+  openManually: () => Promise<void>;
+};
+
+/** Shown once per device after sign-in, or manually via openManually(). */
+const ClaimGuestDataDialog = forwardRef<ClaimGuestDataHandle>((_, ref) => {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [hostedCount, setHostedCount] = useState(0);
   const [playerCount, setPlayerCount] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [manual, setManual] = useState(false);
+
+  const checkAndOpen = useCallback(async (isManual: boolean) => {
+    if (!user) {
+      if (isManual) toast.error("Sign in first to claim guest data");
+      return;
+    }
+    const sessionId = getSessionId();
+    const [{ data: hosted }, { data: joined }] = await Promise.all([
+      supabase.from("lobbies").select("id").eq("host_session_id", sessionId).is("host_user_id", null),
+      supabase.from("lobby_players").select("id").eq("session_id", sessionId).is("user_id", null),
+    ]);
+    const h = hosted?.length ?? 0;
+    const p = joined?.length ?? 0;
+    if (h + p > 0) {
+      setHostedCount(h);
+      setPlayerCount(p);
+      setManual(isManual);
+      setOpen(true);
+    } else {
+      localStorage.setItem(CLAIMED_KEY, user.id);
+      if (isManual) toast.info("No guest data found on this device to claim");
+    }
+  }, [user]);
+
+  useImperativeHandle(ref, () => ({
+    openManually: () => checkAndOpen(true),
+  }), [checkAndOpen]);
 
   useEffect(() => {
     if (!user) return;
     if (localStorage.getItem(CLAIMED_KEY) === user.id) return;
-    const sessionId = getSessionId();
-
-    (async () => {
-      const [{ data: hosted }, { data: joined }] = await Promise.all([
-        supabase.from("lobbies").select("id").eq("host_session_id", sessionId).is("host_user_id", null),
-        supabase.from("lobby_players").select("id").eq("session_id", sessionId).is("user_id", null),
-      ]);
-      const h = hosted?.length ?? 0;
-      const p = joined?.length ?? 0;
-      if (h + p > 0) {
-        setHostedCount(h);
-        setPlayerCount(p);
-        setOpen(true);
-      } else {
-        localStorage.setItem(CLAIMED_KEY, user.id);
-      }
-    })();
-  }, [user]);
+    checkAndOpen(false);
+  }, [user, checkAndOpen]);
 
   const claim = async () => {
     if (!user) return;
@@ -59,7 +76,7 @@ const ClaimGuestDataDialog = () => {
   };
 
   const dismiss = () => {
-    if (user) localStorage.setItem(CLAIMED_KEY, user.id);
+    if (user && !manual) localStorage.setItem(CLAIMED_KEY, user.id);
     setOpen(false);
   };
 
@@ -89,6 +106,8 @@ const ClaimGuestDataDialog = () => {
       </DialogContent>
     </Dialog>
   );
-};
+});
+
+ClaimGuestDataDialog.displayName = "ClaimGuestDataDialog";
 
 export default ClaimGuestDataDialog;

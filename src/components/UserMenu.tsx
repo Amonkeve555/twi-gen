@@ -1,5 +1,6 @@
+import { useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, User as UserIcon } from "lucide-react";
+import { LogOut, User as UserIcon, Download } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
   DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator,
@@ -8,11 +9,13 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
+import ClaimGuestDataDialog, { type ClaimGuestDataHandle } from "@/components/ClaimGuestDataDialog";
 
 const UserMenu = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { profile } = useProfile();
+  const claimRef = useRef<ClaimGuestDataHandle>(null);
 
   if (!user) {
     return (
@@ -35,26 +38,32 @@ const UserMenu = () => {
   };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="font-display text-xs uppercase tracking-[0.15em] border-primary/40 text-primary hover:bg-primary/10">
-          <span className="mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary/20 text-[10px]">{initials}</span>
-          {profile?.nickname ?? "Profile"}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="glass imperial-border">
-        <DropdownMenuLabel className="font-body text-xs text-muted-foreground">
-          {profile?.full_name ?? user.email}
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => navigate("/profile-setup")} className="font-body cursor-pointer">
-          <UserIcon className="mr-2 h-4 w-4" /> Edit Profile
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={signOut} className="font-body cursor-pointer">
-          <LogOut className="mr-2 h-4 w-4" /> Sign Out
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <ClaimGuestDataDialog ref={claimRef} />
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="sm" className="font-display text-xs uppercase tracking-[0.15em] border-primary/40 text-primary hover:bg-primary/10">
+            <span className="mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary/20 text-[10px]">{initials}</span>
+            {profile?.nickname ?? "Profile"}
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="glass imperial-border">
+          <DropdownMenuLabel className="font-body text-xs text-muted-foreground">
+            {profile?.full_name ?? user.email}
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => navigate("/profile-setup")} className="font-body cursor-pointer">
+            <UserIcon className="mr-2 h-4 w-4" /> Edit Profile
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => claimRef.current?.openManually()} className="font-body cursor-pointer">
+            <Download className="mr-2 h-4 w-4" /> Claim Guest Data
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={signOut} className="font-body cursor-pointer">
+            <LogOut className="mr-2 h-4 w-4" /> Sign Out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </>
   );
 };
 
