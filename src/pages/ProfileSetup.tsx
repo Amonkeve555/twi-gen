@@ -16,8 +16,7 @@ const nicknameSchema = z
   .string()
   .trim()
   .min(2, "Nickname must be at least 2 characters")
-  .max(24, "Nickname must be 24 characters or less")
-  .regex(/^[a-zA-Z0-9_\- ]+$/, "Only letters, numbers, spaces, _ and -");
+  .max(80, "Nickname must be 80 characters or less");
 
 const ProfileSetup = () => {
   const navigate = useNavigate();
