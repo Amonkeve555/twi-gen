@@ -19,9 +19,20 @@ const LobbyView = () => {
 
   const settings = lobby?.settings as LobbySettings | undefined;
   const picksPerPlayer = settings?.picks_per_player ?? 1;
+  const draftMode = settings?.draft_mode ?? "token";
+  const isFreeMode = draftMode === "free" || draftMode === "free_no_repeat";
   const isHost = !!user && lobby?.host_user_id === user.id;
   const allPicked = players.length >= (settings?.max_players ?? 99) &&
-    players.every((p) => (p.token_picks?.length ?? 0) >= picksPerPlayer);
+    players.every((p) =>
+      isFreeMode ? p.chosen_faction != null : (p.token_picks?.length ?? 0) >= picksPerPlayer
+    );
+
+  const draftModeLabel: Record<string, string> = {
+    token: "Token Draft",
+    token_no_repeat: "Token Draft · No Repeat",
+    free: "Free Pick",
+    free_no_repeat: "Free Pick · No Repeat",
+  };
 
   const copyLink = () => {
     navigator.clipboard.writeText(`${window.location.origin}/join/${inviteCode}`);
