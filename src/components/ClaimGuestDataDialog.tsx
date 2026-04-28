@@ -22,6 +22,18 @@ type GuestIdentity = {
   playerSlots: number;    // player rows belonging to this session ID (still unclaimed)
 };
 
+type ClaimGuestDataResult = {
+  success?: boolean;
+  error?: string;
+  hosted_lobbies?: number;
+  player_slots?: number;
+};
+
+type ClaimGuestDataRpc = (
+  fn: "claim_guest_data",
+  args: { p_session_ids: string[] }
+) => Promise<{ data: ClaimGuestDataResult | null; error: { message: string } | null }>;
+
 const ClaimGuestDataDialog = forwardRef<ClaimGuestDataHandle>((_, ref) => {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
@@ -116,11 +128,8 @@ const ClaimGuestDataDialog = forwardRef<ClaimGuestDataHandle>((_, ref) => {
     if (!user || selected.size === 0) return;
     setBusy(true);
     const ids = Array.from(selected);
-    const { data, error } = await (supabase.rpc as unknown as (
-      fn: "claim_guest_data",
-      args: { p_session_ids: string[] }
-    ) => Promise<{ data: { success?: boolean; error?: string; hosted_lobbies?: number; player_slots?: number } | null; error: { message: string } | null }>)
-    )("claim_guest_data", { p_session_ids: ids });
+    const claimGuestData = supabase.rpc as unknown as ClaimGuestDataRpc;
+    const { data, error } = await claimGuestData("claim_guest_data", { p_session_ids: ids });
     setBusy(false);
     if (error || !data?.success) {
       toast.error(error?.message ?? data?.error ?? "Failed to claim guest data");
