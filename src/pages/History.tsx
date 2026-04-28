@@ -123,15 +123,16 @@ const History = () => {
                         </p>
                       )}
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => deleteGame(game.id)}
-                      className="h-7 w-7 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </div>
+                    {!isOnline && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => deleteGame(game.id)}
+                        className="h-7 w-7 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    )}
 
                   <div className="imperial-divider mb-3" />
 
