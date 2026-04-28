@@ -5,7 +5,7 @@ import { ArrowLeft, Users, Clock, Check, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import StarField from "@/components/StarField";
 import { supabase } from "@/integrations/supabase/client";
-import { getSessionId } from "@/lib/sessionId";
+import { useAuth } from "@/hooks/useAuth";
 import type { LobbySettings } from "@/hooks/useLobby";
 
 interface LobbyWithRole {
@@ -21,24 +21,23 @@ interface LobbyWithRole {
 
 const MyLobbies = () => {
   const navigate = useNavigate();
-  const sessionId = getSessionId();
+  const { user } = useAuth();
   const [lobbies, setLobbies] = useState<LobbyWithRole[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!user) return;
     const fetchLobbies = async () => {
-      // Fetch lobbies I host
       const { data: hosted } = await supabase
         .from("lobbies")
         .select("*")
-        .eq("host_session_id", sessionId)
+        .eq("host_user_id", user.id)
         .order("created_at", { ascending: false });
 
-      // Fetch lobbies I joined as player
       const { data: joined } = await supabase
         .from("lobby_players")
         .select("lobby_id")
-        .eq("session_id", sessionId);
+        .eq("user_id", user.id);
 
       const joinedIds = (joined ?? []).map((j) => j.lobby_id);
       
@@ -101,7 +100,7 @@ const MyLobbies = () => {
     };
 
     fetchLobbies();
-  }, [sessionId]);
+  }, [user]);
 
   const statusIcon = (status: string) => {
     switch (status) {
