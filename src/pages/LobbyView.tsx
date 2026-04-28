@@ -225,16 +225,28 @@ const LobbyView = () => {
                 Home
               </Button>
               {isHost && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={deleteLobby}
-                  disabled={deleting}
-                  className="font-display text-xs uppercase tracking-[0.15em] border-destructive/40 text-destructive hover:bg-destructive/10"
-                >
-                  <Trash2 className="mr-2 h-3 w-3" />
-                  {deleting ? "Deleting..." : "Delete Lobby"}
-                </Button>
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={resetDraft}
+                    disabled={resetting}
+                    className="font-display text-xs uppercase tracking-[0.15em] border-amber-500/40 text-amber-400 hover:bg-amber-500/10"
+                  >
+                    <RotateCcw className="mr-2 h-3 w-3" />
+                    {resetting ? "Resetting..." : "Reset Draft"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={deleteLobby}
+                    disabled={deleting}
+                    className="font-display text-xs uppercase tracking-[0.15em] border-destructive/40 text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="mr-2 h-3 w-3" />
+                    {deleting ? "Deleting..." : "Delete Lobby"}
+                  </Button>
+                </>
               )}
             </div>
           </div>
