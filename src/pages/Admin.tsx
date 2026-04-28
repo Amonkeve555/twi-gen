@@ -188,6 +188,9 @@ const Admin = () => {
     }
   };
 
+  const dialogUsers = useMemoFilteredUsers(users, dialogQuery);
+  const dialogGuests = useMemoFilteredGuests(identities, dialogQuery);
+
   if (roleLoading || !isAdmin) {
     return (
       <div className="min-h-screen relative">
@@ -198,10 +201,6 @@ const Admin = () => {
       </div>
     );
   }
-
-  // Dialog content varies by mode
-  const dialogUsers = useMemoFilteredUsers(users, dialogQuery);
-  const dialogGuests = useMemoFilteredGuests(identities, dialogQuery);
 
   return (
     <div className="min-h-screen relative">
