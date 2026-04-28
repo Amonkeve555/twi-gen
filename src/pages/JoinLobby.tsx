@@ -29,6 +29,8 @@ const JoinLobby = () => {
   const [tokenPicks, setTokenPicks] = useState<number[]>([]);
   const [assignedFactions, setAssignedFactions] = useState<Faction[]>([]);
   const [joining, setJoining] = useState(false);
+  const [forbiddenTokens, setForbiddenTokens] = useState<Set<number>>(new Set());
+  const [lastFactionName, setLastFactionName] = useState<string | null>(null);
 
   const existingPlayer = players.find((p) => p.user_id === user?.id);
 
@@ -36,11 +38,23 @@ const JoinLobby = () => {
   const tokenMapping = lobby?.token_mapping as Record<string, Faction> | null;
   const totalTokens = settings?.factions?.length ?? 0;
   const picksPerPlayer = settings?.picks_per_player ?? 1;
+  const draftMode = settings?.draft_mode ?? "token";
+  const isFreeMode = draftMode === "free" || draftMode === "free_no_repeat";
+  const isNoRepeat = draftMode === "free_no_repeat" || draftMode === "token_no_repeat";
 
   const takenTokens = useMemo(() => {
     const map = new Map<number, number>();
     players.forEach((p, pIdx) => {
       p.token_picks?.forEach((t) => map.set(t, pIdx));
+    });
+    return map;
+  }, [players]);
+
+  const takenFactions = useMemo(() => {
+    const map = new Map<string, string>();
+    players.forEach((p) => {
+      const cf = p.chosen_faction as unknown as Faction | null;
+      if (cf?.name) map.set(cf.name, p.player_name);
     });
     return map;
   }, [players]);
