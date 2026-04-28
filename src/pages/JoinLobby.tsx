@@ -57,8 +57,12 @@ const JoinLobby = () => {
       const cf = p.chosen_faction as unknown as Faction | null;
       if (cf?.name) map.set(cf.name, p.player_name);
     });
+    // Optimistically include pending claim by current player
+    if (pendingFaction && profile?.nickname && !map.has(pendingFaction)) {
+      map.set(pendingFaction, profile.nickname);
+    }
     return map;
-  }, [players]);
+  }, [players, pendingFaction, profile?.nickname]);
 
   const isFull = players.length >= (settings?.max_players ?? 99);
 
