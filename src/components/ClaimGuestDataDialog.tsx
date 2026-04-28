@@ -133,17 +133,30 @@ const ClaimGuestDataDialog = forwardRef<ClaimGuestDataHandle>((_, ref) => {
     setBusy(true);
     try {
       const ids = Array.from(selected);
-      const claimGuestData = supabase.rpc as unknown as ClaimGuestDataRpc;
-      const { data, error } = await claimGuestData("claim_guest_data", { p_session_ids: ids });
-      if (error || !data?.success) {
-        toast.error(error?.message ?? data?.error ?? "Failed to claim guest data");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const rpc = supabase.rpc as any;
+      const res = await rpc("claim_guest_data", { p_session_ids: ids });
+      const error = res?.error;
+      const data = res?.data as ClaimGuestDataResult | null | undefined;
+
+      if (error) {
+        console.error("claim_guest_data error:", error);
+        toast.error(error.message ?? "Failed to claim guest data");
         return;
       }
+      if (!data || !data.success) {
+        toast.error(data?.error ?? "Failed to claim guest data");
+        return;
+      }
+
       localStorage.setItem(CLAIMED_KEY, user.id);
-      toast.success(`Guest data claimed: ${data.hosted_lobbies ?? 0} hosted, ${data.player_slots ?? 0} player slots`);
+      toast.success(
+        `Guest data claimed: ${data.hosted_lobbies ?? 0} hosted, ${data.player_slots ?? 0} player slots`
+      );
       setOpen(false);
       setTimeout(() => window.location.reload(), 600);
     } catch (e) {
+      console.error("claim_guest_data threw:", e);
       toast.error(e instanceof Error ? e.message : "Failed to claim guest data");
     } finally {
       setBusy(false);
