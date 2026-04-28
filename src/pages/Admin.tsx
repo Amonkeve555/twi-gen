@@ -27,11 +27,6 @@ type GuestIdentity = {
   playerSlots: number;
 };
 
-type AdminListUsersRpc = (
-  fn: "admin_list_users",
-  args?: Record<string, never>
-) => Promise<{ data: AdminUser[] | null; error: { message: string } | null }>;
-
 type AdminLinkRpc = (
   fn: "admin_link_guest_data",
   args: { p_session_ids: string[]; p_target_user_id: string }
