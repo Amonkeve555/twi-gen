@@ -54,6 +54,27 @@ const LobbyView = () => {
     await supabase.from("lobby_players").delete().eq("id", playerId);
   };
 
+  const resetDraft = async () => {
+    if (!lobby) return;
+    if (!confirm("Reset all draft picks? Players will need to pick again. Token mappings will be re-randomized.")) return;
+    setResetting(true);
+    const { data, error: err } = await supabase.rpc("reset_lobby_draft", {
+      p_lobby_id: lobby.id,
+    });
+    setResetting(false);
+    if (err) {
+      toast.error("Failed to reset draft");
+      console.error(err);
+      return;
+    }
+    const result = data as { success?: boolean; error?: string };
+    if (result.error) {
+      toast.error(result.error);
+      return;
+    }
+    toast.success("Draft reset");
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen relative">
