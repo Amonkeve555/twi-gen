@@ -31,6 +31,7 @@ const JoinLobby = () => {
   const [joining, setJoining] = useState(false);
   const [forbiddenTokens, setForbiddenTokens] = useState<Set<number>>(new Set());
   const [lastFactionName, setLastFactionName] = useState<string | null>(null);
+  const [pendingFaction, setPendingFaction] = useState<string | null>(null);
 
   const existingPlayer = players.find((p) => p.user_id === user?.id);
 
