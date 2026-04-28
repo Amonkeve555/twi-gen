@@ -242,7 +242,7 @@ const CreateLobby = () => {
               </Button>
               {!canCreate && (
                 <p className="text-destructive text-sm font-body">
-                  Not enough factions ({availableFactions.length}) for {maxPlayers} players × {picksPerPlayer} picks
+                  Not enough factions ({availableFactions.length}) for {maxPlayers} players × {effectivePicksPerPlayer} picks
                 </p>
               )}
               <Button
