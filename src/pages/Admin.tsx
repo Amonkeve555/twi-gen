@@ -188,6 +188,9 @@ const Admin = () => {
     }
   };
 
+  const dialogUsers = useMemoFilteredUsers(users, dialogQuery);
+  const dialogGuests = useMemoFilteredGuests(identities, dialogQuery);
+
   if (roleLoading || !isAdmin) {
     return (
       <div className="min-h-screen relative">
@@ -198,10 +201,6 @@ const Admin = () => {
       </div>
     );
   }
-
-  // Dialog content varies by mode
-  const dialogUsers = useMemoFilteredUsers(users, dialogQuery);
-  const dialogGuests = useMemoFilteredGuests(identities, dialogQuery);
 
   return (
     <div className="min-h-screen relative">
@@ -218,7 +217,7 @@ const Admin = () => {
           </Button>
 
           <h1 className="font-display text-3xl md:text-4xl font-black tracking-[0.15em] text-primary text-glow text-center mb-2 flex items-center justify-center gap-3">
-            <Shield className="h-7 w-7" /> Admin
+            <Shield className="h-7 w-7" /> User Administration
           </h1>
           <div className="imperial-divider w-48 mx-auto mb-8" />
         </motion.div>

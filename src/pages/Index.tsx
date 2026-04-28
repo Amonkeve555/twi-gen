@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RotateCcw, Scroll, Users, Gamepad2, BookOpen, Bot, BarChart3, Clock, Check, Trophy } from "lucide-react";
+import { RotateCcw, Scroll, Users, Gamepad2, BookOpen, Bot, BarChart3, Clock, Check, Trophy, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import tiEmblem from "@/assets/ti-emblem.png";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import { getSessionId } from "@/lib/sessionId";
 import type { LobbySettings } from "@/hooks/useLobby";
 import UserMenu from "@/components/UserMenu";
 import ClaimGuestDataDialog from "@/components/ClaimGuestDataDialog";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 interface ActiveLobby {
   id: string;
@@ -34,6 +35,7 @@ type Phase = "menu" | "setup" | "draft" | "choose" | "reveal";
 const Index = () => {
   const navigate = useNavigate();
   const { history, addGame } = useGameHistory();
+  const { isAdmin } = useIsAdmin();
   const [players, setPlayers] = useState(["Player 1", "Player 2", "Player 3"]);
   const [includePok, setIncludePok] = useState(false);
   const [excludedFactions, setExcludedFactions] = useState<Set<string>>(new Set());
@@ -377,6 +379,17 @@ const Index = () => {
                     <BarChart3 className="mr-2 h-3.5 w-3.5" />
                     Stats
                   </Button>
+                  {isAdmin && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate("/users")}
+                      className="col-span-2 font-display text-xs uppercase tracking-[0.15em] border-primary/40 text-primary hover:bg-primary/10 hover:border-primary py-4"
+                    >
+                      <Shield className="mr-2 h-3.5 w-3.5" />
+                      User Administration
+                    </Button>
+                  )}
                 </div>
               </div>
             </motion.div>
