@@ -15,6 +15,8 @@ import { TI4_FACTIONS, POK_FACTIONS, type Faction } from "@/data/factions";
 import { supabase } from "@/integrations/supabase/client";
 import { getSessionId } from "@/lib/sessionId";
 import type { LobbySettings } from "@/hooks/useLobby";
+import UserMenu from "@/components/UserMenu";
+import ClaimGuestDataDialog from "@/components/ClaimGuestDataDialog";
 
 interface ActiveLobby {
   id: string;

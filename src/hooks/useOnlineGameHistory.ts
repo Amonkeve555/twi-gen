@@ -9,10 +9,33 @@ export function useOnlineGameHistory() {
 
   useEffect(() => {
     async function fetchCompletedLobbies() {
-      // Fetch completed lobbies
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setGames([]);
+        setLoading(false);
+        return;
+      }
+
+      // Lobbies the user hosted or played in
+      const { data: hostedLobbies } = await supabase
+        .from("lobbies").select("id").eq("host_user_id", user.id).eq("status", "completed");
+      const { data: playedRows } = await supabase
+        .from("lobby_players").select("lobby_id").eq("user_id", user.id);
+
+      const lobbyIdSet = new Set<string>([
+        ...(hostedLobbies ?? []).map((l) => l.id),
+        ...(playedRows ?? []).map((r) => r.lobby_id),
+      ]);
+      if (lobbyIdSet.size === 0) {
+        setGames([]);
+        setLoading(false);
+        return;
+      }
+
       const { data: lobbies, error: lobbyErr } = await supabase
         .from("lobbies")
         .select("*")
+        .in("id", Array.from(lobbyIdSet))
         .eq("status", "completed")
         .order("created_at", { ascending: false });
 
