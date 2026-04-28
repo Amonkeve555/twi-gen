@@ -40,6 +40,7 @@ const App = () => (
           <Route path="/lobby/:inviteCode" element={<AuthGuard><LobbyView /></AuthGuard>} />
           <Route path="/lobby/:inviteCode/gameday" element={<AuthGuard><GameDay /></AuthGuard>} />
           <Route path="/my-lobbies" element={<AuthGuard><MyLobbies /></AuthGuard>} />
+          <Route path="/users" element={<AuthGuard><Admin /></AuthGuard>} />
           <Route path="/admin" element={<AuthGuard><Admin /></AuthGuard>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

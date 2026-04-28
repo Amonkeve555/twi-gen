@@ -61,8 +61,8 @@ const UserMenu = () => {
             <Download className="mr-2 h-4 w-4" /> Claim Guest Data
           </DropdownMenuItem>
           {isAdmin && (
-            <DropdownMenuItem onClick={() => navigate("/admin")} className="font-body cursor-pointer">
-              <Shield className="mr-2 h-4 w-4" /> Admin
+            <DropdownMenuItem onClick={() => navigate("/users")} className="font-body cursor-pointer">
+              <Shield className="mr-2 h-4 w-4" /> User Administration
             </DropdownMenuItem>
           )}
           <DropdownMenuItem onClick={signOut} className="font-body cursor-pointer">
