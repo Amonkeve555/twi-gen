@@ -167,10 +167,19 @@ export type Database = {
           nickname: string
         }[]
       }
+      claim_faction: {
+        Args: { p_faction: Json; p_lobby_id: string; p_player_id: string }
+        Returns: Json
+      }
       claim_guest_data: { Args: { p_session_ids: string[] }; Returns: Json }
       claim_token: {
         Args: { p_lobby_id: string; p_player_id: string; p_token_id: number }
         Returns: Json
+      }
+      get_forbidden_tokens: { Args: { p_lobby_id: string }; Returns: number[] }
+      get_last_played_faction_name: {
+        Args: { p_user_id: string }
+        Returns: string
       }
       has_role: {
         Args: {
