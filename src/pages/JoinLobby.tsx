@@ -12,7 +12,7 @@ import { getSessionId } from "@/lib/sessionId";
 import { useLobby, type LobbySettings } from "@/hooks/useLobby";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
-import { getLastPlayedFactionName } from "@/lib/lastPlayedFaction";
+import { getLastPlayedFactionVsOpponents } from "@/lib/lastPlayedFaction";
 import type { Faction } from "@/data/factions";
 
 type JoinPhase = "intro" | "pick" | "done";
