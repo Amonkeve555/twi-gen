@@ -81,20 +81,27 @@ const JoinLobby = () => {
     }
   }, [existingPlayer, phase, picksPerPlayer, isFreeMode]);
 
-  // Fetch user's last played faction (for no-repeat modes)
+  // Fetch user's last played faction vs current authenticated opponents (for no-repeat modes)
   useEffect(() => {
-    if (!isNoRepeat || !user) {
+    if (!isNoRepeat || !user || !lobby) {
+      setLastFactionName(null);
+      return;
+    }
+    const opponentIds = players
+      .map((p) => p.user_id)
+      .filter((uid): uid is string => !!uid && uid !== user.id);
+    if (opponentIds.length === 0) {
       setLastFactionName(null);
       return;
     }
     let cancelled = false;
-    getLastPlayedFactionName(user.id).then((name) => {
+    getLastPlayedFactionVsOpponents(user.id, opponentIds).then((name) => {
       if (!cancelled) setLastFactionName(name);
     });
     return () => {
       cancelled = true;
     };
-  }, [isNoRepeat, user]);
+  }, [isNoRepeat, user, lobby, players]);
 
   // Fetch forbidden tokens for token_no_repeat mode
   useEffect(() => {
