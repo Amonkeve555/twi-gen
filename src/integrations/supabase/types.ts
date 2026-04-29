@@ -177,8 +177,8 @@ export type Database = {
         Returns: Json
       }
       get_forbidden_tokens: { Args: { p_lobby_id: string }; Returns: number[] }
-      get_last_played_faction_name: {
-        Args: { p_user_id: string }
+      get_last_played_faction_vs_opponents: {
+        Args: { p_opponent_ids: string[]; p_user_id: string }
         Returns: string
       }
       has_role: {
