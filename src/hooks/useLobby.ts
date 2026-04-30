@@ -22,6 +22,8 @@ export interface LobbyRow {
   status: string;
   token_mapping: Record<string, Faction> | null;
   tile_control: Record<string, number> | null;
+  started_at: string | null;
+  ended_at: string | null;
   created_at: string;
 }
 
