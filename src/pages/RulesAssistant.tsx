@@ -136,6 +136,7 @@ const RulesAssistant = () => {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [activeCitation, setActiveCitation] = useState<Citation | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -244,9 +245,36 @@ const RulesAssistant = () => {
                 }`}
               >
                 {msg.role === "assistant" ? (
-                  <div className="prose prose-sm prose-invert max-w-none font-body text-sm [&_p]:mb-2 [&_ul]:mb-2 [&_ol]:mb-2 [&_li]:mb-1 [&_h1]:text-primary [&_h2]:text-primary [&_h3]:text-primary [&_strong]:text-primary [&_code]:bg-primary/10 [&_code]:text-primary [&_code]:px-1 [&_code]:rounded">
-                    <ReactMarkdown>{msg.content}</ReactMarkdown>
-                  </div>
+                  <>
+                    <div className="prose prose-sm prose-invert max-w-none font-body text-sm [&_p]:mb-2 [&_ul]:mb-2 [&_ol]:mb-2 [&_li]:mb-1 [&_h1]:text-primary [&_h2]:text-primary [&_h3]:text-primary [&_strong]:text-primary [&_code]:bg-primary/10 [&_code]:text-primary [&_code]:px-1 [&_code]:rounded">
+                      <ReactMarkdown>{msg.content}</ReactMarkdown>
+                    </div>
+                    {msg.citations && msg.citations.length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-border/50">
+                        <div className="font-display text-[10px] uppercase tracking-[0.15em] text-muted-foreground mb-1.5 flex items-center gap-1">
+                          <BookOpen className="h-3 w-3" /> Sources
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {msg.citations.map((c) => {
+                            const pg = c.page_start
+                              ? c.page_end && c.page_end !== c.page_start
+                                ? `pp. ${c.page_start}–${c.page_end}`
+                                : `p. ${c.page_start}`
+                              : "";
+                            return (
+                              <button
+                                key={c.n}
+                                onClick={() => setActiveCitation(c)}
+                                className="text-[11px] font-body px-2 py-0.5 rounded border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
+                              >
+                                [{c.n}] {c.label}{pg ? `, ${pg}` : ""}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <p className="font-body text-sm">{msg.content}</p>
                 )}
