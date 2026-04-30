@@ -89,6 +89,18 @@ const MapSetupHex = ({ setup, seats, seatOrder, onSeatClick, compact, tileContro
     return { cells, viewBox: vb };
   }, [setup]);
 
+  const seatColor = (seatIdx: number): string => {
+    const occ = seats?.[seatIdx];
+    if (occ?.factionColor) return `hsl(${occ.factionColor})`;
+    return PLAYER_COLORS[seatIdx] ?? PLAYER_COLORS[0];
+  };
+
+  const tileControlSeat = (c: HexCell): number | undefined => {
+    if (!tileControl) return undefined;
+    const v = tileControl[`${c.q},${c.r}`];
+    return typeof v === "number" ? v : undefined;
+  };
+
   const homeColorOverride = (c: HexCell): string | undefined => {
     if (c.role !== "home") return undefined;
     const seatIdx = seatIndexByCoord.get(`${c.q},${c.r}`);
