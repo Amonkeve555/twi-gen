@@ -386,6 +386,12 @@ const JoinLobby = () => {
         {/* keep tokenMapping referenced */}
         {false && tokenMapping && null}
       </div>
+
+      <FactionDetailDialog
+        faction={revealedFaction}
+        open={!!revealedFaction}
+        onOpenChange={(o) => { if (!o) setRevealedFaction(null); }}
+      />
     </div>
   );
 };
