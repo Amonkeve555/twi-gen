@@ -196,6 +196,13 @@ const LobbyView = () => {
             )}
           </div>
 
+          <SeatingPanel
+            lobbyId={lobby.id}
+            players={players}
+            isHost={isHost}
+            playerCount={settings?.max_players ?? 6}
+          />
+
           <div className="flex flex-col items-center gap-3">
             {!inLobby && !isHost && (
               <Button
