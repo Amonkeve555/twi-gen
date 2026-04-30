@@ -7,6 +7,7 @@ import StarField from "@/components/StarField";
 import TokenGrid from "@/components/TokenGrid";
 import FactionCard from "@/components/FactionCard";
 import FactionPicker from "@/components/FactionPicker";
+import FactionDetailDialog from "@/components/FactionDetailDialog";
 import ColorSwatchPicker from "@/components/ColorSwatchPicker";
 import { supabase } from "@/integrations/supabase/client";
 import { getSessionId } from "@/lib/sessionId";
@@ -33,7 +34,7 @@ const JoinLobby = () => {
   const [forbiddenTokens, setForbiddenTokens] = useState<Set<number>>(new Set());
   const [lastFactionName, setLastFactionName] = useState<string | null>(null);
   const [pendingFaction, setPendingFaction] = useState<string | null>(null);
-
+  const [revealedFaction, setRevealedFaction] = useState<Faction | null>(null);
   const existingPlayer = players.find((p) => p.user_id === user?.id);
 
   const settings = lobby?.settings as LobbySettings | undefined;
@@ -168,7 +169,10 @@ const JoinLobby = () => {
       if (result.error) { toast.error(result.error); return; }
       const newPicks = [...tokenPicks, tokenId];
       setTokenPicks(newPicks);
-      if (result.faction) setAssignedFactions((prev) => [...prev, result.faction as Faction]);
+      if (result.faction) {
+        setAssignedFactions((prev) => [...prev, result.faction as Faction]);
+        setRevealedFaction(result.faction as Faction);
+      }
       if (newPicks.length >= picksPerPlayer) setPhase("done");
     },
     [lobby, tokenPicks, playerId, picksPerPlayer, forbiddenTokens]
@@ -382,6 +386,12 @@ const JoinLobby = () => {
         {/* keep tokenMapping referenced */}
         {false && tokenMapping && null}
       </div>
+
+      <FactionDetailDialog
+        faction={revealedFaction}
+        open={!!revealedFaction}
+        onOpenChange={(o) => { if (!o) setRevealedFaction(null); }}
+      />
     </div>
   );
 };
