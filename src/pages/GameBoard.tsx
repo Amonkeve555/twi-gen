@@ -29,10 +29,14 @@ const GameBoard = () => {
   const { lobby, players, loading, error } = useLobby(code);
   const { user } = useAuth();
   const [busy, setBusy] = useState(false);
+  const [resultData, setResultData] = useState<Map<string, { vp: string; rank: string }>>(new Map());
+  const [saving, setSaving] = useState(false);
 
   const isHost = !!user && lobby?.host_user_id === user.id;
   const isCompleted = lobby?.status === "completed";
-  const canEdit = isHost && !isCompleted;
+  const isEnded = !!lobby?.ended_at || isCompleted;
+  const canEdit = isHost && !isEnded;
+  const canEnterScores = isHost && isEnded && !isCompleted;
 
   const playerCount = clampCount(lobby?.settings?.max_players ?? 6);
   const setup = MAP_SETUPS[playerCount];
