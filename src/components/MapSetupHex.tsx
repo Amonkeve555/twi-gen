@@ -20,8 +20,24 @@ const PLAYER_COLORS = [
   "hsl(220 70% 65%)",  // blue (P8)
 ];
 
+export interface SeatOccupant {
+  playerId: string;
+  playerName: string;
+  /** HSL string fragment, e.g. "42 85% 55%" — used as faction color */
+  factionColor?: string | null;
+  factionName?: string;
+}
+
 interface Props {
   setup: MapSetup;
+  /** Map of seat_index -> occupant for seating overlay (optional) */
+  seats?: Record<number, SeatOccupant>;
+  /** Ordered home cells (use getHomeSeats); when present + seats given, draws seat numbers + occupants */
+  seatOrder?: HexCell[];
+  /** Click handler for a home seat (only fires when seatOrder is provided) */
+  onSeatClick?: (seatIndex: number, occupant?: SeatOccupant) => void;
+  /** Compact mode for thumbnails (smaller hexes, no labels other than seat) */
+  compact?: boolean;
 }
 
 // Pointy-top hex axial -> pixel
@@ -42,8 +58,15 @@ function hexPoints(cx: number, cy: number, size: number) {
   return pts.join(" ");
 }
 
-const MapSetupHex = ({ setup }: Props) => {
-  const HEX_SIZE = 34;
+const MapSetupHex = ({ setup, seats, seatOrder, onSeatClick, compact }: Props) => {
+  const HEX_SIZE = compact ? 18 : 34;
+
+  // Map from "q,r" -> seat_index for quick lookup
+  const seatIndexByCoord = useMemo(() => {
+    const m = new Map<string, number>();
+    if (seatOrder) seatOrder.forEach((c, i) => m.set(`${c.q},${c.r}`, i));
+    return m;
+  }, [seatOrder]);
 
   const { cells, viewBox } = useMemo(() => {
     const cells = setup.cells;
@@ -62,6 +85,15 @@ const MapSetupHex = ({ setup }: Props) => {
     return { cells, viewBox: vb };
   }, [setup]);
 
+  const homeColorOverride = (c: HexCell): string | undefined => {
+    if (c.role !== "home") return undefined;
+    const seatIdx = seatIndexByCoord.get(`${c.q},${c.r}`);
+    if (seatIdx === undefined) return undefined;
+    const occ = seats?.[seatIdx];
+    if (occ?.factionColor) return `hsl(${occ.factionColor})`;
+    return undefined;
+  };
+
   const cellStyle = (c: HexCell) => {
     switch (c.role) {
       case "mecatol":
@@ -71,9 +103,10 @@ const MapSetupHex = ({ setup }: Props) => {
           strokeWidth: 2.5,
         };
       case "home": {
-        const color = PLAYER_COLORS[(c.player ?? 1) - 1] ?? PLAYER_COLORS[0];
+        const overrideColor = homeColorOverride(c);
+        const color = overrideColor ?? (PLAYER_COLORS[(c.player ?? 1) - 1] ?? PLAYER_COLORS[0]);
         return {
-          fill: `${color.replace(")", " / 0.45)")}`,
+          fill: `${color.replace(")", " / 0.55)")}`,
           stroke: color,
           strokeWidth: 2.5,
         };
@@ -109,16 +142,42 @@ const MapSetupHex = ({ setup }: Props) => {
   };
 
   const cellLabel = (c: HexCell) => {
-    if (c.role === "mecatol") return "MR";
-    if (c.role === "home") return `P${c.player}`;
+    if (c.role === "mecatol") return compact ? "" : "MR";
+    if (c.role === "home") {
+      const seatIdx = seatIndexByCoord.get(`${c.q},${c.r}`);
+      if (seatIdx !== undefined) {
+        return `${seatIdx + 1}`;
+      }
+      return compact ? "" : `P${c.player}`;
+    }
+    if (compact) return "";
     if (c.role === "slice") return `${c.player}`;
     if (c.role === "hyperlane") return "HL";
     return "";
   };
 
+  const subLabel = (c: HexCell) => {
+    if (compact || c.role !== "home") return "";
+    const seatIdx = seatIndexByCoord.get(`${c.q},${c.r}`);
+    if (seatIdx === undefined) return "";
+    const occ = seats?.[seatIdx];
+    if (!occ) return "open";
+    return occ.playerName.length > 8 ? occ.playerName.slice(0, 8) + "…" : occ.playerName;
+  };
+
   const tooltipText = (c: HexCell) => {
     const base = ROLE_LABELS[c.role];
-    if (c.role === "home") return `Player ${c.player} — ${base}`;
+    if (c.role === "home") {
+      const seatIdx = seatIndexByCoord.get(`${c.q},${c.r}`);
+      if (seatIdx !== undefined) {
+        const occ = seats?.[seatIdx];
+        if (occ) {
+          return `Seat ${seatIdx + 1} — ${occ.playerName}${occ.factionName ? ` · ${occ.factionName}` : ""}`;
+        }
+        return `Seat ${seatIdx + 1} — open`;
+      }
+      return `Player ${c.player} — ${base}`;
+    }
     if (c.role === "slice") return `Player ${c.player} — Slice tile`;
     return base;
   };
@@ -129,7 +188,7 @@ const MapSetupHex = ({ setup }: Props) => {
         <svg
           viewBox={viewBox}
           className="w-full h-auto"
-          style={{ maxHeight: "70vh" }}
+          style={{ maxHeight: compact ? "260px" : "70vh" }}
           role="img"
           aria-label={`Twilight Imperium ${setup.players}-player map setup`}
         >
@@ -137,10 +196,19 @@ const MapSetupHex = ({ setup }: Props) => {
             const { x, y } = axialToPixel(c.q, c.r, HEX_SIZE);
             const style = cellStyle(c);
             const label = cellLabel(c);
+            const sub = subLabel(c);
+            const seatIdx = c.role === "home" ? seatIndexByCoord.get(`${c.q},${c.r}`) : undefined;
+            const isClickableSeat = seatIdx !== undefined && !!onSeatClick;
+            const handleClick = isClickableSeat
+              ? () => onSeatClick!(seatIdx!, seats?.[seatIdx!])
+              : undefined;
             return (
               <Tooltip key={i}>
                 <TooltipTrigger asChild>
-                  <g style={{ cursor: "pointer" }}>
+                  <g
+                    style={{ cursor: isClickableSeat ? "pointer" : "default" }}
+                    onClick={handleClick}
+                  >
                     <polygon
                       points={hexPoints(x, y, HEX_SIZE - 1.5)}
                       fill={style.fill}
@@ -152,10 +220,16 @@ const MapSetupHex = ({ setup }: Props) => {
                     {label && (
                       <text
                         x={x}
-                        y={y + 4}
+                        y={sub ? y - 1 : y + 4}
                         textAnchor="middle"
                         fontFamily="Cinzel, serif"
-                        fontSize={c.role === "home" || c.role === "mecatol" ? 14 : 11}
+                        fontSize={
+                          compact
+                            ? 9
+                            : c.role === "home" || c.role === "mecatol"
+                            ? 14
+                            : 11
+                        }
                         fontWeight={c.role === "home" || c.role === "mecatol" ? 700 : 500}
                         fill={
                           c.role === "mecatol"
@@ -169,6 +243,20 @@ const MapSetupHex = ({ setup }: Props) => {
                         style={{ pointerEvents: "none", userSelect: "none" }}
                       >
                         {label}
+                      </text>
+                    )}
+                    {sub && (
+                      <text
+                        x={x}
+                        y={y + 12}
+                        textAnchor="middle"
+                        fontFamily="Rajdhani, sans-serif"
+                        fontSize={10}
+                        fontWeight={500}
+                        fill="hsl(0 0% 95% / 0.85)"
+                        style={{ pointerEvents: "none", userSelect: "none" }}
+                      >
+                        {sub}
                       </text>
                     )}
                   </g>

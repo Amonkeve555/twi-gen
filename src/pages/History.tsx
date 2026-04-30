@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import StarField from "@/components/StarField";
 import EditResultsDialog from "@/components/EditResultsDialog";
+import HistoryMiniMap from "@/components/HistoryMiniMap";
 import { useGameHistory } from "@/hooks/useGameHistory";
 import { useOnlineGameHistory } from "@/hooks/useOnlineGameHistory";
 import { useAuth } from "@/hooks/useAuth";
@@ -250,6 +251,19 @@ const History = () => {
                       );
                     })}
                   </div>
+
+                  {game.playerCount && game.players.some((p) => p.seatIndex != null) && (
+                    <>
+                      <div className="imperial-divider my-3" />
+                      <p className="font-display text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">
+                        Table Seating
+                      </p>
+                      <HistoryMiniMap
+                        players={game.players}
+                        playerCount={game.playerCount}
+                      />
+                    </>
+                  )}
                 </motion.div>
               );
             })}

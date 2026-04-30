@@ -5,6 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import StarField from "@/components/StarField";
+import SeatingPanel from "@/components/SeatingPanel";
 import { supabase } from "@/integrations/supabase/client";
 import { useLobby, type LobbySettings } from "@/hooks/useLobby";
 import { useAuth } from "@/hooks/useAuth";
@@ -194,6 +195,13 @@ const LobbyView = () => {
               })
             )}
           </div>
+
+          <SeatingPanel
+            lobbyId={lobby.id}
+            players={players}
+            isHost={isHost}
+            playerCount={settings?.max_players ?? 6}
+          />
 
           <div className="flex flex-col items-center gap-3">
             {!inLobby && !isHost && (

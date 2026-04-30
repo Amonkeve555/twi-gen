@@ -442,6 +442,33 @@ export const MAP_SETUPS: Record<3 | 4 | 5 | 6 | 7 | 8, MapSetup> = {
   8: build8p(),
 };
 
+/**
+ * Returns the home-system cells for a given player count, ordered clockwise
+ * starting from the topmost (smallest r, then smallest q) home. The index in
+ * this array is the canonical `seat_index` stored on lobby_players.
+ */
+export function getHomeSeats(players: 3 | 4 | 5 | 6 | 7 | 8): HexCell[] {
+  const homes = MAP_SETUPS[players].cells.filter((c) => c.role === "home");
+  // Sort clockwise around (0,0): use angle from center.
+  return homes.slice().sort((a, b) => {
+    // Convert axial -> pixel-ish coords for angle comparison
+    const ax = a.q + a.r / 2;
+    const ay = a.r;
+    const bx = b.q + b.r / 2;
+    const by = b.r;
+    const angA = Math.atan2(ay, ax);
+    const angB = Math.atan2(by, bx);
+    // Rotate so that "top" (negative y) is angle 0, going clockwise
+    const norm = (ang: number) => {
+      // atan2 returns -PI..PI; we want top (-PI/2) -> 0, increasing CW
+      let v = ang + Math.PI / 2;
+      if (v < 0) v += Math.PI * 2;
+      return v;
+    };
+    return norm(angA) - norm(angB);
+  });
+}
+
 export const ROLE_LABELS: Record<HexRole, string> = {
   mecatol: "Mecatol Rex",
   home: "Home System",
