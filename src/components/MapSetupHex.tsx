@@ -111,9 +111,27 @@ const MapSetupHex = ({ setup, seats, seatOrder, onSeatClick, compact, tileContro
   };
 
   const cellStyle = (c: HexCell) => {
+    // Tile-control overlay (game board mode) — applies to any non-hyperlane tile.
+    const tcSeat = tileControlSeat(c);
+    if (tcSeat !== undefined && c.role !== "hyperlane") {
+      const color = seatColor(tcSeat);
+      // Mecatol keeps its distinct cyan ring even when claimed.
+      if (c.role === "mecatol") {
+        return {
+          fill: `${color.replace(")", " / 0.55)")}`,
+          stroke: "hsl(190 80% 70%)",
+          strokeWidth: 2.5,
+        };
+      }
+      return {
+        fill: `${color.replace(")", " / 0.6)")}`,
+        stroke: color,
+        strokeWidth: 2,
+      };
+    }
+
     switch (c.role) {
       case "mecatol":
-        // Distinct cyan/teal so it's clearly not a player color (player gold exists).
         return {
           fill: "hsl(190 70% 45% / 0.3)",
           stroke: "hsl(190 80% 60%)",
@@ -129,8 +147,7 @@ const MapSetupHex = ({ setup, seats, seatOrder, onSeatClick, compact, tileContro
         };
       }
       case "slice": {
-        // In seating mode, slice tiles match the equidistant style — neutral.
-        if (seatOrder) {
+        if (seatOrder || tileControl) {
           return {
             fill: "hsl(220 25% 25% / 0.5)",
             stroke: "hsl(220 25% 50% / 0.6)",
