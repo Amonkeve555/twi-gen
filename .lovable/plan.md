@@ -1,83 +1,64 @@
+## Map Setup Reference Tool (PoK)
 
-# Ground TI4 content in official PDFs
+A standalone page that displays the **official Twilight Imperium 4 map setup template** for 3–8 players, following the rules from the Living Rules + Prophecy of Kings. No tile randomization — just the official empty hex layout showing Mecatol Rex, home system positions, and the empty slots where players place system tiles, exactly as in the rulebook.
 
-Today, the Rules Assistant relies entirely on the LLM's training, and `src/data/factions.ts` is hand-curated. This plan replaces both with content traceable back to official PDFs you upload.
+### What the user gets
 
----
+- A new route `/map-setup` reachable from the home page secondary grid (alongside Faction Guide / Rules Assistant).
+- A player-count selector: **3, 4, 5, 6, 7, 8** players (PoK-supported counts).
+- An interactive SVG hex map that re-renders for the selected count, showing:
+  - **Mecatol Rex** at the center (always).
+  - **Home system slots** highlighted per player (color-coded, labeled "P1 Home", "P2 Home", …).
+  - **Equidistant system slots** (shared, neutral).
+  - **Player slice slots** (the 5 systems in front of each home for standard counts; PoK adjusts for 7/8p with the extended map).
+  - Map shape adjusted per official rules: 3 rings for 3–6p, extended/hyperlane layout for 7–8p (PoK).
+- Hover/tap a hex → tooltip shows the slot's role ("Home system", "Equidistant", "Slice — front", "Mecatol Rex", "Hyperlane (fixed)").
+- A small legend + a note stating "Official setup per Living Rules + Prophecy of Kings."
 
-## What you'll get
+### What it is NOT (per your answers)
 
-1. An **Admin → Rules Sources** page where you upload one or more PDFs (Living Rules Reference, Prophecy of Kings, Codex I–IV, etc.). Each PDF becomes a "source" you can re-upload, rename, or delete.
-2. The **Rules Assistant** answers using **only** those PDFs (RAG). Every answer shows citations like *"Living Rules Reference, p. 42"* with the exact passage. If the PDFs don't cover a question, it says so instead of guessing.
-3. A **"Regenerate from PDFs"** action (admin-only) that re-derives `src/data/factions.ts` — abilities, starting tech, leaders, faction tech, promissory notes, commodities — by extracting structured data from the uploaded faction sections, then writes it back to the file as a one-time update you review.
+- No tile randomization or balanced auto-generation.
+- No drafting / Milty slices.
+- No multiplayer/lobby integration — purely a reference tool.
+- No tile artwork — empty labeled hexes only (slots, not specific systems).
 
----
+### Layout
 
-## How it works (technical section)
+```text
+Home (header: "Map Setup")
+  ├─ Player count selector  [3] [4] [5] [6] [7] [8]
+  ├─ Hex map (SVG, responsive, themed)
+  │     • Mecatol Rex (center, gold glow)
+  │     • Home slots (per-player accent color)
+  │     • Equidistant slots (muted)
+  │     • Slice slots (subtle player tint)
+  │     • Hyperlane fixed tiles (7p/8p only)
+  └─ Legend + rule citation note
+```
 
-### Storage & data model
+### Technical details
 
-- Supabase Storage bucket `rules-pdfs` (private; admin-only RLS).
-- New tables:
-  - `rules_sources` — one row per uploaded PDF (filename, label, page count, uploaded_by, status, error).
-  - `rules_chunks` — `source_id`, `page_start`, `page_end`, `section`, `content` (text), `embedding` (vector(1536)). Indexed with `ivfflat` for cosine similarity. Requires enabling the `vector` extension.
-- Both tables: admin-write via `has_role(... 'admin')`, public-read on `rules_chunks` only (so the chat function can query without service role).
+- **New file**: `src/pages/MapSetup.tsx` — page shell, count selector, legend.
+- **New file**: `src/components/MapSetupHex.tsx` — SVG renderer. Takes a layout config and draws axial-coordinate hexes with role-based styling.
+- **New file**: `src/data/mapSetups.ts` — Static config per player count. Each entry:
+  ```ts
+  type HexRole = "mecatol" | "home" | "equidistant" | "slice" | "hyperlane" | "empty";
+  type HexCell = { q: number; r: number; role: HexRole; player?: number; label?: string };
+  type MapSetup = { players: 3|4|5|6|7|8; rings: number; cells: HexCell[]; notes: string };
+  ```
+  Coordinates and roles transcribed from the official PoK setup diagrams (3p triangle in 3-ring map, 4p, 5p, 6p standard 3-ring; 7p and 8p use the PoK extended map with fixed hyperlane tiles).
+- **Hex rendering**: pointy-top axial → pixel; viewBox auto-fits ring count. Pure SVG, no extra deps.
+- **Routing**: register `/map-setup` in `src/App.tsx`.
+- **Home integration**: add a tile in the secondary 2×2 grid on `src/pages/Index.tsx` ("Map Setup") linking to `/map-setup`.
+- **Theming**: gold/amber primary for Mecatol + headers, glassmorphism panel, Cinzel labels, Rajdhani body — consistent with existing style memory.
+- **Responsive**: SVG scales; on the current 667-wide mobile viewport the map fits with horizontal padding; legend stacks below.
 
-### Ingestion pipeline (edge function `ingest-rules-pdf`)
+### Out of scope (could be follow-ups)
 
-Triggered after upload. Steps:
-1. Download PDF from Storage.
-2. Extract text + page numbers using `pdfjs-dist` (Deno-compatible, no native deps).
-3. Chunk by section heading + 800-token sliding windows with 100-token overlap; keep page range per chunk.
-4. Embed each chunk via Lovable AI Gateway (`google/text-embedding-004`, 1536 dims — free tier).
-5. Insert into `rules_chunks`. Update `rules_sources.status = 'ready'`.
-6. Stream progress back so the admin UI shows "Embedding 42/180 chunks…".
+- Random balanced generator, slice draft, tile pool placement, lobby sync, sharable map images.
 
-### Rules Assistant (updated `rules-chat` edge function)
+### Acceptance
 
-For every user message:
-1. Embed the question.
-2. Top-k (k=8) cosine search against `rules_chunks` across all enabled sources.
-3. Build a prompt: system instructions ("Answer only from the provided excerpts. If not covered, say so.") + numbered excerpts with `[Source: {label}, p. {page}]` tags.
-4. Stream the model response (keep current `google/gemini-3-flash-preview` + SSE).
-5. Return citations as a structured trailer the UI renders as clickable footnotes.
-
-UI changes in `src/pages/RulesAssistant.tsx`: render citation chips under each assistant message; clicking opens a modal with the exact excerpt and page number.
-
-### Faction data regeneration (admin tool)
-
-A new admin page button **"Regenerate factions from PDFs"** calls a new edge function `regenerate-factions`:
-1. For each of the 24 factions, retrieve all chunks tagged with that faction name (or whose section heading matches).
-2. Send to `google/gemini-2.5-pro` with a strict JSON schema matching the existing `Faction` interface in `src/data/factions.ts`.
-3. Validate with Zod, return the proposed file content.
-4. Admin reviews a diff in-app and clicks "Apply" — the function writes the result to a new table `faction_data_proposals` for the AI to commit to `src/data/factions.ts` in a follow-up agent loop (we don't write source files from edge functions). You'll see the diff and approve before the file changes.
-
-### Codex / Keleres handling
-
-Whatever's in the uploaded PDFs becomes available — including Codex III's Keleres if you upload it. The faction list in `factions.ts` will be extended automatically by the regeneration step.
-
-### Costs & limits
-
-- Embeddings: Gemini text-embedding-004 is free on the gateway.
-- Chat: per-message context grows by ~3k tokens of retrieved excerpts → still cheap on `gemini-3-flash-preview`.
-- PDF size cap: 50 MB per file (Storage limit is fine for any TI4 rulebook).
-
----
-
-## Build order
-
-1. **Migration**: enable `vector` extension; create `rules_sources`, `rules_chunks`, storage bucket + RLS.
-2. **Admin UI**: `/admin/rules-sources` page — upload, list, delete, status badges.
-3. **Edge function `ingest-rules-pdf`**: extract → chunk → embed → insert.
-4. **Update `rules-chat`**: add retrieval step + citations; update RulesAssistant UI to render them.
-5. **Edge function `regenerate-factions`** + admin diff/apply flow.
-6. Smoke test with a single uploaded PDF before committing.
-
----
-
-## What I need from you
-
-- Confirm this plan, then upload your PDF(s) — one or many, doesn't matter, you can add more later from the admin page.
-- The PDFs need to be ones you have the right to use (FFG/Asmodee living rules are publicly distributed, so that's fine).
-
-Reply with "Implement plan" to proceed, or tell me what to adjust.
+- Selecting any of 3–8 renders a structurally correct empty map with Mecatol center, correct home count, equidistant tiles, and (for 7/8p) the PoK hyperlane skeleton.
+- Tooltips identify each hex's role.
+- Page is reachable from home and matches the Imperial theme.

@@ -1,0 +1,188 @@
+import { useMemo } from "react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import type { HexCell, MapSetup } from "@/data/mapSetups";
+import { ROLE_LABELS } from "@/data/mapSetups";
+
+// Player accent colors (HSL strings) — distinct hues, themed to fit the imperial palette.
+const PLAYER_COLORS = [
+  "hsl(42 85% 55%)",   // gold (P1)
+  "hsl(0 75% 60%)",    // red (P2)
+  "hsl(195 80% 55%)",  // cyan (P3)
+  "hsl(135 55% 50%)",  // green (P4)
+  "hsl(280 65% 65%)",  // purple (P5)
+  "hsl(25 85% 55%)",   // orange (P6)
+  "hsl(330 70% 60%)",  // pink (P7)
+  "hsl(220 70% 65%)",  // blue (P8)
+];
+
+interface Props {
+  setup: MapSetup;
+}
+
+// Pointy-top hex axial -> pixel
+function axialToPixel(q: number, r: number, size: number) {
+  const x = size * Math.sqrt(3) * (q + r / 2);
+  const y = size * 1.5 * r;
+  return { x, y };
+}
+
+function hexPoints(cx: number, cy: number, size: number) {
+  const pts: string[] = [];
+  for (let i = 0; i < 6; i++) {
+    const angle = (Math.PI / 180) * (60 * i - 30); // pointy-top
+    const x = cx + size * Math.cos(angle);
+    const y = cy + size * Math.sin(angle);
+    pts.push(`${x.toFixed(2)},${y.toFixed(2)}`);
+  }
+  return pts.join(" ");
+}
+
+const MapSetupHex = ({ setup }: Props) => {
+  const HEX_SIZE = 34;
+
+  const { cells, viewBox } = useMemo(() => {
+    const cells = setup.cells;
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    cells.forEach((c) => {
+      const { x, y } = axialToPixel(c.q, c.r, HEX_SIZE);
+      const w = HEX_SIZE * Math.sqrt(3);
+      const h = HEX_SIZE * 2;
+      minX = Math.min(minX, x - w / 2);
+      maxX = Math.max(maxX, x + w / 2);
+      minY = Math.min(minY, y - h / 2);
+      maxY = Math.max(maxY, y + h / 2);
+    });
+    const pad = 8;
+    const vb = `${minX - pad} ${minY - pad} ${maxX - minX + pad * 2} ${maxY - minY + pad * 2}`;
+    return { cells, viewBox: vb };
+  }, [setup]);
+
+  const cellStyle = (c: HexCell) => {
+    switch (c.role) {
+      case "mecatol":
+        return {
+          fill: "hsl(42 85% 55% / 0.25)",
+          stroke: "hsl(42 85% 55%)",
+          strokeWidth: 2.5,
+        };
+      case "home": {
+        const color = PLAYER_COLORS[(c.player ?? 1) - 1] ?? PLAYER_COLORS[0];
+        return {
+          fill: `${color.replace(")", " / 0.45)")}`,
+          stroke: color,
+          strokeWidth: 2.5,
+        };
+      }
+      case "slice": {
+        const color = PLAYER_COLORS[(c.player ?? 1) - 1] ?? PLAYER_COLORS[0];
+        return {
+          fill: `${color.replace(")", " / 0.18)")}`,
+          stroke: `${color.replace(")", " / 0.6)")}`,
+          strokeWidth: 1.25,
+        };
+      }
+      case "equidistant":
+        return {
+          fill: "hsl(220 25% 25% / 0.5)",
+          stroke: "hsl(220 25% 50% / 0.6)",
+          strokeWidth: 1.25,
+        };
+      case "hyperlane":
+        return {
+          fill: "hsl(280 50% 35% / 0.45)",
+          stroke: "hsl(280 65% 65%)",
+          strokeWidth: 1.5,
+          strokeDasharray: "3 2",
+        };
+      default:
+        return {
+          fill: "hsl(220 30% 12% / 0.4)",
+          stroke: "hsl(220 25% 35% / 0.4)",
+          strokeWidth: 1,
+        };
+    }
+  };
+
+  const cellLabel = (c: HexCell) => {
+    if (c.role === "mecatol") return "MR";
+    if (c.role === "home") return `P${c.player}`;
+    if (c.role === "slice") return `${c.player}`;
+    if (c.role === "hyperlane") return "HL";
+    return "";
+  };
+
+  const tooltipText = (c: HexCell) => {
+    const base = ROLE_LABELS[c.role];
+    if (c.role === "home") return `Player ${c.player} — ${base}`;
+    if (c.role === "slice") return `Player ${c.player} — Slice tile`;
+    return base;
+  };
+
+  return (
+    <TooltipProvider delayDuration={100}>
+      <div className="w-full overflow-hidden">
+        <svg
+          viewBox={viewBox}
+          className="w-full h-auto"
+          style={{ maxHeight: "70vh" }}
+          role="img"
+          aria-label={`Twilight Imperium ${setup.players}-player map setup`}
+        >
+          {cells.map((c, i) => {
+            const { x, y } = axialToPixel(c.q, c.r, HEX_SIZE);
+            const style = cellStyle(c);
+            const label = cellLabel(c);
+            return (
+              <Tooltip key={i}>
+                <TooltipTrigger asChild>
+                  <g style={{ cursor: "pointer" }}>
+                    <polygon
+                      points={hexPoints(x, y, HEX_SIZE - 1.5)}
+                      fill={style.fill}
+                      stroke={style.stroke}
+                      strokeWidth={style.strokeWidth}
+                      strokeDasharray={style.strokeDasharray}
+                      style={{ transition: "all 200ms" }}
+                    />
+                    {label && (
+                      <text
+                        x={x}
+                        y={y + 4}
+                        textAnchor="middle"
+                        fontFamily="Cinzel, serif"
+                        fontSize={c.role === "home" || c.role === "mecatol" ? 14 : 11}
+                        fontWeight={c.role === "home" || c.role === "mecatol" ? 700 : 500}
+                        fill={
+                          c.role === "mecatol"
+                            ? "hsl(42 90% 70%)"
+                            : c.role === "home"
+                            ? "hsl(0 0% 98%)"
+                            : c.role === "hyperlane"
+                            ? "hsl(280 70% 80%)"
+                            : "hsl(220 15% 75%)"
+                        }
+                        style={{ pointerEvents: "none", userSelect: "none" }}
+                      >
+                        {label}
+                      </text>
+                    )}
+                  </g>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="font-body text-xs">
+                  {tooltipText(c)}
+                </TooltipContent>
+              </Tooltip>
+            );
+          })}
+        </svg>
+      </div>
+    </TooltipProvider>
+  );
+};
+
+export default MapSetupHex;
