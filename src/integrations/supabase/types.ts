@@ -189,6 +189,10 @@ export type Database = {
         Returns: boolean
       }
       reset_lobby_draft: { Args: { p_lobby_id: string }; Returns: Json }
+      update_lobby_results: {
+        Args: { p_lobby_id: string; p_results: Json }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
