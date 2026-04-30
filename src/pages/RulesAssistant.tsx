@@ -331,6 +331,30 @@ const RulesAssistant = () => {
           </Button>
         </div>
       </div>
+
+      <Dialog open={!!activeCitation} onOpenChange={(o) => !o && setActiveCitation(null)}>
+        <DialogContent className="glass imperial-border max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="font-display text-base uppercase tracking-[0.15em] text-primary">
+              {activeCitation && (
+                <>
+                  [{activeCitation.n}] {activeCitation.label}
+                  {activeCitation.page_start && (
+                    <span className="text-muted-foreground text-sm ml-2 normal-case tracking-normal">
+                      {activeCitation.page_end && activeCitation.page_end !== activeCitation.page_start
+                        ? `pp. ${activeCitation.page_start}–${activeCitation.page_end}`
+                        : `p. ${activeCitation.page_start}`}
+                    </span>
+                  )}
+                </>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          <p className="font-body text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed">
+            {activeCitation?.excerpt}
+          </p>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
