@@ -23,4 +23,8 @@ export interface GameRecord {
   playerCount?: number;
   /** Map of "q,r" -> seat_index for tile control at game end */
   tileControl?: Record<string, number> | null;
+  /** ISO timestamp when host pressed Start Game */
+  startedAt?: string | null;
+  /** ISO timestamp when results were saved */
+  endedAt?: string | null;
 }

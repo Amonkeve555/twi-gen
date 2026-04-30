@@ -44,6 +44,7 @@ export type Database = {
       lobbies: {
         Row: {
           created_at: string
+          ended_at: string | null
           host_name: string
           host_password: string
           host_session_id: string
@@ -51,12 +52,14 @@ export type Database = {
           id: string
           invite_code: string
           settings: Json
+          started_at: string | null
           status: string
           tile_control: Json
           token_mapping: Json | null
         }
         Insert: {
           created_at?: string
+          ended_at?: string | null
           host_name?: string
           host_password?: string
           host_session_id: string
@@ -64,12 +67,14 @@ export type Database = {
           id?: string
           invite_code: string
           settings?: Json
+          started_at?: string | null
           status?: string
           tile_control?: Json
           token_mapping?: Json | null
         }
         Update: {
           created_at?: string
+          ended_at?: string | null
           host_name?: string
           host_password?: string
           host_session_id?: string
@@ -77,6 +82,7 @@ export type Database = {
           id?: string
           invite_code?: string
           settings?: Json
+          started_at?: string | null
           status?: string
           tile_control?: Json
           token_mapping?: Json | null
@@ -304,6 +310,7 @@ export type Database = {
       }
       clear_seats: { Args: { p_lobby_id: string }; Returns: Json }
       clear_tile_control: { Args: { p_lobby_id: string }; Returns: Json }
+      end_game: { Args: { p_lobby_id: string }; Returns: Json }
       get_forbidden_tokens: { Args: { p_lobby_id: string }; Returns: number[] }
       get_last_played_faction_vs_opponents: {
         Args: { p_opponent_ids: string[]; p_user_id: string }
@@ -340,6 +347,7 @@ export type Database = {
         Returns: Json
       }
       shuffle_seats: { Args: { p_lobby_id: string }; Returns: Json }
+      start_game: { Args: { p_lobby_id: string }; Returns: Json }
       update_lobby_results: {
         Args: { p_lobby_id: string; p_results: Json }
         Returns: Json

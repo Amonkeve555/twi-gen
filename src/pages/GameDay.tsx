@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Trophy, Save } from "lucide-react";
@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import StarField from "@/components/StarField";
 import FactionCard from "@/components/FactionCard";
+import GameTimer from "@/components/GameTimer";
 import { supabase } from "@/integrations/supabase/client";
 import { useLobby, type LobbySettings } from "@/hooks/useLobby";
 import { useAuth } from "@/hooks/useAuth";
@@ -25,6 +26,13 @@ const GameDay = () => {
   const settings = lobby?.settings as LobbySettings | undefined;
   const picksPerPlayer = settings?.picks_per_player ?? 1;
   const isHost = !!user && lobby?.host_user_id === user.id;
+
+  // Auto-start the clock if host enters Game Day without explicitly starting.
+  useEffect(() => {
+    if (!lobby || !isHost) return;
+    if (lobby.started_at || lobby.status === "completed") return;
+    supabase.rpc("start_game", { p_lobby_id: lobby.id });
+  }, [lobby?.id, lobby?.started_at, lobby?.status, isHost]);
 
   const myPlayer = players.find((p) => p.user_id === user?.id);
   const myFactions = (myPlayer?.assigned_factions as unknown as Faction[]) ?? [];
@@ -63,6 +71,8 @@ const GameDay = () => {
           .eq("id", p.id);
       }
     }
+    // Stamp ended_at via RPC (host-only) before marking completed
+    await supabase.rpc("end_game", { p_lobby_id: lobby!.id });
     await supabase
       .from("lobbies")
       .update({ status: "completed" })
@@ -104,6 +114,11 @@ const GameDay = () => {
           <p className="font-display text-sm uppercase tracking-[0.4em] text-muted-foreground">
             {inviteCode}
           </p>
+          {lobby.started_at && (
+            <div className="flex justify-center mt-3">
+              <GameTimer startedAt={lobby.started_at} endedAt={lobby.ended_at} />
+            </div>
+          )}
           <div className="imperial-divider w-48 mx-auto mt-4" />
         </motion.div>
 

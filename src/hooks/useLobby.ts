@@ -22,6 +22,8 @@ export interface LobbyRow {
   status: string;
   token_mapping: Record<string, Faction> | null;
   tile_control: Record<string, number> | null;
+  started_at: string | null;
+  ended_at: string | null;
   created_at: string;
 }
 
@@ -72,6 +74,8 @@ export function useLobby(inviteCode: string | undefined) {
       settings: data.settings as unknown as LobbySettings,
       token_mapping: data.token_mapping as unknown as Record<string, Faction> | null,
       tile_control: ((data as { tile_control?: unknown }).tile_control as Record<string, number> | null) ?? {},
+      started_at: ((data as { started_at?: string | null }).started_at) ?? null,
+      ended_at: ((data as { ended_at?: string | null }).ended_at) ?? null,
     });
     setError(null);
   }, [inviteCode]);

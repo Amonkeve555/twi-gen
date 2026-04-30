@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import StarField from "@/components/StarField";
 import SeatingPanel from "@/components/SeatingPanel";
+import GameTimer from "@/components/GameTimer";
 import { supabase } from "@/integrations/supabase/client";
 import { useLobby, type LobbySettings } from "@/hooks/useLobby";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,6 +19,7 @@ const LobbyView = () => {
   const [copied, setCopied] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [resetting, setResetting] = useState(false);
+  const [starting, setStarting] = useState(false);
   const { user } = useAuth();
 
   const settings = lobby?.settings as LobbySettings | undefined;
@@ -76,6 +78,24 @@ const LobbyView = () => {
     toast.success("Draft reset");
   };
 
+  const startGame = async () => {
+    if (!lobby) return;
+    setStarting(true);
+    const { data, error: err } = await supabase.rpc("start_game", { p_lobby_id: lobby.id });
+    setStarting(false);
+    if (err) {
+      toast.error("Failed to start game");
+      console.error(err);
+      return;
+    }
+    const result = data as { success?: boolean; error?: string };
+    if (result?.error) {
+      toast.error(result.error);
+      return;
+    }
+    toast.success("Game started!");
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen relative">
@@ -117,6 +137,11 @@ const LobbyView = () => {
               {copied ? <Check className="h-3 w-3 text-green-400" /> : <Copy className="h-3 w-3" />}
             </Button>
           </div>
+          {lobby?.started_at && (
+            <div className="flex justify-center mt-3">
+              <GameTimer startedAt={lobby.started_at} endedAt={lobby.ended_at} />
+            </div>
+          )}
           <div className="imperial-divider w-48 mx-auto mt-4" />
         </motion.div>
 
@@ -222,11 +247,26 @@ const LobbyView = () => {
               <MapIcon className="mr-2 h-4 w-4" />
               Open Game Board
             </Button>
+            {allPicked && isHost && !lobby?.started_at && (
+              <Button
+                onClick={startGame}
+                disabled={starting}
+                size="lg"
+                className="font-display text-sm uppercase tracking-[0.2em] glow-primary px-10 py-6 bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                {starting ? "Starting..." : "Start Game"}
+              </Button>
+            )}
             {allPicked && (
               <Button
                 onClick={() => navigate(`/lobby/${inviteCode}/gameday`)}
                 size="lg"
-                className="font-display text-sm uppercase tracking-[0.2em] glow-primary px-10 py-6 bg-primary text-primary-foreground hover:bg-primary/90"
+                variant={lobby?.started_at ? "default" : "outline"}
+                className={
+                  lobby?.started_at
+                    ? "font-display text-sm uppercase tracking-[0.2em] glow-primary px-10 py-6 bg-primary text-primary-foreground hover:bg-primary/90"
+                    : "font-display text-sm uppercase tracking-[0.2em] px-8 py-5 border-primary/40 text-primary hover:bg-primary/10"
+                }
               >
                 Game Day →
               </Button>

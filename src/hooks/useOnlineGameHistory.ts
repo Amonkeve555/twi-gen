@@ -76,6 +76,8 @@ async function fetchHistoryForUser(userId: string): Promise<GameRecord[]> {
         hostUserId: lobby.host_user_id ?? undefined,
         playerCount,
         tileControl,
+        startedAt: ((lobby as { started_at?: string | null }).started_at) ?? null,
+        endedAt: ((lobby as { ended_at?: string | null }).ended_at) ?? null,
       };
     })
     .filter(Boolean) as GameRecord[];
