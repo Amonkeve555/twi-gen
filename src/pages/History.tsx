@@ -12,6 +12,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { supabase } from "@/integrations/supabase/client";
 import type { GameRecord } from "@/types/gameHistory";
+import { resolveDisplayColor } from "@/lib/playerColors";
+import type { EditResultsRow } from "@/components/EditResultsDialog";
 import tiEmblem from "@/assets/ti-emblem.png";
 
 const History = () => {
@@ -25,7 +27,7 @@ const History = () => {
   const canEditOnline = (g: GameRecord) =>
     !!user && (isAdmin || g.hostUserId === user.id);
 
-  const handleSaveEdit = async (updates: { vp: number; rank: number }[]) => {
+  const handleSaveEdit = async (updates: EditResultsRow[]) => {
     if (!editing) return;
     const isOnline = editing.id.startsWith("online-");
     if (isOnline) {
@@ -34,6 +36,7 @@ const History = () => {
         player_id: p.playerId,
         vp: updates[i].vp,
         rank: updates[i].rank,
+        display_color: updates[i].displayColor,
       }));
       const { data, error } = await supabase.rpc("update_lobby_results", {
         p_lobby_id: lobbyId,
