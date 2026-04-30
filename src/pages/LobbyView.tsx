@@ -122,6 +122,11 @@ const LobbyView = () => {
   }
 
   const inLobby = !!user && players.some((p) => p.user_id === user.id);
+  const myPlayer = user ? players.find((p) => p.user_id === user.id) : null;
+  const myPicksDone = isFreeMode
+    ? !!myPlayer?.chosen_faction
+    : (myPlayer?.token_picks?.length ?? 0) >= picksPerPlayer;
+  const needsToPick = !!myPlayer && !myPicksDone && !lobby?.started_at;
 
   return (
     <div className="min-h-screen relative">
