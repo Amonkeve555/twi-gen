@@ -247,11 +247,26 @@ const LobbyView = () => {
               <MapIcon className="mr-2 h-4 w-4" />
               Open Game Board
             </Button>
+            {allPicked && isHost && !lobby?.started_at && (
+              <Button
+                onClick={startGame}
+                disabled={starting}
+                size="lg"
+                className="font-display text-sm uppercase tracking-[0.2em] glow-primary px-10 py-6 bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                {starting ? "Starting..." : "Start Game"}
+              </Button>
+            )}
             {allPicked && (
               <Button
                 onClick={() => navigate(`/lobby/${inviteCode}/gameday`)}
                 size="lg"
-                className="font-display text-sm uppercase tracking-[0.2em] glow-primary px-10 py-6 bg-primary text-primary-foreground hover:bg-primary/90"
+                variant={lobby?.started_at ? "default" : "outline"}
+                className={
+                  lobby?.started_at
+                    ? "font-display text-sm uppercase tracking-[0.2em] glow-primary px-10 py-6 bg-primary text-primary-foreground hover:bg-primary/90"
+                    : "font-display text-sm uppercase tracking-[0.2em] px-8 py-5 border-primary/40 text-primary hover:bg-primary/10"
+                }
               >
                 Game Day →
               </Button>
