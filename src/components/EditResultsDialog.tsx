@@ -1,0 +1,146 @@
+import { useEffect, useState } from "react";
+import { Save } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import type { GameRecord } from "@/types/gameHistory";
+
+interface EditResultsDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  game: GameRecord | null;
+  onSave: (updates: { vp: number; rank: number }[]) => Promise<void> | void;
+}
+
+const EditResultsDialog = ({
+  open,
+  onOpenChange,
+  game,
+  onSave,
+}: EditResultsDialogProps) => {
+  const [rows, setRows] = useState<{ vp: string; rank: string }[]>([]);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (game) {
+      setRows(
+        game.players.map((p) => ({ vp: String(p.vp), rank: String(p.rank) }))
+      );
+    }
+  }, [game]);
+
+  if (!game) return null;
+
+  const update = (i: number, field: "vp" | "rank", value: string) => {
+    setRows((prev) => {
+      const next = [...prev];
+      next[i] = { ...next[i], [field]: value };
+      return next;
+    });
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const updates = rows.map((r) => ({
+        vp: Math.max(0, parseInt(r.vp) || 0),
+        rank: Math.max(1, parseInt(r.rank) || 1),
+      }));
+      await onSave(updates);
+      onOpenChange(false);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="glass imperial-border max-w-md">
+        <DialogHeader>
+          <DialogTitle className="font-display text-base uppercase tracking-[0.2em] text-primary text-glow text-center">
+            Edit Results
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-3">
+          <div className="grid grid-cols-[1fr_auto_auto] gap-2 items-center text-muted-foreground text-xs font-body uppercase tracking-widest px-1">
+            <span>Player / Faction</span>
+            <span className="w-16 text-center">VP</span>
+            <span className="w-16 text-center">Rank</span>
+          </div>
+          <div className="imperial-divider" />
+
+          {game.players.map((p, i) => (
+            <div
+              key={(p.playerId ?? p.player) + p.faction.name}
+              className="grid grid-cols-[1fr_auto_auto] gap-2 items-center"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <div
+                  className="w-3 h-3 rounded-sm flex-shrink-0"
+                  style={{ backgroundColor: `hsl(${p.faction.color})` }}
+                />
+                <div className="min-w-0">
+                  <p className="font-display text-xs text-primary truncate">
+                    {p.player}
+                  </p>
+                  <p
+                    className="text-[10px] font-body truncate"
+                    style={{ color: `hsl(${p.faction.color})` }}
+                  >
+                    {p.faction.shortName}
+                  </p>
+                </div>
+              </div>
+              <Input
+                type="number"
+                min={0}
+                max={20}
+                value={rows[i]?.vp ?? ""}
+                onChange={(e) => update(i, "vp", e.target.value)}
+                className="w-16 h-8 text-center bg-input border-border font-body text-sm text-foreground focus:border-primary/40 rounded"
+              />
+              <Input
+                type="number"
+                min={1}
+                max={game.players.length}
+                value={rows[i]?.rank ?? ""}
+                onChange={(e) => update(i, "rank", e.target.value)}
+                className="w-16 h-8 text-center bg-input border-border font-body text-sm text-foreground focus:border-primary/40 rounded"
+              />
+            </div>
+          ))}
+        </div>
+
+        <DialogFooter className="gap-2 sm:gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onOpenChange(false)}
+            disabled={saving}
+            className="font-display text-xs uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSave}
+            size="sm"
+            disabled={saving}
+            className="font-display text-xs uppercase tracking-[0.15em] bg-primary text-primary-foreground hover:bg-primary/90 glow-primary"
+          >
+            <Save className="mr-2 h-3 w-3" />
+            {saving ? "Saving…" : "Save"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default EditResultsDialog;
