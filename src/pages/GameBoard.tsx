@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Eraser, Flag, Save, Trophy } from "lucide-react";
+import { ArrowLeft, Eraser, Flag, Play, Save, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -122,6 +122,24 @@ const GameBoard = () => {
     toast.success("Board cleared");
   };
 
+  const onStartGame = async () => {
+    if (!isHost || !lobby || lobby.started_at) return;
+    setBusy(true);
+    const { data, error: err } = await supabase.rpc("start_game", { p_lobby_id: lobby.id });
+    setBusy(false);
+    if (err) {
+      toast.error("Failed to start game");
+      console.error(err);
+      return;
+    }
+    const result = data as { success?: boolean; error?: string };
+    if (result?.error) {
+      toast.error(result.error);
+      return;
+    }
+    toast.success("Game started!");
+  };
+
   const onEndGame = async () => {
     if (!isHost || !lobby || isEnded) return;
     if (!confirm("End the game? Tile control will be locked and you'll record final scores.")) return;
@@ -237,6 +255,19 @@ const GameBoard = () => {
           {lobby.started_at && (
             <div className="flex justify-center mt-3">
               <GameTimer startedAt={lobby.started_at} endedAt={lobby.ended_at} />
+            </div>
+          )}
+          {isHost && !lobby.started_at && (
+            <div className="flex justify-center mt-4">
+              <Button
+                onClick={onStartGame}
+                disabled={busy}
+                size="lg"
+                className="font-display text-sm uppercase tracking-[0.2em] glow-primary px-8 py-5 bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                <Play className="mr-2 h-4 w-4" />
+                {busy ? "Starting..." : "Start Game"}
+              </Button>
             </div>
           )}
           <div className="imperial-divider w-48 mx-auto mt-4" />
