@@ -163,7 +163,7 @@ const History = () => {
                     <div
                       className="absolute top-0 left-0 right-0 h-[2px]"
                       style={{
-                        background: `linear-gradient(90deg, transparent, hsl(${winner.faction.color}), transparent)`,
+                        background: `linear-gradient(90deg, transparent, hsl(${resolveDisplayColor(winner.faction.color, winner.displayColor)}), transparent)`,
                       }}
                     />
                   )}
@@ -216,36 +216,39 @@ const History = () => {
                       <span className="w-10 text-center">VP</span>
                       <span className="w-6" />
                     </div>
-                    {sortedPlayers.map((p) => (
-                      <div
-                        key={p.player + p.faction.name}
-                        className={`grid grid-cols-[auto_1fr_auto] gap-2 items-center py-1 px-1 rounded ${
-                          p.rank === 1 ? "bg-primary/5" : ""
-                        }`}
-                      >
-                        <span className="w-6 text-center font-display text-xs text-muted-foreground">
-                          {p.rank}
-                        </span>
-                        <div className="flex items-center gap-2 min-w-0">
-                          <div
-                            className="w-2.5 h-2.5 rounded-sm flex-shrink-0"
-                            style={{ backgroundColor: `hsl(${p.faction.color})` }}
-                          />
-                          <span className="font-body text-sm text-foreground truncate">
-                            {p.player}
+                    {sortedPlayers.map((p) => {
+                      const c = resolveDisplayColor(p.faction.color, p.displayColor);
+                      return (
+                        <div
+                          key={p.player + p.faction.name}
+                          className={`grid grid-cols-[auto_1fr_auto] gap-2 items-center py-1 px-1 rounded ${
+                            p.rank === 1 ? "bg-primary/5" : ""
+                          }`}
+                        >
+                          <span className="w-6 text-center font-display text-xs text-muted-foreground">
+                            {p.rank}
                           </span>
-                          <span
-                            className="font-body text-xs truncate"
-                            style={{ color: `hsl(${p.faction.color} / 0.7)` }}
-                          >
-                            {p.faction.shortName}
+                          <div className="flex items-center gap-2 min-w-0">
+                            <div
+                              className="w-2.5 h-2.5 rounded-sm flex-shrink-0"
+                              style={{ backgroundColor: `hsl(${c})` }}
+                            />
+                            <span className="font-body text-sm text-foreground truncate">
+                              {p.player}
+                            </span>
+                            <span
+                              className="font-body text-xs truncate"
+                              style={{ color: `hsl(${c} / 0.7)` }}
+                            >
+                              {p.faction.shortName}
+                            </span>
+                          </div>
+                          <span className="w-10 text-center font-display text-xs text-primary">
+                            {p.vp}
                           </span>
                         </div>
-                        <span className="w-10 text-center font-display text-xs text-primary">
-                          {p.vp}
-                        </span>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </motion.div>
               );
