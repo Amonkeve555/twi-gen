@@ -315,6 +315,125 @@ const GameBoard = () => {
             </div>
           </motion.div>
         </div>
+
+        {/* Scores entry / final standings */}
+        {(canEnterScores || isCompleted) && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="glass imperial-border rounded p-5 mt-6"
+          >
+            <h2 className="font-display text-base uppercase tracking-[0.2em] text-primary text-glow text-center mb-4 flex items-center justify-center gap-2">
+              <Trophy className="h-4 w-4" />
+              {isCompleted ? "Final Standings" : "Record Final Scores"}
+            </h2>
+
+            {canEnterScores ? (
+              <div className="space-y-3">
+                {players.map((p) => {
+                  const chosen = p.chosen_faction as Faction | null;
+                  const data = resultData.get(p.id) ?? { vp: "", rank: "" };
+                  return (
+                    <div
+                      key={p.id}
+                      className="p-3 rounded bg-secondary/50 border border-border space-y-2"
+                    >
+                      <div className="flex items-center gap-3">
+                        {chosen && (
+                          <div
+                            className="w-7 h-7 rounded-sm border border-border flex-shrink-0"
+                            style={{
+                              background: `linear-gradient(135deg, hsl(${chosen.color}) 0%, hsl(${chosen.color} / 0.4) 100%)`,
+                            }}
+                          />
+                        )}
+                        <div className="min-w-0">
+                          <p className="font-display text-base text-primary truncate">{p.player_name}</p>
+                          {chosen && (
+                            <p className="text-xs font-body text-muted-foreground truncate">{chosen.name}</p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="font-body text-xs text-muted-foreground">VP</label>
+                          <Input
+                            type="text"
+                            inputMode="numeric"
+                            value={data.vp}
+                            onChange={(e) => updateResult(p.id, "vp", e.target.value)}
+                            maxLength={3}
+                            className="bg-input border-border font-body text-foreground text-sm h-8"
+                          />
+                        </div>
+                        <div>
+                          <label className="font-body text-xs text-muted-foreground">Rank</label>
+                          <Input
+                            type="text"
+                            inputMode="numeric"
+                            value={data.rank}
+                            onChange={(e) => updateResult(p.id, "rank", e.target.value)}
+                            maxLength={2}
+                            className="bg-input border-border font-body text-foreground text-sm h-8"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+                <div className="flex justify-center pt-2">
+                  <Button
+                    onClick={saveResults}
+                    disabled={saving}
+                    size="lg"
+                    className="font-display text-sm uppercase tracking-[0.2em] glow-primary px-10 py-5 bg-primary text-primary-foreground hover:bg-primary/90"
+                  >
+                    <Save className="mr-2 h-4 w-4" />
+                    {saving ? "Saving..." : "Save Results"}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {[...players]
+                  .filter((p) => p.rank != null)
+                  .sort((a, b) => (a.rank ?? 99) - (b.rank ?? 99))
+                  .map((p) => {
+                    const chosen = p.chosen_faction as Faction | null;
+                    return (
+                      <div
+                        key={p.id}
+                        className="flex items-center justify-between p-3 rounded bg-secondary/50 border border-border"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="font-display text-lg text-primary w-6 text-center">
+                            {p.rank}
+                          </span>
+                          {chosen && (
+                            <div
+                              className="w-6 h-6 rounded-sm border border-border flex-shrink-0"
+                              style={{
+                                background: `linear-gradient(135deg, hsl(${chosen.color}) 0%, hsl(${chosen.color} / 0.4) 100%)`,
+                              }}
+                            />
+                          )}
+                          <div className="min-w-0">
+                            <p className="font-display text-base text-primary truncate">{p.player_name}</p>
+                            {chosen && (
+                              <p className="text-xs font-body text-muted-foreground truncate">{chosen.name}</p>
+                            )}
+                          </div>
+                        </div>
+                        <span className="font-display text-base text-primary tabular-nums">
+                          {p.vp ?? 0} VP
+                        </span>
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
+          </motion.div>
+        )}
       </div>
     </div>
   );
