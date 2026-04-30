@@ -177,16 +177,30 @@ const History = () => {
                         </p>
                       )}
                     </div>
-                    {!isOnline && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => deleteGame(game.id)}
-                        className="h-7 w-7 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    )}
+                    <div className="flex items-center gap-1">
+                      {(!isOnline || canEditOnline(game)) && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setEditing(game)}
+                          className="h-7 w-7 text-muted-foreground hover:text-primary opacity-0 group-hover:opacity-100 transition-opacity"
+                          aria-label="Edit results"
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </Button>
+                      )}
+                      {!isOnline && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => deleteGame(game.id)}
+                          className="h-7 w-7 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                          aria-label="Delete game"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
 
                   <div className="imperial-divider mb-3" />
