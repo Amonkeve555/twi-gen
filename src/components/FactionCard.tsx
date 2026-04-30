@@ -46,9 +46,9 @@ const FactionCard = ({ playerName, faction, index }: FactionCardProps) => {
         <p className="text-muted-foreground text-base font-body uppercase tracking-[0.15em] mb-1">
           {playerName}
         </p>
-        <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between gap-2">
           <h3
-            className="font-display text-xl font-bold tracking-wide"
+            className="font-display text-lg sm:text-xl font-bold tracking-wide leading-tight break-words flex-1 min-w-0"
             style={{
               color: `hsl(${faction.color})`,
               textShadow: `0 0 12px hsl(${faction.color} / 0.4)`,
@@ -58,7 +58,7 @@ const FactionCard = ({ playerName, faction, index }: FactionCardProps) => {
           </h3>
           <button
             onClick={openGuide}
-            className="p-1.5 rounded hover:bg-secondary/80 transition-colors opacity-60 hover:opacity-100"
+            className="p-1.5 rounded hover:bg-secondary/80 transition-colors opacity-60 hover:opacity-100 flex-shrink-0"
             title="View faction details"
           >
             <Info className="h-4 w-4 text-muted-foreground" />
