@@ -257,6 +257,19 @@ const GameBoard = () => {
               <GameTimer startedAt={lobby.started_at} endedAt={lobby.ended_at} />
             </div>
           )}
+          {isHost && !lobby.started_at && (
+            <div className="flex justify-center mt-4">
+              <Button
+                onClick={onStartGame}
+                disabled={busy}
+                size="lg"
+                className="font-display text-sm uppercase tracking-[0.2em] glow-primary px-8 py-5 bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                <Play className="mr-2 h-4 w-4" />
+                {busy ? "Starting..." : "Start Game"}
+              </Button>
+            </div>
+          )}
           <div className="imperial-divider w-48 mx-auto mt-4" />
           <p className="font-body text-xs text-muted-foreground mt-3">
             {canEdit
