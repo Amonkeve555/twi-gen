@@ -174,6 +174,11 @@ const History = () => {
                     <div>
                       <p className="font-display text-xs uppercase tracking-[0.15em] text-muted-foreground">
                         {dateStr}
+                        {game.startedAt && game.endedAt && (
+                          <span className="ml-2 text-primary/80">
+                            · {formatDurationShort(game.startedAt, game.endedAt)}
+                          </span>
+                        )}
                       </p>
                       {winner && (
                         <p className="font-display text-sm text-primary text-glow flex items-center gap-1 mt-1">
