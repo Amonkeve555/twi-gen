@@ -7,6 +7,7 @@ import StarField from "@/components/StarField";
 import TokenGrid from "@/components/TokenGrid";
 import FactionCard from "@/components/FactionCard";
 import FactionPicker from "@/components/FactionPicker";
+import ColorSwatchPicker from "@/components/ColorSwatchPicker";
 import { supabase } from "@/integrations/supabase/client";
 import { getSessionId } from "@/lib/sessionId";
 import { useLobby, type LobbySettings } from "@/hooks/useLobby";
