@@ -334,6 +334,11 @@ const Admin = () => {
               )}
             </div>
           </TabsContent>
+
+          {/* RULES PDFs TAB */}
+          <TabsContent value="rules">
+            <RulesSourcesPanel />
+          </TabsContent>
         </Tabs>
       </div>
 
