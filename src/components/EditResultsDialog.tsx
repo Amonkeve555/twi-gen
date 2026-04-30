@@ -32,20 +32,30 @@ const EditResultsDialog = ({
   game,
   onSave,
 }: EditResultsDialogProps) => {
-  const [rows, setRows] = useState<{ vp: string; rank: string }[]>([]);
+  const [rows, setRows] = useState<
+    { vp: string; rank: string; displayColor: string | null }[]
+  >([]);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (game) {
       setRows(
-        game.players.map((p) => ({ vp: String(p.vp), rank: String(p.rank) }))
+        game.players.map((p) => ({
+          vp: String(p.vp),
+          rank: String(p.rank),
+          displayColor: p.displayColor ?? null,
+        }))
       );
     }
   }, [game]);
 
   if (!game) return null;
 
-  const update = (i: number, field: "vp" | "rank", value: string) => {
+  const updateField = (
+    i: number,
+    field: "vp" | "rank",
+    value: string
+  ) => {
     setRows((prev) => {
       const next = [...prev];
       next[i] = { ...next[i], [field]: value };
@@ -53,12 +63,21 @@ const EditResultsDialog = ({
     });
   };
 
+  const updateColor = (i: number, value: string | null) => {
+    setRows((prev) => {
+      const next = [...prev];
+      next[i] = { ...next[i], displayColor: value };
+      return next;
+    });
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
-      const updates = rows.map((r) => ({
+      const updates: EditResultsRow[] = rows.map((r) => ({
         vp: Math.max(0, parseInt(r.vp) || 0),
         rank: Math.max(1, parseInt(r.rank) || 1),
+        displayColor: r.displayColor,
       }));
       await onSave(updates);
       onOpenChange(false);
