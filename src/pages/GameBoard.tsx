@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Eraser } from "lucide-react";
+import { ArrowLeft, Eraser, Flag, Save, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import StarField from "@/components/StarField";
 import MapSetupHex, { type SeatOccupant } from "@/components/MapSetupHex";
 import TileControlLeaderboard from "@/components/TileControlLeaderboard";
@@ -28,10 +29,14 @@ const GameBoard = () => {
   const { lobby, players, loading, error } = useLobby(code);
   const { user } = useAuth();
   const [busy, setBusy] = useState(false);
+  const [resultData, setResultData] = useState<Map<string, { vp: string; rank: string }>>(new Map());
+  const [saving, setSaving] = useState(false);
 
   const isHost = !!user && lobby?.host_user_id === user.id;
   const isCompleted = lobby?.status === "completed";
-  const canEdit = isHost && !isCompleted;
+  const isEnded = !!lobby?.ended_at || isCompleted;
+  const canEdit = isHost && !isEnded;
+  const canEnterScores = isHost && isEnded && !isCompleted;
 
   const playerCount = clampCount(lobby?.settings?.max_players ?? 6);
   const setup = MAP_SETUPS[playerCount];
@@ -117,6 +122,72 @@ const GameBoard = () => {
     toast.success("Board cleared");
   };
 
+  const onEndGame = async () => {
+    if (!isHost || !lobby || isEnded) return;
+    if (!confirm("End the game? Tile control will be locked and you'll record final scores.")) return;
+    setBusy(true);
+    const { error: err } = await supabase.rpc("end_game", { p_lobby_id: lobby.id });
+    setBusy(false);
+    if (err) {
+      toast.error("Failed to end game");
+      console.error(err);
+      return;
+    }
+    toast.success("Game ended — record the scores below.");
+  };
+
+  const updateResult = (playerId: string, field: "vp" | "rank", value: string) => {
+    // Allow only digits, max 3 chars (VPs realistically <=20, ranks <=8)
+    const sanitized = value.replace(/[^0-9]/g, "").slice(0, 3);
+    setResultData((prev) => {
+      const next = new Map(prev);
+      const existing = next.get(playerId) ?? { vp: "", rank: "" };
+      next.set(playerId, { ...existing, [field]: sanitized });
+      return next;
+    });
+  };
+
+  const saveResults = async () => {
+    if (!isHost || !lobby) return;
+    // Validate: every player must have a rank; VP optional but must be numeric if present
+    const ranks: number[] = [];
+    for (const p of players) {
+      const data = resultData.get(p.id);
+      const rankStr = data?.rank ?? "";
+      if (!rankStr) {
+        toast.error(`Missing rank for ${p.player_name}`);
+        return;
+      }
+      const rank = parseInt(rankStr, 10);
+      if (Number.isNaN(rank) || rank < 1 || rank > players.length) {
+        toast.error(`Invalid rank for ${p.player_name}`);
+        return;
+      }
+      ranks.push(rank);
+    }
+
+    setSaving(true);
+    for (const p of players) {
+      const data = resultData.get(p.id);
+      if (!data) continue;
+      const vp = data.vp ? parseInt(data.vp, 10) : null;
+      const rank = parseInt(data.rank, 10);
+      await supabase
+        .from("lobby_players")
+        .update({
+          vp: vp !== null && !Number.isNaN(vp) ? vp : null,
+          rank,
+        })
+        .eq("id", p.id);
+    }
+    await supabase
+      .from("lobbies")
+      .update({ status: "completed" })
+      .eq("id", lobby.id);
+    setSaving(false);
+    toast.success("Results saved!");
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen relative">
@@ -174,6 +245,8 @@ const GameBoard = () => {
               ? "Click any tile to cycle its controller through the seated players."
               : isCompleted
               ? "Game completed — board is read-only."
+              : isEnded
+              ? "Game ended — tile control is locked. Record final scores below."
               : "Only the host can claim tiles."}
           </p>
         </motion.div>
@@ -192,7 +265,7 @@ const GameBoard = () => {
               onTileClick={canEdit ? onTileClick : undefined}
             />
             {canEdit && (
-              <div className="flex justify-center mt-4">
+              <div className="flex flex-wrap justify-center gap-2 mt-4">
                 <Button
                   variant="outline"
                   size="sm"
@@ -203,6 +276,18 @@ const GameBoard = () => {
                   <Eraser className="mr-2 h-3 w-3" />
                   Clear Board
                 </Button>
+                {lobby.started_at && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={onEndGame}
+                    disabled={busy}
+                    className="font-display text-xs uppercase tracking-[0.15em] border-primary/60 text-primary hover:bg-primary/10"
+                  >
+                    <Flag className="mr-2 h-3 w-3" />
+                    End Game
+                  </Button>
+                )}
               </div>
             )}
           </motion.div>
@@ -230,6 +315,125 @@ const GameBoard = () => {
             </div>
           </motion.div>
         </div>
+
+        {/* Scores entry / final standings */}
+        {(canEnterScores || isCompleted) && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="glass imperial-border rounded p-5 mt-6"
+          >
+            <h2 className="font-display text-base uppercase tracking-[0.2em] text-primary text-glow text-center mb-4 flex items-center justify-center gap-2">
+              <Trophy className="h-4 w-4" />
+              {isCompleted ? "Final Standings" : "Record Final Scores"}
+            </h2>
+
+            {canEnterScores ? (
+              <div className="space-y-3">
+                {players.map((p) => {
+                  const chosen = p.chosen_faction as Faction | null;
+                  const data = resultData.get(p.id) ?? { vp: "", rank: "" };
+                  return (
+                    <div
+                      key={p.id}
+                      className="p-3 rounded bg-secondary/50 border border-border space-y-2"
+                    >
+                      <div className="flex items-center gap-3">
+                        {chosen && (
+                          <div
+                            className="w-7 h-7 rounded-sm border border-border flex-shrink-0"
+                            style={{
+                              background: `linear-gradient(135deg, hsl(${chosen.color}) 0%, hsl(${chosen.color} / 0.4) 100%)`,
+                            }}
+                          />
+                        )}
+                        <div className="min-w-0">
+                          <p className="font-display text-base text-primary truncate">{p.player_name}</p>
+                          {chosen && (
+                            <p className="text-xs font-body text-muted-foreground truncate">{chosen.name}</p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="font-body text-xs text-muted-foreground">VP</label>
+                          <Input
+                            type="text"
+                            inputMode="numeric"
+                            value={data.vp}
+                            onChange={(e) => updateResult(p.id, "vp", e.target.value)}
+                            maxLength={3}
+                            className="bg-input border-border font-body text-foreground text-sm h-8"
+                          />
+                        </div>
+                        <div>
+                          <label className="font-body text-xs text-muted-foreground">Rank</label>
+                          <Input
+                            type="text"
+                            inputMode="numeric"
+                            value={data.rank}
+                            onChange={(e) => updateResult(p.id, "rank", e.target.value)}
+                            maxLength={2}
+                            className="bg-input border-border font-body text-foreground text-sm h-8"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+                <div className="flex justify-center pt-2">
+                  <Button
+                    onClick={saveResults}
+                    disabled={saving}
+                    size="lg"
+                    className="font-display text-sm uppercase tracking-[0.2em] glow-primary px-10 py-5 bg-primary text-primary-foreground hover:bg-primary/90"
+                  >
+                    <Save className="mr-2 h-4 w-4" />
+                    {saving ? "Saving..." : "Save Results"}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {[...players]
+                  .filter((p) => p.rank != null)
+                  .sort((a, b) => (a.rank ?? 99) - (b.rank ?? 99))
+                  .map((p) => {
+                    const chosen = p.chosen_faction as Faction | null;
+                    return (
+                      <div
+                        key={p.id}
+                        className="flex items-center justify-between p-3 rounded bg-secondary/50 border border-border"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="font-display text-lg text-primary w-6 text-center">
+                            {p.rank}
+                          </span>
+                          {chosen && (
+                            <div
+                              className="w-6 h-6 rounded-sm border border-border flex-shrink-0"
+                              style={{
+                                background: `linear-gradient(135deg, hsl(${chosen.color}) 0%, hsl(${chosen.color} / 0.4) 100%)`,
+                              }}
+                            />
+                          )}
+                          <div className="min-w-0">
+                            <p className="font-display text-base text-primary truncate">{p.player_name}</p>
+                            {chosen && (
+                              <p className="text-xs font-body text-muted-foreground truncate">{chosen.name}</p>
+                            )}
+                          </div>
+                        </div>
+                        <span className="font-display text-base text-primary tabular-nums">
+                          {p.vp ?? 0} VP
+                        </span>
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
+          </motion.div>
+        )}
       </div>
     </div>
   );
