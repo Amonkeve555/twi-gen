@@ -5,10 +5,14 @@ export interface PlayerResult {
   faction: Faction;
   vp: number;
   rank: number;
+  /** lobby_players.id — present only for online games */
+  playerId?: string;
 }
 
 export interface GameRecord {
   id: string;
   date: string; // ISO string
   players: PlayerResult[];
+  /** lobby host user id — present only for online games */
+  hostUserId?: string;
 }
