@@ -78,6 +78,24 @@ const LobbyView = () => {
     toast.success("Draft reset");
   };
 
+  const startGame = async () => {
+    if (!lobby) return;
+    setStarting(true);
+    const { data, error: err } = await supabase.rpc("start_game", { p_lobby_id: lobby.id });
+    setStarting(false);
+    if (err) {
+      toast.error("Failed to start game");
+      console.error(err);
+      return;
+    }
+    const result = data as { success?: boolean; error?: string };
+    if (result?.error) {
+      toast.error(result.error);
+      return;
+    }
+    toast.success("Game started!");
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen relative">
