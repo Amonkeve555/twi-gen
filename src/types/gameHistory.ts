@@ -21,4 +21,6 @@ export interface GameRecord {
   hostUserId?: string;
   /** Player count at game time (for rendering the seating mini-map) */
   playerCount?: number;
+  /** Map of "q,r" -> seat_index for tile control at game end */
+  tileControl?: Record<string, number> | null;
 }
