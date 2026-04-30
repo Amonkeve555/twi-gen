@@ -160,7 +160,7 @@ const MapSetupHex = ({ setup, seats, seatOrder, onSeatClick, compact }: Props) =
       return compact ? "" : `P${c.player}`;
     }
     if (compact) return "";
-    if (c.role === "slice") return `${c.player}`;
+    if (c.role === "slice") return seatOrder ? "" : `${c.player}`;
     if (c.role === "hyperlane") return "HL";
     return "";
   };
