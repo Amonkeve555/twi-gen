@@ -114,6 +114,11 @@ const GameDay = () => {
           <p className="font-display text-sm uppercase tracking-[0.4em] text-muted-foreground">
             {inviteCode}
           </p>
+          {lobby.started_at && (
+            <div className="flex justify-center mt-3">
+              <GameTimer startedAt={lobby.started_at} endedAt={lobby.ended_at} />
+            </div>
+          )}
           <div className="imperial-divider w-48 mx-auto mt-4" />
         </motion.div>
 
