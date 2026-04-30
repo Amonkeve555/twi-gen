@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/table";
 import { useGameHistory } from "@/hooks/useGameHistory";
 import { useOnlineGameHistory } from "@/hooks/useOnlineGameHistory";
+import { resolveDisplayColor } from "@/lib/playerColors";
 import type { GameRecord } from "@/types/gameHistory";
 
 interface FactionStat {
@@ -29,6 +30,7 @@ interface FactionStat {
 
 interface PlayerStat {
   name: string;
+  color: string | null;
   games: number;
   wins: number;
   winRate: number;
@@ -37,14 +39,31 @@ interface PlayerStat {
 }
 
 function computeFactionStats(history: GameRecord[]): FactionStat[] {
-  const map = new Map<string, { color: string; games: number; wins: number; totalVp: number }>();
+  // Sort newest first so the most recent color override "wins" per faction.
+  const sorted = [...history].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+  const map = new Map<
+    string,
+    { color: string; games: number; wins: number; totalVp: number; latestOverride: string | null }
+  >();
 
-  for (const game of history) {
+  for (const game of sorted) {
     for (const p of game.players) {
-      const existing = map.get(p.faction.name) || { color: p.faction.color, games: 0, wins: 0, totalVp: 0 };
+      const existing =
+        map.get(p.faction.name) || {
+          color: p.faction.color,
+          games: 0,
+          wins: 0,
+          totalVp: 0,
+          latestOverride: null as string | null,
+        };
       existing.games++;
       existing.totalVp += p.vp;
       if (p.rank === 1) existing.wins++;
+      if (existing.latestOverride === null && p.displayColor) {
+        existing.latestOverride = p.displayColor;
+      }
       map.set(p.faction.name, existing);
     }
   }
@@ -52,7 +71,7 @@ function computeFactionStats(history: GameRecord[]): FactionStat[] {
   return Array.from(map.entries())
     .map(([name, s]) => ({
       name,
-      color: s.color,
+      color: resolveDisplayColor(s.color, s.latestOverride),
       games: s.games,
       wins: s.wins,
       winRate: s.games > 0 ? (s.wins / s.games) * 100 : 0,
@@ -62,15 +81,37 @@ function computeFactionStats(history: GameRecord[]): FactionStat[] {
 }
 
 function computePlayerStats(history: GameRecord[]): PlayerStat[] {
-  const map = new Map<string, { games: number; wins: number; totalVp: number; totalRank: number }>();
+  const sorted = [...history].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+  const map = new Map<
+    string,
+    {
+      games: number;
+      wins: number;
+      totalVp: number;
+      totalRank: number;
+      latestColor: string | null;
+    }
+  >();
 
-  for (const game of history) {
+  for (const game of sorted) {
     for (const p of game.players) {
-      const existing = map.get(p.player) || { games: 0, wins: 0, totalVp: 0, totalRank: 0 };
+      const existing =
+        map.get(p.player) || {
+          games: 0,
+          wins: 0,
+          totalVp: 0,
+          totalRank: 0,
+          latestColor: null as string | null,
+        };
       existing.games++;
       existing.totalVp += p.vp;
       existing.totalRank += p.rank;
       if (p.rank === 1) existing.wins++;
+      if (existing.latestColor === null) {
+        existing.latestColor = resolveDisplayColor(p.faction.color, p.displayColor);
+      }
       map.set(p.player, existing);
     }
   }
@@ -78,6 +119,7 @@ function computePlayerStats(history: GameRecord[]): PlayerStat[] {
   return Array.from(map.entries())
     .map(([name, s]) => ({
       name,
+      color: s.latestColor,
       games: s.games,
       wins: s.wins,
       winRate: s.games > 0 ? (s.wins / s.games) * 100 : 0,
@@ -248,7 +290,13 @@ const Stats = () => {
                       {playerStats.map((p, i) => (
                         <TableRow key={p.name} className="border-border">
                           <TableCell>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-3">
+                              {p.color && (
+                                <div
+                                  className="w-4 h-4 rounded-sm flex-shrink-0"
+                                  style={{ background: `hsl(${p.color})` }}
+                                />
+                              )}
                               <span className="font-display text-base text-foreground">{p.name}</span>
                               {i === 0 && <Trophy className="h-4 w-4 text-primary" />}
                             </div>
