@@ -37,6 +37,7 @@ export interface LobbyPlayerRow {
   rank: number | null;
   joined_at: string;
   display_color: string | null;
+  seat_index: number | null;
 }
 
 export function useLobby(inviteCode: string | undefined) {
