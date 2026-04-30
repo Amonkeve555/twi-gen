@@ -10,6 +10,7 @@ import CreateLobby from "./pages/CreateLobby.tsx";
 import JoinLobby from "./pages/JoinLobby.tsx";
 import LobbyView from "./pages/LobbyView.tsx";
 import GameDay from "./pages/GameDay.tsx";
+import GameBoard from "./pages/GameBoard.tsx";
 import MyLobbies from "./pages/MyLobbies.tsx";
 import FactionGuide from "./pages/FactionGuide.tsx";
 import RulesAssistant from "./pages/RulesAssistant.tsx";
@@ -41,6 +42,7 @@ const App = () => (
           <Route path="/join/:inviteCode" element={<AuthGuard><JoinLobby /></AuthGuard>} />
           <Route path="/lobby/:inviteCode" element={<AuthGuard><LobbyView /></AuthGuard>} />
           <Route path="/lobby/:inviteCode/gameday" element={<AuthGuard><GameDay /></AuthGuard>} />
+          <Route path="/game/:code" element={<AuthGuard><GameBoard /></AuthGuard>} />
           <Route path="/my-lobbies" element={<AuthGuard><MyLobbies /></AuthGuard>} />
           <Route path="/users" element={<AuthGuard><Admin /></AuthGuard>} />
           <Route path="/admin" element={<AuthGuard><Admin /></AuthGuard>} />
