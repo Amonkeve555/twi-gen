@@ -245,6 +245,8 @@ const GameBoard = () => {
               ? "Click any tile to cycle its controller through the seated players."
               : isCompleted
               ? "Game completed — board is read-only."
+              : isEnded
+              ? "Game ended — tile control is locked. Record final scores below."
               : "Only the host can claim tiles."}
           </p>
         </motion.div>
