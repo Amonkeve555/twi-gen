@@ -137,6 +137,11 @@ const LobbyView = () => {
               {copied ? <Check className="h-3 w-3 text-green-400" /> : <Copy className="h-3 w-3" />}
             </Button>
           </div>
+          {lobby?.started_at && (
+            <div className="flex justify-center mt-3">
+              <GameTimer startedAt={lobby.started_at} endedAt={lobby.ended_at} />
+            </div>
+          )}
           <div className="imperial-divider w-48 mx-auto mt-4" />
         </motion.div>
 
