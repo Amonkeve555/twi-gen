@@ -19,6 +19,7 @@ const LobbyView = () => {
   const [copied, setCopied] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [resetting, setResetting] = useState(false);
+  const [starting, setStarting] = useState(false);
   const { user } = useAuth();
 
   const settings = lobby?.settings as LobbySettings | undefined;
