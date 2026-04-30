@@ -169,7 +169,10 @@ const JoinLobby = () => {
       if (result.error) { toast.error(result.error); return; }
       const newPicks = [...tokenPicks, tokenId];
       setTokenPicks(newPicks);
-      if (result.faction) setAssignedFactions((prev) => [...prev, result.faction as Faction]);
+      if (result.faction) {
+        setAssignedFactions((prev) => [...prev, result.faction as Faction]);
+        setRevealedFaction(result.faction as Faction);
+      }
       if (newPicks.length >= picksPerPlayer) setPhase("done");
     },
     [lobby, tokenPicks, playerId, picksPerPlayer, forbiddenTokens]
