@@ -290,7 +290,13 @@ const Stats = () => {
                       {playerStats.map((p, i) => (
                         <TableRow key={p.name} className="border-border">
                           <TableCell>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-3">
+                              {p.color && (
+                                <div
+                                  className="w-4 h-4 rounded-sm flex-shrink-0"
+                                  style={{ background: `hsl(${p.color})` }}
+                                />
+                              )}
                               <span className="font-display text-base text-foreground">{p.name}</span>
                               {i === 0 && <Trophy className="h-4 w-4 text-primary" />}
                             </div>
