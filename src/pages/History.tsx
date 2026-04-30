@@ -1,17 +1,61 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Trash2, Trophy } from "lucide-react";
+import { ArrowLeft, Trash2, Trophy, Pencil } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import StarField from "@/components/StarField";
+import EditResultsDialog from "@/components/EditResultsDialog";
 import { useGameHistory } from "@/hooks/useGameHistory";
 import { useOnlineGameHistory } from "@/hooks/useOnlineGameHistory";
+import { useAuth } from "@/hooks/useAuth";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { supabase } from "@/integrations/supabase/client";
+import type { GameRecord } from "@/types/gameHistory";
 import tiEmblem from "@/assets/ti-emblem.png";
 
 const History = () => {
   const navigate = useNavigate();
-  const { history, deleteGame, clearHistory } = useGameHistory();
-  const { games: onlineGames, loading: onlineLoading } = useOnlineGameHistory();
+  const { history, deleteGame, updateGame, clearHistory } = useGameHistory();
+  const { games: onlineGames, loading: onlineLoading, refetch: refetchOnline } = useOnlineGameHistory();
+  const { user } = useAuth();
+  const { isAdmin } = useIsAdmin();
+  const [editing, setEditing] = useState<GameRecord | null>(null);
+
+  const canEditOnline = (g: GameRecord) =>
+    !!user && (isAdmin || g.hostUserId === user.id);
+
+  const handleSaveEdit = async (updates: { vp: number; rank: number }[]) => {
+    if (!editing) return;
+    const isOnline = editing.id.startsWith("online-");
+    if (isOnline) {
+      const lobbyId = editing.id.replace(/^online-/, "");
+      const payload = editing.players.map((p, i) => ({
+        player_id: p.playerId,
+        vp: updates[i].vp,
+        rank: updates[i].rank,
+      }));
+      const { data, error } = await supabase.rpc("update_lobby_results", {
+        p_lobby_id: lobbyId,
+        p_results: payload,
+      });
+      if (error) {
+        toast.error("Failed to save results");
+        console.error(error);
+        return;
+      }
+      const result = data as { success?: boolean; error?: string };
+      if (result?.error) {
+        toast.error(result.error);
+        return;
+      }
+      toast.success("Results updated");
+      refetchOnline();
+    } else {
+      updateGame(editing.id, updates);
+      toast.success("Results updated");
+    }
+  };
 
   const allGames = useMemo(() => {
     const map = new Map();
