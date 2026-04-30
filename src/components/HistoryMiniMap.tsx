@@ -95,7 +95,20 @@ const HistoryMiniMap = ({ players, playerCount, tileControl }: Props) => {
           let strokeWidth = 0.8;
           let dash: string | undefined;
 
-          if (c.role === "mecatol") {
+          // Tile control override (any non-hyperlane cell)
+          const tcSeat =
+            tileControl && c.role !== "hyperlane"
+              ? tileControl[`${c.q},${c.r}`]
+              : undefined;
+          if (typeof tcSeat === "number") {
+            const owner = seatMap.get(tcSeat);
+            const colorHsl = owner
+              ? resolveDisplayColor(owner.faction.color, owner.displayColor)
+              : "220 25% 50%";
+            fill = `hsl(${colorHsl} / 0.6)`;
+            stroke = `hsl(${colorHsl})`;
+            strokeWidth = c.role === "mecatol" ? 1.5 : 1.2;
+          } else if (c.role === "mecatol") {
             fill = "hsl(190 70% 45% / 0.35)";
             stroke = "hsl(190 80% 60%)";
             strokeWidth = 1.5;
