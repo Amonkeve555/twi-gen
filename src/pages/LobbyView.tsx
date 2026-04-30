@@ -243,6 +243,15 @@ const LobbyView = () => {
                 Join This Lobby
               </Button>
             )}
+            {needsToPick && (
+              <Button
+                onClick={() => navigate(`/join/${inviteCode}`)}
+                size="lg"
+                className="font-display text-sm uppercase tracking-[0.2em] glow-primary px-10 py-6 bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                Resume Picking Your Faction
+              </Button>
+            )}
             <Button
               onClick={() => navigate(`/game/${inviteCode}`)}
               variant="outline"
