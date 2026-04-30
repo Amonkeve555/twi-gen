@@ -7,6 +7,8 @@ export interface PlayerResult {
   rank: number;
   /** lobby_players.id — present only for online games */
   playerId?: string;
+  /** Optional override HSL color string (e.g. "42 85% 55%"). */
+  displayColor?: string | null;
 }
 
 export interface GameRecord {

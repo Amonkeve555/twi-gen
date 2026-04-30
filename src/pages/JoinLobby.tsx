@@ -7,6 +7,7 @@ import StarField from "@/components/StarField";
 import TokenGrid from "@/components/TokenGrid";
 import FactionCard from "@/components/FactionCard";
 import FactionPicker from "@/components/FactionPicker";
+import ColorSwatchPicker from "@/components/ColorSwatchPicker";
 import { supabase } from "@/integrations/supabase/client";
 import { getSessionId } from "@/lib/sessionId";
 import { useLobby, type LobbySettings } from "@/hooks/useLobby";
@@ -343,6 +344,33 @@ const JoinLobby = () => {
                 You'll choose which faction to play on game day
               </p>
             )}
+
+            {playerId && assignedFactions[0] && (
+              <div className="glass imperial-border rounded p-4 space-y-3">
+                <p className="font-display text-xs uppercase tracking-[0.2em] text-primary text-center">
+                  Choose your player color
+                </p>
+                <p className="text-center font-body text-xs text-muted-foreground">
+                  Used in lobby and history. Defaults to faction color.
+                </p>
+                <div className="flex justify-center">
+                  <ColorSwatchPicker
+                    value={
+                      players.find((p) => p.id === playerId)?.display_color ?? null
+                    }
+                    factionDefault={assignedFactions[0].color}
+                    onChange={async (val) => {
+                      const { error: err } = await supabase
+                        .from("lobby_players")
+                        .update({ display_color: val })
+                        .eq("id", playerId);
+                      if (err) toast.error("Failed to save color");
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
             <div className="flex justify-center">
               <Button onClick={() => navigate(`/lobby/${inviteCode}`)} className="font-display text-sm uppercase tracking-[0.2em] glow-primary px-10 py-6 bg-primary text-primary-foreground hover:bg-primary/90">
                 View Lobby

@@ -9,13 +9,21 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import ColorSwatchPicker from "@/components/ColorSwatchPicker";
+import { resolveDisplayColor } from "@/lib/playerColors";
 import type { GameRecord } from "@/types/gameHistory";
+
+export interface EditResultsRow {
+  vp: number;
+  rank: number;
+  displayColor: string | null;
+}
 
 interface EditResultsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   game: GameRecord | null;
-  onSave: (updates: { vp: number; rank: number }[]) => Promise<void> | void;
+  onSave: (updates: EditResultsRow[]) => Promise<void> | void;
 }
 
 const EditResultsDialog = ({
@@ -24,20 +32,30 @@ const EditResultsDialog = ({
   game,
   onSave,
 }: EditResultsDialogProps) => {
-  const [rows, setRows] = useState<{ vp: string; rank: string }[]>([]);
+  const [rows, setRows] = useState<
+    { vp: string; rank: string; displayColor: string | null }[]
+  >([]);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (game) {
       setRows(
-        game.players.map((p) => ({ vp: String(p.vp), rank: String(p.rank) }))
+        game.players.map((p) => ({
+          vp: String(p.vp),
+          rank: String(p.rank),
+          displayColor: p.displayColor ?? null,
+        }))
       );
     }
   }, [game]);
 
   if (!game) return null;
 
-  const update = (i: number, field: "vp" | "rank", value: string) => {
+  const updateField = (
+    i: number,
+    field: "vp" | "rank",
+    value: string
+  ) => {
     setRows((prev) => {
       const next = [...prev];
       next[i] = { ...next[i], [field]: value };
@@ -45,12 +63,21 @@ const EditResultsDialog = ({
     });
   };
 
+  const updateColor = (i: number, value: string | null) => {
+    setRows((prev) => {
+      const next = [...prev];
+      next[i] = { ...next[i], displayColor: value };
+      return next;
+    });
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
-      const updates = rows.map((r) => ({
+      const updates: EditResultsRow[] = rows.map((r) => ({
         vp: Math.max(0, parseInt(r.vp) || 0),
         rank: Math.max(1, parseInt(r.rank) || 1),
+        displayColor: r.displayColor,
       }));
       await onSave(updates);
       onOpenChange(false);
@@ -76,46 +103,61 @@ const EditResultsDialog = ({
           </div>
           <div className="imperial-divider" />
 
-          {game.players.map((p, i) => (
-            <div
-              key={(p.playerId ?? p.player) + p.faction.name}
-              className="grid grid-cols-[1fr_auto_auto] gap-2 items-center"
-            >
-              <div className="flex items-center gap-2 min-w-0">
-                <div
-                  className="w-3 h-3 rounded-sm flex-shrink-0"
-                  style={{ backgroundColor: `hsl(${p.faction.color})` }}
-                />
-                <div className="min-w-0">
-                  <p className="font-display text-xs text-primary truncate">
-                    {p.player}
-                  </p>
-                  <p
-                    className="text-[10px] font-body truncate"
-                    style={{ color: `hsl(${p.faction.color})` }}
-                  >
-                    {p.faction.shortName}
-                  </p>
+          {game.players.map((p, i) => {
+            const swatchColor = resolveDisplayColor(
+              p.faction.color,
+              rows[i]?.displayColor
+            );
+            return (
+              <div
+                key={(p.playerId ?? p.player) + p.faction.name}
+                className="space-y-2"
+              >
+                <div className="grid grid-cols-[1fr_auto_auto] gap-2 items-center">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div
+                      className="w-3 h-3 rounded-sm flex-shrink-0"
+                      style={{ backgroundColor: `hsl(${swatchColor})` }}
+                    />
+                    <div className="min-w-0">
+                      <p className="font-display text-xs text-primary truncate">
+                        {p.player}
+                      </p>
+                      <p
+                        className="text-[10px] font-body truncate"
+                        style={{ color: `hsl(${swatchColor})` }}
+                      >
+                        {p.faction.shortName}
+                      </p>
+                    </div>
+                  </div>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={20}
+                    value={rows[i]?.vp ?? ""}
+                    onChange={(e) => updateField(i, "vp", e.target.value)}
+                    className="w-16 h-8 text-center bg-input border-border font-body text-sm text-foreground focus:border-primary/40 rounded"
+                  />
+                  <Input
+                    type="number"
+                    min={1}
+                    max={game.players.length}
+                    value={rows[i]?.rank ?? ""}
+                    onChange={(e) => updateField(i, "rank", e.target.value)}
+                    className="w-16 h-8 text-center bg-input border-border font-body text-sm text-foreground focus:border-primary/40 rounded"
+                  />
                 </div>
+                <ColorSwatchPicker
+                  value={rows[i]?.displayColor ?? null}
+                  factionDefault={p.faction.color}
+                  onChange={(v) => updateColor(i, v)}
+                  size="sm"
+                  className="pl-5"
+                />
               </div>
-              <Input
-                type="number"
-                min={0}
-                max={20}
-                value={rows[i]?.vp ?? ""}
-                onChange={(e) => update(i, "vp", e.target.value)}
-                className="w-16 h-8 text-center bg-input border-border font-body text-sm text-foreground focus:border-primary/40 rounded"
-              />
-              <Input
-                type="number"
-                min={1}
-                max={game.players.length}
-                value={rows[i]?.rank ?? ""}
-                onChange={(e) => update(i, "rank", e.target.value)}
-                className="w-16 h-8 text-center bg-input border-border font-body text-sm text-foreground focus:border-primary/40 rounded"
-              />
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <DialogFooter className="gap-2 sm:gap-2">
