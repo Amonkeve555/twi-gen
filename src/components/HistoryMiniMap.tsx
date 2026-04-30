@@ -49,13 +49,6 @@ const HistoryMiniMap = ({ players, playerCount }: Props) => {
     (p) => p.seatIndex !== null && p.seatIndex !== undefined
   );
 
-  // Don't render if no seating data
-  if (seatedPlayers.length === 0) return null;
-
-  const seatMap = new Map<number, PlayerResult>();
-  for (const p of seatedPlayers) seatMap.set(p.seatIndex!, p);
-
-  // Compute viewBox
   const { viewBox } = useMemo(() => {
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     setup.cells.forEach((c) => {
@@ -72,6 +65,12 @@ const HistoryMiniMap = ({ players, playerCount }: Props) => {
       viewBox: `${minX - pad} ${minY - pad} ${maxX - minX + pad * 2} ${maxY - minY + pad * 2}`,
     };
   }, [setup]);
+
+  // Don't render if no seating data
+  if (seatedPlayers.length === 0) return null;
+
+  const seatMap = new Map<number, PlayerResult>();
+  for (const p of seatedPlayers) seatMap.set(p.seatIndex!, p);
 
   const homeCoordToSeat = new Map<string, number>();
   seatOrder.forEach((c, i) => homeCoordToSeat.set(`${c.q},${c.r}`, i));
