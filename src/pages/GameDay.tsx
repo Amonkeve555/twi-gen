@@ -71,6 +71,8 @@ const GameDay = () => {
           .eq("id", p.id);
       }
     }
+    // Stamp ended_at via RPC (host-only) before marking completed
+    await supabase.rpc("end_game", { p_lobby_id: lobby!.id });
     await supabase
       .from("lobbies")
       .update({ status: "completed" })
