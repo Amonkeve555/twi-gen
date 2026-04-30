@@ -57,6 +57,7 @@ export type Database = {
         Row: {
           assigned_factions: Json | null
           chosen_faction: Json | null
+          display_color: string | null
           id: string
           joined_at: string
           lobby_id: string
@@ -70,6 +71,7 @@ export type Database = {
         Insert: {
           assigned_factions?: Json | null
           chosen_faction?: Json | null
+          display_color?: string | null
           id?: string
           joined_at?: string
           lobby_id: string
@@ -83,6 +85,7 @@ export type Database = {
         Update: {
           assigned_factions?: Json | null
           chosen_faction?: Json | null
+          display_color?: string | null
           id?: string
           joined_at?: string
           lobby_id?: string
