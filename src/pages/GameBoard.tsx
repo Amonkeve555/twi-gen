@@ -265,7 +265,7 @@ const GameBoard = () => {
               onTileClick={canEdit ? onTileClick : undefined}
             />
             {canEdit && (
-              <div className="flex justify-center mt-4">
+              <div className="flex flex-wrap justify-center gap-2 mt-4">
                 <Button
                   variant="outline"
                   size="sm"
@@ -276,6 +276,18 @@ const GameBoard = () => {
                   <Eraser className="mr-2 h-3 w-3" />
                   Clear Board
                 </Button>
+                {lobby.started_at && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={onEndGame}
+                    disabled={busy}
+                    className="font-display text-xs uppercase tracking-[0.15em] border-primary/60 text-primary hover:bg-primary/10"
+                  >
+                    <Flag className="mr-2 h-3 w-3" />
+                    End Game
+                  </Button>
+                )}
               </div>
             )}
           </motion.div>
