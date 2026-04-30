@@ -122,6 +122,72 @@ const GameBoard = () => {
     toast.success("Board cleared");
   };
 
+  const onEndGame = async () => {
+    if (!isHost || !lobby || isEnded) return;
+    if (!confirm("End the game? Tile control will be locked and you'll record final scores.")) return;
+    setBusy(true);
+    const { error: err } = await supabase.rpc("end_game", { p_lobby_id: lobby.id });
+    setBusy(false);
+    if (err) {
+      toast.error("Failed to end game");
+      console.error(err);
+      return;
+    }
+    toast.success("Game ended — record the scores below.");
+  };
+
+  const updateResult = (playerId: string, field: "vp" | "rank", value: string) => {
+    // Allow only digits, max 3 chars (VPs realistically <=20, ranks <=8)
+    const sanitized = value.replace(/[^0-9]/g, "").slice(0, 3);
+    setResultData((prev) => {
+      const next = new Map(prev);
+      const existing = next.get(playerId) ?? { vp: "", rank: "" };
+      next.set(playerId, { ...existing, [field]: sanitized });
+      return next;
+    });
+  };
+
+  const saveResults = async () => {
+    if (!isHost || !lobby) return;
+    // Validate: every player must have a rank; VP optional but must be numeric if present
+    const ranks: number[] = [];
+    for (const p of players) {
+      const data = resultData.get(p.id);
+      const rankStr = data?.rank ?? "";
+      if (!rankStr) {
+        toast.error(`Missing rank for ${p.player_name}`);
+        return;
+      }
+      const rank = parseInt(rankStr, 10);
+      if (Number.isNaN(rank) || rank < 1 || rank > players.length) {
+        toast.error(`Invalid rank for ${p.player_name}`);
+        return;
+      }
+      ranks.push(rank);
+    }
+
+    setSaving(true);
+    for (const p of players) {
+      const data = resultData.get(p.id);
+      if (!data) continue;
+      const vp = data.vp ? parseInt(data.vp, 10) : null;
+      const rank = parseInt(data.rank, 10);
+      await supabase
+        .from("lobby_players")
+        .update({
+          vp: vp !== null && !Number.isNaN(vp) ? vp : null,
+          rank,
+        })
+        .eq("id", p.id);
+    }
+    await supabase
+      .from("lobbies")
+      .update({ status: "completed" })
+      .eq("id", lobby.id);
+    setSaving(false);
+    toast.success("Results saved!");
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen relative">
