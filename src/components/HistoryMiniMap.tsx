@@ -67,8 +67,9 @@ const HistoryMiniMap = ({ players, playerCount, tileControl }: Props) => {
     };
   }, [setup]);
 
-  // Don't render if no seating data
-  if (seatedPlayers.length === 0) return null;
+  // Don't render if no seating data and no tile control
+  const hasTileControl = !!tileControl && Object.keys(tileControl).length > 0;
+  if (seatedPlayers.length === 0 && !hasTileControl) return null;
 
   const seatMap = new Map<number, PlayerResult>();
   for (const p of seatedPlayers) seatMap.set(p.seatIndex!, p);
