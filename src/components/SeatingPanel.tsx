@@ -3,10 +3,11 @@ import { Shuffle, Eraser, ChevronDown, ChevronUp, Armchair } from "lucide-react"
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import MapSetupHex, { type SeatOccupant } from "@/components/MapSetupHex";
 import { MAP_SETUPS, getHomeSeats } from "@/data/mapSetups";
 import { supabase } from "@/integrations/supabase/client";
@@ -179,20 +180,19 @@ const SeatingPanel = ({ lobbyId, players, isHost, playerCount }: Props) => {
             </div>
           )}
 
-          {isHost && activeSeat !== null && (
-            <Popover
+          {isHost && (
+            <Dialog
               open={activeSeat !== null}
               onOpenChange={(o) => { if (!o) setActiveSeat(null); }}
             >
-              <PopoverTrigger asChild>
-                <span className="sr-only">Seat picker</span>
-              </PopoverTrigger>
-              <PopoverContent className="w-64">
+              <DialogContent className="max-w-sm">
+                <DialogHeader>
+                  <DialogTitle className="font-display text-sm uppercase tracking-[0.2em] text-primary">
+                    Seat {activeSeat !== null ? activeSeat + 1 : ""}
+                  </DialogTitle>
+                </DialogHeader>
                 <div className="space-y-2">
-                  <p className="font-display text-xs uppercase tracking-[0.15em] text-primary">
-                    Seat {activeSeat + 1}
-                  </p>
-                  {seats[activeSeat] && (
+                  {activeSeat !== null && seats[activeSeat] && (
                     <Button
                       variant="outline"
                       size="sm"
@@ -200,12 +200,12 @@ const SeatingPanel = ({ lobbyId, players, isHost, playerCount }: Props) => {
                       onClick={() => assign(seats[activeSeat].playerId, null)}
                       disabled={busy}
                     >
-                      Clear seat
+                      Clear this seat ({seats[activeSeat].playerName})
                     </Button>
                   )}
-                  {unseatedPlayers.length === 0 && !seats[activeSeat] && (
+                  {unseatedPlayers.length === 0 && activeSeat !== null && !seats[activeSeat] && (
                     <p className="font-body text-xs text-muted-foreground">
-                      No unseated players.
+                      All players are already seated.
                     </p>
                   )}
                   {unseatedPlayers.map((p) => (
@@ -214,17 +214,20 @@ const SeatingPanel = ({ lobbyId, players, isHost, playerCount }: Props) => {
                       variant="ghost"
                       size="sm"
                       className="w-full justify-start font-body text-sm"
-                      onClick={() => assign(p.id, activeSeat)}
+                      onClick={() => activeSeat !== null && assign(p.id, activeSeat)}
                       disabled={busy}
                     >
-                      {p.player_name}
+                      Seat {p.player_name}
                     </Button>
                   ))}
-                  {/* Allow swapping with already-seated players */}
                   {players
                     .filter((p) => {
                       const sp = p as LobbyPlayerRow & { seat_index?: number | null };
-                      return sp.seat_index !== null && sp.seat_index !== undefined && sp.seat_index !== activeSeat;
+                      return (
+                        sp.seat_index !== null &&
+                        sp.seat_index !== undefined &&
+                        sp.seat_index !== activeSeat
+                      );
                     })
                     .map((p) => (
                       <Button
@@ -232,15 +235,15 @@ const SeatingPanel = ({ lobbyId, players, isHost, playerCount }: Props) => {
                         variant="ghost"
                         size="sm"
                         className="w-full justify-start font-body text-xs text-muted-foreground"
-                        onClick={() => assign(p.id, activeSeat)}
+                        onClick={() => activeSeat !== null && assign(p.id, activeSeat)}
                         disabled={busy}
                       >
                         Swap with {p.player_name}
                       </Button>
                     ))}
                 </div>
-              </PopoverContent>
-            </Popover>
+              </DialogContent>
+            </Dialog>
           )}
 
           <p className="font-body text-xs text-muted-foreground/70 text-center italic">
