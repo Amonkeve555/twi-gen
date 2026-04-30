@@ -97,9 +97,10 @@ const MapSetupHex = ({ setup, seats, seatOrder, onSeatClick, compact }: Props) =
   const cellStyle = (c: HexCell) => {
     switch (c.role) {
       case "mecatol":
+        // Distinct cyan/teal so it's clearly not a player color (player gold exists).
         return {
-          fill: "hsl(42 85% 55% / 0.25)",
-          stroke: "hsl(42 85% 55%)",
+          fill: "hsl(190 70% 45% / 0.3)",
+          stroke: "hsl(190 80% 60%)",
           strokeWidth: 2.5,
         };
       case "home": {
@@ -112,13 +113,12 @@ const MapSetupHex = ({ setup, seats, seatOrder, onSeatClick, compact }: Props) =
         };
       }
       case "slice": {
-        // In seating mode (seatOrder provided), slice tiles are blank — only the
-        // home system carries the player's color.
+        // In seating mode, slice tiles match the equidistant style — neutral.
         if (seatOrder) {
           return {
-            fill: "hsl(220 30% 12% / 0.4)",
-            stroke: "hsl(220 25% 35% / 0.5)",
-            strokeWidth: 1,
+            fill: "hsl(220 25% 25% / 0.5)",
+            stroke: "hsl(220 25% 50% / 0.6)",
+            strokeWidth: 1.25,
           };
         }
         const color = PLAYER_COLORS[(c.player ?? 1) - 1] ?? PLAYER_COLORS[0];
