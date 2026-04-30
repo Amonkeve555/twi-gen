@@ -52,6 +52,7 @@ export type Database = {
           invite_code: string
           settings: Json
           status: string
+          tile_control: Json
           token_mapping: Json | null
         }
         Insert: {
@@ -64,6 +65,7 @@ export type Database = {
           invite_code: string
           settings?: Json
           status?: string
+          tile_control?: Json
           token_mapping?: Json | null
         }
         Update: {
@@ -76,6 +78,7 @@ export type Database = {
           invite_code?: string
           settings?: Json
           status?: string
+          tile_control?: Json
           token_mapping?: Json | null
         }
         Relationships: []
@@ -300,6 +303,7 @@ export type Database = {
         Returns: Json
       }
       clear_seats: { Args: { p_lobby_id: string }; Returns: Json }
+      clear_tile_control: { Args: { p_lobby_id: string }; Returns: Json }
       get_forbidden_tokens: { Args: { p_lobby_id: string }; Returns: number[] }
       get_last_played_faction_vs_opponents: {
         Args: { p_opponent_ids: string[]; p_user_id: string }
@@ -326,6 +330,15 @@ export type Database = {
         }[]
       }
       reset_lobby_draft: { Args: { p_lobby_id: string }; Returns: Json }
+      set_tile_control: {
+        Args: {
+          p_lobby_id: string
+          p_q: number
+          p_r: number
+          p_seat_index: number
+        }
+        Returns: Json
+      }
       shuffle_seats: { Args: { p_lobby_id: string }; Returns: Json }
       update_lobby_results: {
         Args: { p_lobby_id: string; p_results: Json }

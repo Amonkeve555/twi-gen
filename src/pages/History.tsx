@@ -261,6 +261,7 @@ const History = () => {
                       <HistoryMiniMap
                         players={game.players}
                         playerCount={game.playerCount}
+                        tileControl={game.tileControl ?? null}
                       />
                     </>
                   )}

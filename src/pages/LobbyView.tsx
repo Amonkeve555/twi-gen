@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Copy, Check, Users, Clock, ArrowLeft, Trash2, UserMinus, RotateCcw } from "lucide-react";
+import { Copy, Check, Users, Clock, ArrowLeft, Trash2, UserMinus, RotateCcw, Map as MapIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -213,6 +213,15 @@ const LobbyView = () => {
                 Join This Lobby
               </Button>
             )}
+            <Button
+              onClick={() => navigate(`/game/${inviteCode}`)}
+              variant="outline"
+              size="lg"
+              className="font-display text-sm uppercase tracking-[0.2em] px-8 py-5 border-primary/40 text-primary hover:bg-primary/10"
+            >
+              <MapIcon className="mr-2 h-4 w-4" />
+              Open Game Board
+            </Button>
             {allPicked && (
               <Button
                 onClick={() => navigate(`/lobby/${inviteCode}/gameday`)}

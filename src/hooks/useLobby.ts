@@ -21,6 +21,7 @@ export interface LobbyRow {
   settings: LobbySettings;
   status: string;
   token_mapping: Record<string, Faction> | null;
+  tile_control: Record<string, number> | null;
   created_at: string;
 }
 
@@ -70,6 +71,7 @@ export function useLobby(inviteCode: string | undefined) {
       ...data,
       settings: data.settings as unknown as LobbySettings,
       token_mapping: data.token_mapping as unknown as Record<string, Faction> | null,
+      tile_control: ((data as { tile_control?: unknown }).tile_control as Record<string, number> | null) ?? {},
     });
     setError(null);
   }, [inviteCode]);

@@ -38,6 +38,10 @@ interface Props {
   onSeatClick?: (seatIndex: number, occupant?: SeatOccupant) => void;
   /** Compact mode for thumbnails (smaller hexes, no labels other than seat) */
   compact?: boolean;
+  /** Map of "q,r" -> seat_index for tile-control overlay (game board mode) */
+  tileControl?: Record<string, number>;
+  /** Click handler for any tile (game board mode). Receives q, r and current owner seat. */
+  onTileClick?: (q: number, r: number, currentSeat: number | undefined) => void;
 }
 
 // Pointy-top hex axial -> pixel
@@ -58,7 +62,7 @@ function hexPoints(cx: number, cy: number, size: number) {
   return pts.join(" ");
 }
 
-const MapSetupHex = ({ setup, seats, seatOrder, onSeatClick, compact }: Props) => {
+const MapSetupHex = ({ setup, seats, seatOrder, onSeatClick, compact, tileControl, onTileClick }: Props) => {
   const HEX_SIZE = compact ? 18 : 34;
 
   // Map from "q,r" -> seat_index for quick lookup
@@ -85,6 +89,18 @@ const MapSetupHex = ({ setup, seats, seatOrder, onSeatClick, compact }: Props) =
     return { cells, viewBox: vb };
   }, [setup]);
 
+  const seatColor = (seatIdx: number): string => {
+    const occ = seats?.[seatIdx];
+    if (occ?.factionColor) return `hsl(${occ.factionColor})`;
+    return PLAYER_COLORS[seatIdx] ?? PLAYER_COLORS[0];
+  };
+
+  const tileControlSeat = (c: HexCell): number | undefined => {
+    if (!tileControl) return undefined;
+    const v = tileControl[`${c.q},${c.r}`];
+    return typeof v === "number" ? v : undefined;
+  };
+
   const homeColorOverride = (c: HexCell): string | undefined => {
     if (c.role !== "home") return undefined;
     const seatIdx = seatIndexByCoord.get(`${c.q},${c.r}`);
@@ -95,9 +111,27 @@ const MapSetupHex = ({ setup, seats, seatOrder, onSeatClick, compact }: Props) =
   };
 
   const cellStyle = (c: HexCell) => {
+    // Tile-control overlay (game board mode) — applies to any non-hyperlane tile.
+    const tcSeat = tileControlSeat(c);
+    if (tcSeat !== undefined && c.role !== "hyperlane") {
+      const color = seatColor(tcSeat);
+      // Mecatol keeps its distinct cyan ring even when claimed.
+      if (c.role === "mecatol") {
+        return {
+          fill: `${color.replace(")", " / 0.55)")}`,
+          stroke: "hsl(190 80% 70%)",
+          strokeWidth: 2.5,
+        };
+      }
+      return {
+        fill: `${color.replace(")", " / 0.6)")}`,
+        stroke: color,
+        strokeWidth: 2,
+      };
+    }
+
     switch (c.role) {
       case "mecatol":
-        // Distinct cyan/teal so it's clearly not a player color (player gold exists).
         return {
           fill: "hsl(190 70% 45% / 0.3)",
           stroke: "hsl(190 80% 60%)",
@@ -113,8 +147,7 @@ const MapSetupHex = ({ setup, seats, seatOrder, onSeatClick, compact }: Props) =
         };
       }
       case "slice": {
-        // In seating mode, slice tiles match the equidistant style — neutral.
-        if (seatOrder) {
+        if (seatOrder || tileControl) {
           return {
             fill: "hsl(220 25% 25% / 0.5)",
             stroke: "hsl(220 25% 50% / 0.6)",
@@ -208,14 +241,18 @@ const MapSetupHex = ({ setup, seats, seatOrder, onSeatClick, compact }: Props) =
             const sub = subLabel(c);
             const seatIdx = c.role === "home" ? seatIndexByCoord.get(`${c.q},${c.r}`) : undefined;
             const isClickableSeat = seatIdx !== undefined && !!onSeatClick;
+            const isClickableTile =
+              !!onTileClick && c.role !== "hyperlane" && !isClickableSeat;
             const handleClick = isClickableSeat
               ? () => onSeatClick!(seatIdx!, seats?.[seatIdx!])
+              : isClickableTile
+              ? () => onTileClick!(c.q, c.r, tileControlSeat(c))
               : undefined;
             return (
               <Tooltip key={i}>
                 <TooltipTrigger asChild>
                   <g
-                    style={{ cursor: isClickableSeat ? "pointer" : "default" }}
+                    style={{ cursor: isClickableSeat || isClickableTile ? "pointer" : "default" }}
                     onClick={handleClick}
                   >
                     <polygon

@@ -14,6 +14,7 @@ type PlayerCount = 3 | 4 | 5 | 6 | 7 | 8;
 interface Props {
   players: PlayerResult[];
   playerCount: number;
+  tileControl?: Record<string, number> | null;
 }
 
 function clampCount(n: number): PlayerCount {
@@ -39,7 +40,7 @@ function hexPoints(cx: number, cy: number, size: number) {
   return pts.join(" ");
 }
 
-const HistoryMiniMap = ({ players, playerCount }: Props) => {
+const HistoryMiniMap = ({ players, playerCount, tileControl }: Props) => {
   const count = clampCount(playerCount);
   const setup = MAP_SETUPS[count];
   const seatOrder = useMemo(() => getHomeSeats(count), [count]);
@@ -66,8 +67,9 @@ const HistoryMiniMap = ({ players, playerCount }: Props) => {
     };
   }, [setup]);
 
-  // Don't render if no seating data
-  if (seatedPlayers.length === 0) return null;
+  // Don't render if no seating data and no tile control
+  const hasTileControl = !!tileControl && Object.keys(tileControl).length > 0;
+  if (seatedPlayers.length === 0 && !hasTileControl) return null;
 
   const seatMap = new Map<number, PlayerResult>();
   for (const p of seatedPlayers) seatMap.set(p.seatIndex!, p);
@@ -94,7 +96,20 @@ const HistoryMiniMap = ({ players, playerCount }: Props) => {
           let strokeWidth = 0.8;
           let dash: string | undefined;
 
-          if (c.role === "mecatol") {
+          // Tile control override (any non-hyperlane cell)
+          const tcSeat =
+            tileControl && c.role !== "hyperlane"
+              ? tileControl[`${c.q},${c.r}`]
+              : undefined;
+          if (typeof tcSeat === "number") {
+            const owner = seatMap.get(tcSeat);
+            const colorHsl = owner
+              ? resolveDisplayColor(owner.faction.color, owner.displayColor)
+              : "220 25% 50%";
+            fill = `hsl(${colorHsl} / 0.6)`;
+            stroke = `hsl(${colorHsl})`;
+            strokeWidth = c.role === "mecatol" ? 1.5 : 1.2;
+          } else if (c.role === "mecatol") {
             fill = "hsl(190 70% 45% / 0.35)";
             stroke = "hsl(190 80% 60%)";
             strokeWidth = 1.5;
