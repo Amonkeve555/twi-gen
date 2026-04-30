@@ -20,8 +20,24 @@ const PLAYER_COLORS = [
   "hsl(220 70% 65%)",  // blue (P8)
 ];
 
+export interface SeatOccupant {
+  playerId: string;
+  playerName: string;
+  /** HSL string fragment, e.g. "42 85% 55%" — used as faction color */
+  factionColor?: string | null;
+  factionName?: string;
+}
+
 interface Props {
   setup: MapSetup;
+  /** Map of seat_index -> occupant for seating overlay (optional) */
+  seats?: Record<number, SeatOccupant>;
+  /** Ordered home cells (use getHomeSeats); when present + seats given, draws seat numbers + occupants */
+  seatOrder?: HexCell[];
+  /** Click handler for a home seat (only fires when seatOrder is provided) */
+  onSeatClick?: (seatIndex: number, occupant?: SeatOccupant) => void;
+  /** Compact mode for thumbnails (smaller hexes, no labels other than seat) */
+  compact?: boolean;
 }
 
 // Pointy-top hex axial -> pixel
@@ -42,8 +58,15 @@ function hexPoints(cx: number, cy: number, size: number) {
   return pts.join(" ");
 }
 
-const MapSetupHex = ({ setup }: Props) => {
-  const HEX_SIZE = 34;
+const MapSetupHex = ({ setup, seats, seatOrder, onSeatClick, compact }: Props) => {
+  const HEX_SIZE = compact ? 18 : 34;
+
+  // Map from "q,r" -> seat_index for quick lookup
+  const seatIndexByCoord = useMemo(() => {
+    const m = new Map<string, number>();
+    if (seatOrder) seatOrder.forEach((c, i) => m.set(`${c.q},${c.r}`, i));
+    return m;
+  }, [seatOrder]);
 
   const { cells, viewBox } = useMemo(() => {
     const cells = setup.cells;
