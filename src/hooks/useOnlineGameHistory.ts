@@ -59,13 +59,18 @@ async function fetchHistoryForUser(userId: string): Promise<GameRecord[]> {
         rank: p.rank!,
         playerId: p.id,
         displayColor: (p as { display_color?: string | null }).display_color ?? null,
+        seatIndex: (p as { seat_index?: number | null }).seat_index ?? null,
       }));
+
+      const lobbySettings = (lobby as { settings?: { max_players?: number } }).settings;
+      const playerCount = lobbySettings?.max_players ?? lobbyPlayers.length;
 
       return {
         id: `online-${lobby.id}`,
         date: lobby.created_at,
         players: playerResults,
         hostUserId: lobby.host_user_id ?? undefined,
+        playerCount,
       };
     })
     .filter(Boolean) as GameRecord[];

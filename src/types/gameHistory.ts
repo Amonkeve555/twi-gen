@@ -9,6 +9,8 @@ export interface PlayerResult {
   playerId?: string;
   /** Optional override HSL color string (e.g. "42 85% 55%"). */
   displayColor?: string | null;
+  /** 0-based seat index referencing the home-system order returned by getHomeSeats. */
+  seatIndex?: number | null;
 }
 
 export interface GameRecord {
@@ -17,4 +19,6 @@ export interface GameRecord {
   players: PlayerResult[];
   /** lobby host user id — present only for online games */
   hostUserId?: string;
+  /** Player count at game time (for rendering the seating mini-map) */
+  playerCount?: number;
 }
