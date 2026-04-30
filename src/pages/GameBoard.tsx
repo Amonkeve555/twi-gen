@@ -122,6 +122,24 @@ const GameBoard = () => {
     toast.success("Board cleared");
   };
 
+  const onStartGame = async () => {
+    if (!isHost || !lobby || lobby.started_at) return;
+    setBusy(true);
+    const { data, error: err } = await supabase.rpc("start_game", { p_lobby_id: lobby.id });
+    setBusy(false);
+    if (err) {
+      toast.error("Failed to start game");
+      console.error(err);
+      return;
+    }
+    const result = data as { success?: boolean; error?: string };
+    if (result?.error) {
+      toast.error(result.error);
+      return;
+    }
+    toast.success("Game started!");
+  };
+
   const onEndGame = async () => {
     if (!isHost || !lobby || isEnded) return;
     if (!confirm("End the game? Tile control will be locked and you'll record final scores.")) return;
