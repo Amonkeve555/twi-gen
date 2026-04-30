@@ -33,10 +33,12 @@ const QUICK_QUESTIONS = [
 async function streamChat({
   messages,
   onDelta,
+  onCitations,
   onDone,
 }: {
   messages: Msg[];
   onDelta: (deltaText: string) => void;
+  onCitations: (cs: Citation[]) => void;
   onDone: () => void;
 }) {
   const resp = await fetch(CHAT_URL, {
@@ -64,6 +66,7 @@ async function streamChat({
   const decoder = new TextDecoder();
   let textBuffer = "";
   let streamDone = false;
+  let pendingEvent: string | null = null;
 
   while (!streamDone) {
     const { done, value } = await reader.read();
@@ -76,7 +79,12 @@ async function streamChat({
       textBuffer = textBuffer.slice(newlineIndex + 1);
 
       if (line.endsWith("\r")) line = line.slice(0, -1);
-      if (line.startsWith(":") || line.trim() === "") continue;
+      if (line.trim() === "") { pendingEvent = null; continue; }
+      if (line.startsWith(":")) continue;
+      if (line.startsWith("event: ")) {
+        pendingEvent = line.slice(7).trim();
+        continue;
+      }
       if (!line.startsWith("data: ")) continue;
 
       const jsonStr = line.slice(6).trim();
@@ -87,8 +95,13 @@ async function streamChat({
 
       try {
         const parsed = JSON.parse(jsonStr);
-        const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-        if (content) onDelta(content);
+        if (pendingEvent === "citations") {
+          if (Array.isArray(parsed.citations)) onCitations(parsed.citations);
+        } else {
+          const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+          if (content) onDelta(content);
+        }
+        pendingEvent = null;
       } catch {
         textBuffer = line + "\n" + textBuffer;
         break;
@@ -97,6 +110,7 @@ async function streamChat({
   }
 
   if (textBuffer.trim()) {
+
     for (let raw of textBuffer.split("\n")) {
       if (!raw) continue;
       if (raw.endsWith("\r")) raw = raw.slice(0, -1);
