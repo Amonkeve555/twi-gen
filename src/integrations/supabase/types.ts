@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      faction_data_proposals: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          proposal: Json
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          proposal: Json
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          proposal?: Json
+          status?: string
+        }
+        Relationships: []
+      }
       lobbies: {
         Row: {
           created_at: string
@@ -130,6 +157,92 @@ export type Database = {
         }
         Relationships: []
       }
+      rules_chunks: {
+        Row: {
+          chunk_index: number
+          content: string
+          created_at: string
+          embedding: string | null
+          id: string
+          page_end: number | null
+          page_start: number | null
+          section: string | null
+          source_id: string
+        }
+        Insert: {
+          chunk_index: number
+          content: string
+          created_at?: string
+          embedding?: string | null
+          id?: string
+          page_end?: number | null
+          page_start?: number | null
+          section?: string | null
+          source_id: string
+        }
+        Update: {
+          chunk_index?: number
+          content?: string
+          created_at?: string
+          embedding?: string | null
+          id?: string
+          page_end?: number | null
+          page_start?: number | null
+          section?: string | null
+          source_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rules_chunks_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "rules_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rules_sources: {
+        Row: {
+          chunk_count: number
+          created_at: string
+          error: string | null
+          filename: string
+          id: string
+          label: string
+          page_count: number | null
+          status: string
+          storage_path: string
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          chunk_count?: number
+          created_at?: string
+          error?: string | null
+          filename: string
+          id?: string
+          label: string
+          page_count?: number | null
+          status?: string
+          storage_path: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          chunk_count?: number
+          created_at?: string
+          error?: string | null
+          filename?: string
+          id?: string
+          label?: string
+          page_count?: number | null
+          status?: string
+          storage_path?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -190,6 +303,19 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      match_rules_chunks: {
+        Args: { match_count?: number; query_embedding: string }
+        Returns: {
+          content: string
+          id: string
+          page_end: number
+          page_start: number
+          section: string
+          similarity: number
+          source_id: string
+          source_label: string
+        }[]
       }
       reset_lobby_draft: { Args: { p_lobby_id: string }; Returns: Json }
       update_lobby_results: {
