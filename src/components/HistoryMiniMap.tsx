@@ -14,6 +14,7 @@ type PlayerCount = 3 | 4 | 5 | 6 | 7 | 8;
 interface Props {
   players: PlayerResult[];
   playerCount: number;
+  tileControl?: Record<string, number> | null;
 }
 
 function clampCount(n: number): PlayerCount {
@@ -39,7 +40,7 @@ function hexPoints(cx: number, cy: number, size: number) {
   return pts.join(" ");
 }
 
-const HistoryMiniMap = ({ players, playerCount }: Props) => {
+const HistoryMiniMap = ({ players, playerCount, tileControl }: Props) => {
   const count = clampCount(playerCount);
   const setup = MAP_SETUPS[count];
   const seatOrder = useMemo(() => getHomeSeats(count), [count]);
