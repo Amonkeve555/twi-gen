@@ -58,6 +58,7 @@ async function fetchHistoryForUser(userId: string): Promise<GameRecord[]> {
         vp: p.vp ?? 0,
         rank: p.rank!,
         playerId: p.id,
+        displayColor: (p as { display_color?: string | null }).display_color ?? null,
       }));
 
       return {
