@@ -122,6 +122,11 @@ const LobbyView = () => {
   }
 
   const inLobby = !!user && players.some((p) => p.user_id === user.id);
+  const myPlayer = user ? players.find((p) => p.user_id === user.id) : null;
+  const myPicksDone = isFreeMode
+    ? !!myPlayer?.chosen_faction
+    : (myPlayer?.token_picks?.length ?? 0) >= picksPerPlayer;
+  const needsToPick = !!myPlayer && !myPicksDone && !lobby?.started_at;
 
   return (
     <div className="min-h-screen relative">
@@ -236,6 +241,15 @@ const LobbyView = () => {
                 className="font-display text-sm uppercase tracking-[0.2em] glow-primary px-10 py-6 bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 Join This Lobby
+              </Button>
+            )}
+            {needsToPick && (
+              <Button
+                onClick={() => navigate(`/join/${inviteCode}`)}
+                size="lg"
+                className="font-display text-sm uppercase tracking-[0.2em] glow-primary px-10 py-6 bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                Resume Picking Your Faction
               </Button>
             )}
             <Button
