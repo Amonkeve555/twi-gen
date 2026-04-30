@@ -1,54 +1,83 @@
-## Goal
 
-Allow editing victory points and ranks on previously recorded games from the History page. Works for both local browser-stored games and online lobby games. For online games, only the original host or an admin may edit.
+# Ground TI4 content in official PDFs
 
-## User Experience
+Today, the Rules Assistant relies entirely on the LLM's training, and `src/data/factions.ts` is hand-curated. This plan replaces both with content traceable back to official PDFs you upload.
 
-On `/history`, each game card gets an **Edit** button (pencil icon) next to the existing delete button. Visibility rules:
+---
 
-- **Local games** (id starts with non-`online-`): always editable, always show Edit + Delete (current behavior preserved).
-- **Online games** (id `online-…`): show Edit only if the current user is the lobby host OR an admin. Otherwise the card stays read-only as today.
+## What you'll get
 
-Clicking **Edit** opens a modal dialog listing every player row with two inputs each: **VP** (number) and **Rank** (number). The dialog mirrors the styling of `ResultsEntry` (faction color swatch, Cinzel/Rajdhani typography, glass + imperial-border).
+1. An **Admin → Rules Sources** page where you upload one or more PDFs (Living Rules Reference, Prophecy of Kings, Codex I–IV, etc.). Each PDF becomes a "source" you can re-upload, rename, or delete.
+2. The **Rules Assistant** answers using **only** those PDFs (RAG). Every answer shows citations like *"Living Rules Reference, p. 42"* with the exact passage. If the PDFs don't cover a question, it says so instead of guessing.
+3. A **"Regenerate from PDFs"** action (admin-only) that re-derives `src/data/factions.ts` — abilities, starting tech, leaders, faction tech, promissory notes, commodities — by extracting structured data from the uploaded faction sections, then writes it back to the file as a one-time update you review.
 
-Footer actions:
-- **Cancel** — discard changes.
-- **Save** — persist edits, close dialog, refresh the list. Toast on success/failure.
+---
 
-The winner badge, sorting, and stats automatically reflect the new ranks once the data refreshes.
+## How it works (technical section)
 
-## Validation
+### Storage & data model
 
-- VP: integer 0–20 (matches existing entry form).
-- Rank: integer 1..N where N = number of players in the game.
-- Ranks do not need to be unique (we already allow ties in the entry form), but we warn if two players share rank 1 — non-blocking.
+- Supabase Storage bucket `rules-pdfs` (private; admin-only RLS).
+- New tables:
+  - `rules_sources` — one row per uploaded PDF (filename, label, page count, uploaded_by, status, error).
+  - `rules_chunks` — `source_id`, `page_start`, `page_end`, `section`, `content` (text), `embedding` (vector(1536)). Indexed with `ivfflat` for cosine similarity. Requires enabling the `vector` extension.
+- Both tables: admin-write via `has_role(... 'admin')`, public-read on `rules_chunks` only (so the chat function can query without service role).
 
-## Technical details
+### Ingestion pipeline (edge function `ingest-rules-pdf`)
 
-### Local games
-- Extend `useGameHistory` with `updateGame(id, updates: { players: { vp, rank }[] })` that rewrites the matching record in `localStorage` under `ti4-game-history` and updates state.
+Triggered after upload. Steps:
+1. Download PDF from Storage.
+2. Extract text + page numbers using `pdfjs-dist` (Deno-compatible, no native deps).
+3. Chunk by section heading + 800-token sliding windows with 100-token overlap; keep page range per chunk.
+4. Embed each chunk via Lovable AI Gateway (`google/text-embedding-004`, 1536 dims — free tier).
+5. Insert into `rules_chunks`. Update `rules_sources.status = 'ready'`.
+6. Stream progress back so the admin UI shows "Embedding 42/180 chunks…".
 
-### Online games
-- Add a Supabase RPC `update_lobby_results(p_lobby_id uuid, p_results jsonb)` (SECURITY DEFINER) that:
-  - Verifies `auth.uid()` is either the lobby's `host_user_id` or has the `admin` role via `has_role`.
-  - Iterates the `p_results` array `[{ player_id, vp, rank }, …]` and updates `lobby_players.vp` and `lobby_players.rank` for rows belonging to `p_lobby_id`.
-  - Returns `{ success: true }` or `{ error: '…' }`.
-- The History page strips the `online-` prefix to recover `lobby_id`, but each `PlayerResult` currently has no `player_id`. We extend `useOnlineGameHistory` to also expose the `lobby_players.id` per row (added to a parallel `_meta` field on `GameRecord`, kept optional so the local type stays unchanged).
-- After a successful save, call `refetch()` from `useOnlineGameHistory`.
+### Rules Assistant (updated `rules-chat` edge function)
 
-### Permissions UI
-- `useOnlineGameHistory` already loads each lobby's row; expose `host_user_id` per game so the History page can check `user.id === host_user_id`.
-- Use existing `useIsAdmin` hook to allow admin override.
+For every user message:
+1. Embed the question.
+2. Top-k (k=8) cosine search against `rules_chunks` across all enabled sources.
+3. Build a prompt: system instructions ("Answer only from the provided excerpts. If not covered, say so.") + numbered excerpts with `[Source: {label}, p. {page}]` tags.
+4. Stream the model response (keep current `google/gemini-3-flash-preview` + SSE).
+5. Return citations as a structured trailer the UI renders as clickable footnotes.
 
-### Files to add / change
-- `src/hooks/useGameHistory.ts` — add `updateGame`.
-- `src/hooks/useOnlineGameHistory.ts` — include `host_user_id` and per-player `lobby_player_id` in returned records; add an `updateOnlineGame` helper that calls the new RPC.
-- `src/types/gameHistory.ts` — add optional `hostUserId?: string` and per-player `playerId?: string` (online metadata).
-- `src/components/EditResultsDialog.tsx` (new) — modal with the VP/Rank grid, save/cancel.
-- `src/pages/History.tsx` — Edit button gated by permissions, opens the dialog, dispatches to local vs online updater.
-- New Supabase migration adding `public.update_lobby_results` RPC.
+UI changes in `src/pages/RulesAssistant.tsx`: render citation chips under each assistant message; clicking opens a modal with the exact excerpt and page number.
 
-### Out of scope
-- Editing player names, faction assignments, adding/removing players.
-- Editing completed lobbies' draft state (already covered by `reset_lobby_draft`).
-- Audit log of edits.
+### Faction data regeneration (admin tool)
+
+A new admin page button **"Regenerate factions from PDFs"** calls a new edge function `regenerate-factions`:
+1. For each of the 24 factions, retrieve all chunks tagged with that faction name (or whose section heading matches).
+2. Send to `google/gemini-2.5-pro` with a strict JSON schema matching the existing `Faction` interface in `src/data/factions.ts`.
+3. Validate with Zod, return the proposed file content.
+4. Admin reviews a diff in-app and clicks "Apply" — the function writes the result to a new table `faction_data_proposals` for the AI to commit to `src/data/factions.ts` in a follow-up agent loop (we don't write source files from edge functions). You'll see the diff and approve before the file changes.
+
+### Codex / Keleres handling
+
+Whatever's in the uploaded PDFs becomes available — including Codex III's Keleres if you upload it. The faction list in `factions.ts` will be extended automatically by the regeneration step.
+
+### Costs & limits
+
+- Embeddings: Gemini text-embedding-004 is free on the gateway.
+- Chat: per-message context grows by ~3k tokens of retrieved excerpts → still cheap on `gemini-3-flash-preview`.
+- PDF size cap: 50 MB per file (Storage limit is fine for any TI4 rulebook).
+
+---
+
+## Build order
+
+1. **Migration**: enable `vector` extension; create `rules_sources`, `rules_chunks`, storage bucket + RLS.
+2. **Admin UI**: `/admin/rules-sources` page — upload, list, delete, status badges.
+3. **Edge function `ingest-rules-pdf`**: extract → chunk → embed → insert.
+4. **Update `rules-chat`**: add retrieval step + citations; update RulesAssistant UI to render them.
+5. **Edge function `regenerate-factions`** + admin diff/apply flow.
+6. Smoke test with a single uploaded PDF before committing.
+
+---
+
+## What I need from you
+
+- Confirm this plan, then upload your PDF(s) — one or many, doesn't matter, you can add more later from the admin page.
+- The PDFs need to be ones you have the right to use (FFG/Asmodee living rules are publicly distributed, so that's fine).
+
+Reply with "Implement plan" to proceed, or tell me what to adjust.

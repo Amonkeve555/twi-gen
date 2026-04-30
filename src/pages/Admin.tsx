@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Link2, Search, Shield, Users as UsersIcon, Ghost } from "lucide-react";
+import { ArrowLeft, Link2, Search, Shield, Users as UsersIcon, Ghost, BookOpen } from "lucide-react";
+import RulesSourcesPanel from "@/components/admin/RulesSourcesPanel";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import StarField from "@/components/StarField";
@@ -223,12 +224,15 @@ const Admin = () => {
         </motion.div>
 
         <Tabs defaultValue="users" className="w-full">
-          <TabsList className="grid grid-cols-2 w-full max-w-md mx-auto mb-6 glass imperial-border">
+          <TabsList className="grid grid-cols-3 w-full max-w-2xl mx-auto mb-6 glass imperial-border">
             <TabsTrigger value="users" className="font-display text-xs uppercase tracking-[0.15em]">
               <UsersIcon className="mr-2 h-4 w-4" /> Users ({users.length})
             </TabsTrigger>
             <TabsTrigger value="guests" className="font-display text-xs uppercase tracking-[0.15em]">
               <Ghost className="mr-2 h-4 w-4" /> Guests ({identities.length})
+            </TabsTrigger>
+            <TabsTrigger value="rules" className="font-display text-xs uppercase tracking-[0.15em]">
+              <BookOpen className="mr-2 h-4 w-4" /> Rules PDFs
             </TabsTrigger>
           </TabsList>
 
@@ -329,6 +333,11 @@ const Admin = () => {
                 </div>
               )}
             </div>
+          </TabsContent>
+
+          {/* RULES PDFs TAB */}
+          <TabsContent value="rules">
+            <RulesSourcesPanel />
           </TabsContent>
         </Tabs>
       </div>

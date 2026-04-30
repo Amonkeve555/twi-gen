@@ -1,14 +1,23 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Send, Bot, User, Loader2 } from "lucide-react";
+import { ArrowLeft, Send, Bot, User, Loader2, BookOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import StarField from "@/components/StarField";
 import { toast } from "sonner";
 
-type Msg = { role: "user" | "assistant"; content: string };
+type Citation = {
+  n: number;
+  label: string;
+  page_start: number | null;
+  page_end: number | null;
+  excerpt: string;
+};
+
+type Msg = { role: "user" | "assistant"; content: string; citations?: Citation[] };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/rules-chat`;
 
@@ -24,10 +33,12 @@ const QUICK_QUESTIONS = [
 async function streamChat({
   messages,
   onDelta,
+  onCitations,
   onDone,
 }: {
   messages: Msg[];
   onDelta: (deltaText: string) => void;
+  onCitations: (cs: Citation[]) => void;
   onDone: () => void;
 }) {
   const resp = await fetch(CHAT_URL, {
@@ -55,6 +66,7 @@ async function streamChat({
   const decoder = new TextDecoder();
   let textBuffer = "";
   let streamDone = false;
+  let pendingEvent: string | null = null;
 
   while (!streamDone) {
     const { done, value } = await reader.read();
@@ -67,7 +79,12 @@ async function streamChat({
       textBuffer = textBuffer.slice(newlineIndex + 1);
 
       if (line.endsWith("\r")) line = line.slice(0, -1);
-      if (line.startsWith(":") || line.trim() === "") continue;
+      if (line.trim() === "") { pendingEvent = null; continue; }
+      if (line.startsWith(":")) continue;
+      if (line.startsWith("event: ")) {
+        pendingEvent = line.slice(7).trim();
+        continue;
+      }
       if (!line.startsWith("data: ")) continue;
 
       const jsonStr = line.slice(6).trim();
@@ -78,8 +95,13 @@ async function streamChat({
 
       try {
         const parsed = JSON.parse(jsonStr);
-        const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-        if (content) onDelta(content);
+        if (pendingEvent === "citations") {
+          if (Array.isArray(parsed.citations)) onCitations(parsed.citations);
+        } else {
+          const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+          if (content) onDelta(content);
+        }
+        pendingEvent = null;
       } catch {
         textBuffer = line + "\n" + textBuffer;
         break;
@@ -88,6 +110,7 @@ async function streamChat({
   }
 
   if (textBuffer.trim()) {
+
     for (let raw of textBuffer.split("\n")) {
       if (!raw) continue;
       if (raw.endsWith("\r")) raw = raw.slice(0, -1);
@@ -113,6 +136,7 @@ const RulesAssistant = () => {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [activeCitation, setActiveCitation] = useState<Citation | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -138,10 +162,21 @@ const RulesAssistant = () => {
       });
     };
 
+    const attachCitations = (cs: Citation[]) => {
+      setMessages((prev) => {
+        const last = prev[prev.length - 1];
+        if (last?.role === "assistant") {
+          return prev.map((m, i) => (i === prev.length - 1 ? { ...m, citations: cs } : m));
+        }
+        return prev;
+      });
+    };
+
     try {
       await streamChat({
         messages: [...messages, userMsg],
         onDelta: (chunk) => upsertAssistant(chunk),
+        onCitations: attachCitations,
         onDone: () => setIsLoading(false),
       });
     } catch (e) {
@@ -210,9 +245,36 @@ const RulesAssistant = () => {
                 }`}
               >
                 {msg.role === "assistant" ? (
-                  <div className="prose prose-sm prose-invert max-w-none font-body text-sm [&_p]:mb-2 [&_ul]:mb-2 [&_ol]:mb-2 [&_li]:mb-1 [&_h1]:text-primary [&_h2]:text-primary [&_h3]:text-primary [&_strong]:text-primary [&_code]:bg-primary/10 [&_code]:text-primary [&_code]:px-1 [&_code]:rounded">
-                    <ReactMarkdown>{msg.content}</ReactMarkdown>
-                  </div>
+                  <>
+                    <div className="prose prose-sm prose-invert max-w-none font-body text-sm [&_p]:mb-2 [&_ul]:mb-2 [&_ol]:mb-2 [&_li]:mb-1 [&_h1]:text-primary [&_h2]:text-primary [&_h3]:text-primary [&_strong]:text-primary [&_code]:bg-primary/10 [&_code]:text-primary [&_code]:px-1 [&_code]:rounded">
+                      <ReactMarkdown>{msg.content}</ReactMarkdown>
+                    </div>
+                    {msg.citations && msg.citations.length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-border/50">
+                        <div className="font-display text-[10px] uppercase tracking-[0.15em] text-muted-foreground mb-1.5 flex items-center gap-1">
+                          <BookOpen className="h-3 w-3" /> Sources
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {msg.citations.map((c) => {
+                            const pg = c.page_start
+                              ? c.page_end && c.page_end !== c.page_start
+                                ? `pp. ${c.page_start}–${c.page_end}`
+                                : `p. ${c.page_start}`
+                              : "";
+                            return (
+                              <button
+                                key={c.n}
+                                onClick={() => setActiveCitation(c)}
+                                className="text-[11px] font-body px-2 py-0.5 rounded border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
+                              >
+                                [{c.n}] {c.label}{pg ? `, ${pg}` : ""}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <p className="font-body text-sm">{msg.content}</p>
                 )}
@@ -269,6 +331,30 @@ const RulesAssistant = () => {
           </Button>
         </div>
       </div>
+
+      <Dialog open={!!activeCitation} onOpenChange={(o) => !o && setActiveCitation(null)}>
+        <DialogContent className="glass imperial-border max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="font-display text-base uppercase tracking-[0.15em] text-primary">
+              {activeCitation && (
+                <>
+                  [{activeCitation.n}] {activeCitation.label}
+                  {activeCitation.page_start && (
+                    <span className="text-muted-foreground text-sm ml-2 normal-case tracking-normal">
+                      {activeCitation.page_end && activeCitation.page_end !== activeCitation.page_start
+                        ? `pp. ${activeCitation.page_start}–${activeCitation.page_end}`
+                        : `p. ${activeCitation.page_start}`}
+                    </span>
+                  )}
+                </>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          <p className="font-body text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed">
+            {activeCitation?.excerpt}
+          </p>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
