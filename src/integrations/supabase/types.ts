@@ -90,6 +90,7 @@ export type Database = {
           lobby_id: string
           player_name: string
           rank: number | null
+          seat_index: number | null
           session_id: string
           token_picks: number[] | null
           user_id: string | null
@@ -104,6 +105,7 @@ export type Database = {
           lobby_id: string
           player_name: string
           rank?: number | null
+          seat_index?: number | null
           session_id: string
           token_picks?: number[] | null
           user_id?: string | null
@@ -118,6 +120,7 @@ export type Database = {
           lobby_id?: string
           player_name?: string
           rank?: number | null
+          seat_index?: number | null
           session_id?: string
           token_picks?: number[] | null
           user_id?: string | null
@@ -283,6 +286,10 @@ export type Database = {
           nickname: string
         }[]
       }
+      assign_seat: {
+        Args: { p_lobby_id: string; p_player_id: string; p_seat_index: number }
+        Returns: Json
+      }
       claim_faction: {
         Args: { p_faction: Json; p_lobby_id: string; p_player_id: string }
         Returns: Json
@@ -292,6 +299,7 @@ export type Database = {
         Args: { p_lobby_id: string; p_player_id: string; p_token_id: number }
         Returns: Json
       }
+      clear_seats: { Args: { p_lobby_id: string }; Returns: Json }
       get_forbidden_tokens: { Args: { p_lobby_id: string }; Returns: number[] }
       get_last_played_faction_vs_opponents: {
         Args: { p_opponent_ids: string[]; p_user_id: string }
@@ -318,6 +326,7 @@ export type Database = {
         }[]
       }
       reset_lobby_draft: { Args: { p_lobby_id: string }; Returns: Json }
+      shuffle_seats: { Args: { p_lobby_id: string }; Returns: Json }
       update_lobby_results: {
         Args: { p_lobby_id: string; p_results: Json }
         Returns: Json
