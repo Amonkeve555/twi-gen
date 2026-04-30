@@ -1,14 +1,23 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Send, Bot, User, Loader2 } from "lucide-react";
+import { ArrowLeft, Send, Bot, User, Loader2, BookOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import StarField from "@/components/StarField";
 import { toast } from "sonner";
 
-type Msg = { role: "user" | "assistant"; content: string };
+type Citation = {
+  n: number;
+  label: string;
+  page_start: number | null;
+  page_end: number | null;
+  excerpt: string;
+};
+
+type Msg = { role: "user" | "assistant"; content: string; citations?: Citation[] };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/rules-chat`;
 
