@@ -112,6 +112,15 @@ const MapSetupHex = ({ setup, seats, seatOrder, onSeatClick, compact }: Props) =
         };
       }
       case "slice": {
+        // In seating mode (seatOrder provided), slice tiles are blank — only the
+        // home system carries the player's color.
+        if (seatOrder) {
+          return {
+            fill: "hsl(220 30% 12% / 0.4)",
+            stroke: "hsl(220 25% 35% / 0.5)",
+            strokeWidth: 1,
+          };
+        }
         const color = PLAYER_COLORS[(c.player ?? 1) - 1] ?? PLAYER_COLORS[0];
         return {
           fill: `${color.replace(")", " / 0.18)")}`,
