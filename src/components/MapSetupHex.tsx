@@ -241,14 +241,18 @@ const MapSetupHex = ({ setup, seats, seatOrder, onSeatClick, compact, tileContro
             const sub = subLabel(c);
             const seatIdx = c.role === "home" ? seatIndexByCoord.get(`${c.q},${c.r}`) : undefined;
             const isClickableSeat = seatIdx !== undefined && !!onSeatClick;
+            const isClickableTile =
+              !!onTileClick && c.role !== "hyperlane" && !isClickableSeat;
             const handleClick = isClickableSeat
               ? () => onSeatClick!(seatIdx!, seats?.[seatIdx!])
+              : isClickableTile
+              ? () => onTileClick!(c.q, c.r, tileControlSeat(c))
               : undefined;
             return (
               <Tooltip key={i}>
                 <TooltipTrigger asChild>
                   <g
-                    style={{ cursor: isClickableSeat ? "pointer" : "default" }}
+                    style={{ cursor: isClickableSeat || isClickableTile ? "pointer" : "default" }}
                     onClick={handleClick}
                   >
                     <polygon
