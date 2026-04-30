@@ -27,6 +27,13 @@ const GameDay = () => {
   const picksPerPlayer = settings?.picks_per_player ?? 1;
   const isHost = !!user && lobby?.host_user_id === user.id;
 
+  // Auto-start the clock if host enters Game Day without explicitly starting.
+  useEffect(() => {
+    if (!lobby || !isHost) return;
+    if (lobby.started_at || lobby.status === "completed") return;
+    supabase.rpc("start_game", { p_lobby_id: lobby.id });
+  }, [lobby?.id, lobby?.started_at, lobby?.status, isHost]);
+
   const myPlayer = players.find((p) => p.user_id === user?.id);
   const myFactions = (myPlayer?.assigned_factions as unknown as Faction[]) ?? [];
   const hasChosen = !!myPlayer?.chosen_faction;
