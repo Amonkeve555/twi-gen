@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RotateCcw, Scroll, Users, Gamepad2, BookOpen, Bot, BarChart3, Clock, Check, Trophy, Shield } from "lucide-react";
+import { RotateCcw, Scroll, Users, Gamepad2, BookOpen, Bot, BarChart3, Clock, Check, Trophy, Shield, Hexagon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import tiEmblem from "@/assets/ti-emblem.png";
 import { Button } from "@/components/ui/button";
@@ -378,6 +378,15 @@ const Index = () => {
                   >
                     <BarChart3 className="mr-2 h-3.5 w-3.5" />
                     Stats
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate("/map-setup")}
+                    className="col-span-2 font-display text-xs uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40 py-4"
+                  >
+                    <Hexagon className="mr-2 h-3.5 w-3.5" />
+                    Map Setup
                   </Button>
                   {isAdmin && (
                     <Button

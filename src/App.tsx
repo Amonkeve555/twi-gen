@@ -13,6 +13,7 @@ import GameDay from "./pages/GameDay.tsx";
 import MyLobbies from "./pages/MyLobbies.tsx";
 import FactionGuide from "./pages/FactionGuide.tsx";
 import RulesAssistant from "./pages/RulesAssistant.tsx";
+import MapSetup from "./pages/MapSetup.tsx";
 import Stats from "./pages/Stats.tsx";
 import Auth from "./pages/Auth.tsx";
 import ProfileSetup from "./pages/ProfileSetup.tsx";
@@ -33,6 +34,7 @@ const App = () => (
           <Route path="/profile-setup" element={<AuthGuard requireProfile={false}><ProfileSetup /></AuthGuard>} />
           <Route path="/factions" element={<FactionGuide />} />
           <Route path="/rules" element={<RulesAssistant />} />
+          <Route path="/map-setup" element={<MapSetup />} />
           <Route path="/history" element={<AuthGuard><History /></AuthGuard>} />
           <Route path="/stats" element={<AuthGuard><Stats /></AuthGuard>} />
           <Route path="/create" element={<AuthGuard><CreateLobby /></AuthGuard>} />
