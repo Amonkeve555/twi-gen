@@ -9,13 +9,21 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import ColorSwatchPicker from "@/components/ColorSwatchPicker";
+import { resolveDisplayColor } from "@/lib/playerColors";
 import type { GameRecord } from "@/types/gameHistory";
+
+export interface EditResultsRow {
+  vp: number;
+  rank: number;
+  displayColor: string | null;
+}
 
 interface EditResultsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   game: GameRecord | null;
-  onSave: (updates: { vp: number; rank: number }[]) => Promise<void> | void;
+  onSave: (updates: EditResultsRow[]) => Promise<void> | void;
 }
 
 const EditResultsDialog = ({
