@@ -3,8 +3,7 @@
 // Triggered by the client right after upload.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-// pdfjs-dist legacy build works in Deno without DOM
-import * as pdfjsLib from "https://esm.sh/pdfjs-dist@4.0.379/legacy/build/pdf.mjs";
+import { extractText, getDocumentProxy } from "https://esm.sh/unpdf@0.12.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -22,28 +21,13 @@ const EMBED_URL = "https://ai.gateway.lovable.dev/v1/embeddings";
 const TARGET_CHARS = 2400; // ~600 tokens
 const OVERLAP_CHARS = 300;
 
-type Pdfjs = typeof pdfjsLib;
 async function extractPagesText(bytes: Uint8Array): Promise<string[]> {
-  // disable worker
-  (pdfjsLib as Pdfjs).GlobalWorkerOptions.workerSrc = "";
-  const loadingTask = (pdfjsLib as Pdfjs).getDocument({
-    data: bytes,
-    disableFontFace: true,
-    useSystemFonts: false,
-    isEvalSupported: false,
-  });
-  const doc = await loadingTask.promise;
-  const pages: string[] = [];
-  for (let i = 1; i <= doc.numPages; i++) {
-    const page = await doc.getPage(i);
-    const tc = await page.getTextContent();
-    const text = (tc.items as Array<{ str?: string }>)
-      .map((it) => (typeof it.str === "string" ? it.str : ""))
-      .join(" ")
-      .replace(/\s+/g, " ")
-      .trim();
-    pages.push(text);
-  }
+  const pdf = await getDocumentProxy(bytes);
+  const { text } = await extractText(pdf, { mergePages: false });
+  // unpdf returns string[] when mergePages: false
+  const pages = (Array.isArray(text) ? text : [text as string]).map((t) =>
+    (t ?? "").replace(/\s+/g, " ").trim()
+  );
   return pages;
 }
 
