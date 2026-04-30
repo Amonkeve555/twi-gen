@@ -242,7 +242,7 @@ const MapSetupHex = ({ setup, seats, seatOrder, onSeatClick, compact }: Props) =
                         fontWeight={c.role === "home" || c.role === "mecatol" ? 700 : 500}
                         fill={
                           c.role === "mecatol"
-                            ? "hsl(42 90% 70%)"
+                            ? "hsl(190 90% 80%)"
                             : c.role === "home"
                             ? "hsl(0 0% 98%)"
                             : c.role === "hyperlane"
