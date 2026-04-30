@@ -41,7 +41,10 @@ export function useGameHistory() {
   }, []);
 
   const updateGame = useCallback(
-    (id: string, updates: { vp: number; rank: number }[]) => {
+    (
+      id: string,
+      updates: { vp: number; rank: number; displayColor?: string | null }[]
+    ) => {
       setHistory((prev) => {
         const next = prev.map((g) => {
           if (g.id !== id) return g;
@@ -51,6 +54,10 @@ export function useGameHistory() {
               ...p,
               vp: updates[i]?.vp ?? p.vp,
               rank: updates[i]?.rank ?? p.rank,
+              displayColor:
+                updates[i]?.displayColor !== undefined
+                  ? updates[i].displayColor
+                  : p.displayColor,
             })),
           };
         });
