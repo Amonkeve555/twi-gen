@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import StarField from "@/components/StarField";
 import EditResultsDialog from "@/components/EditResultsDialog";
 import HistoryMiniMap from "@/components/HistoryMiniMap";
+import { formatDurationShort } from "@/components/GameTimer";
 import { useGameHistory } from "@/hooks/useGameHistory";
 import { useOnlineGameHistory } from "@/hooks/useOnlineGameHistory";
 import { useAuth } from "@/hooks/useAuth";
