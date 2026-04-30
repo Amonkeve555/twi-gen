@@ -250,6 +250,13 @@ const History = () => {
           </div>
         )}
       </div>
+
+      <EditResultsDialog
+        open={!!editing}
+        onOpenChange={(o) => { if (!o) setEditing(null); }}
+        game={editing}
+        onSave={handleSaveEdit}
+      />
     </div>
   );
 };
