@@ -83,7 +83,7 @@ const MapSetup = () => {
             Legend
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 font-body text-sm">
-            <LegendItem color="hsl(42 85% 55%)" label="Mecatol Rex (center)" />
+            <LegendItem color="hsl(190 80% 60%)" label="Mecatol Rex (center)" />
             <LegendItem color="hsl(0 75% 60%)" label="Home Systems" filled />
             <LegendItem color="hsl(135 55% 50%)" label="Player Slice" subtle />
             <LegendItem color="hsl(220 25% 50%)" label="Equidistant" />

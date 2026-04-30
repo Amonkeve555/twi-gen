@@ -95,8 +95,8 @@ const HistoryMiniMap = ({ players, playerCount }: Props) => {
           let dash: string | undefined;
 
           if (c.role === "mecatol") {
-            fill = "hsl(42 85% 55% / 0.3)";
-            stroke = "hsl(42 85% 55%)";
+            fill = "hsl(190 70% 45% / 0.35)";
+            stroke = "hsl(190 80% 60%)";
             strokeWidth = 1.5;
           } else if (c.role === "home") {
             if (occupant) {
