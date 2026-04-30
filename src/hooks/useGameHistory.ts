@@ -40,5 +40,26 @@ export function useGameHistory() {
     saveHistory([]);
   }, []);
 
-  return { history, addGame, deleteGame, clearHistory };
+  const updateGame = useCallback(
+    (id: string, updates: { vp: number; rank: number }[]) => {
+      setHistory((prev) => {
+        const next = prev.map((g) => {
+          if (g.id !== id) return g;
+          return {
+            ...g,
+            players: g.players.map((p, i) => ({
+              ...p,
+              vp: updates[i]?.vp ?? p.vp,
+              rank: updates[i]?.rank ?? p.rank,
+            })),
+          };
+        });
+        saveHistory(next);
+        return next;
+      });
+    },
+    []
+  );
+
+  return { history, addGame, deleteGame, updateGame, clearHistory };
 }

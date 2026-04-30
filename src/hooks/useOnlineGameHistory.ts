@@ -57,12 +57,14 @@ async function fetchHistoryForUser(userId: string): Promise<GameRecord[]> {
         faction: p.chosen_faction as unknown as Faction,
         vp: p.vp ?? 0,
         rank: p.rank!,
+        playerId: p.id,
       }));
 
       return {
         id: `online-${lobby.id}`,
         date: lobby.created_at,
         players: playerResults,
+        hostUserId: lobby.host_user_id ?? undefined,
       };
     })
     .filter(Boolean) as GameRecord[];
