@@ -72,7 +72,7 @@ const SeatingPanel = ({ lobbyId, players, isHost, playerCount }: Props) => {
     const { data, error } = await supabase.rpc("assign_seat", {
       p_lobby_id: lobbyId,
       p_player_id: playerId,
-      p_seat_index: seatIndex,
+      p_seat_index: seatIndex as number,
     });
     setBusy(false);
     if (error) {
