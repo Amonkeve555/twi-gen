@@ -1,96 +1,54 @@
 ## Goal
 
-Make the no-repeat draft rule **opponent-aware** instead of global. A faction is only blocked for a player if they last played it in a completed game where **every** authenticated opponent currently in the new lobby was also present.
+Allow editing victory points and ranks on previously recorded games from the History page. Works for both local browser-stored games and online lobby games. For online games, only the original host or an admin may edit.
 
-This way, the rule "you can't play the same race twice in a row" follows the *group*, not the player. Joining a different group resets your repeat history with that group.
+## User Experience
 
-## Behavior
+On `/history`, each game card gets an **Edit** button (pencil icon) next to the existing delete button. Visibility rules:
 
-For each authenticated player A in a no-repeat lobby L:
-- Let `opponents(A, L)` = the set of other authenticated `user_id`s currently in lobby L.
-- If `opponents(A, L)` is empty (A is the only authenticated player), the rule does nothing for A.
-- Find A's most recent **completed** lobby P where:
-  - A participated, and
-  - **Every** user in `opponents(A, L)` also participated in P.
-- If such a P exists, block the faction A chose in P. Otherwise, no block.
+- **Local games** (id starts with non-`online-`): always editable, always show Edit + Delete (current behavior preserved).
+- **Online games** (id `online-…`): show Edit only if the current user is the lobby host OR an admin. Otherwise the card stays read-only as today.
 
-Existing fallback still applies: if the block would leave A with zero options, silently relax it.
+Clicking **Edit** opens a modal dialog listing every player row with two inputs each: **VP** (number) and **Rank** (number). The dialog mirrors the styling of `ResultsEntry` (faction color swatch, Cinzel/Rajdhani typography, glass + imperial-border).
 
-This **replaces** the current global no-repeat behavior — the two no-repeat modes (`free_no_repeat`, `token_no_repeat`) keep their names and UI, only the lookup logic changes.
+Footer actions:
+- **Cancel** — discard changes.
+- **Save** — persist edits, close dialog, refresh the list. Toast on success/failure.
 
-## Key edge cases
+The winner badge, sorting, and stats automatically reflect the new ranks once the data refreshes.
 
-- Guest (non-authenticated) opponents are ignored when computing the opponent set — no `user_id` means we can't track them.
-- If A is the only authenticated player in the lobby, no faction is blocked for A.
-- For `token_no_repeat`, the forbidden-tokens list is computed per-caller (already the case via `auth.uid()`), so different players see different blocks. ✅ already structured correctly.
-- Token mapping is generated once at lobby creation. Forbidden tokens are still derived from that mapping per player at claim time — no change to mapping generation.
+## Validation
 
-## Implementation
+- VP: integer 0–20 (matches existing entry form).
+- Rank: integer 1..N where N = number of players in the game.
+- Ranks do not need to be unique (we already allow ties in the entry form), but we warn if two players share rank 1 — non-blocking.
 
-All changes are server-side SQL — frontend keeps calling the same RPCs.
+## Technical details
 
-### 1. Replace `get_last_played_faction_name`
+### Local games
+- Extend `useGameHistory` with `updateGame(id, updates: { players: { vp, rank }[] })` that rewrites the matching record in `localStorage` under `ti4-game-history` and updates state.
 
-Replace the single-arg function with a new signature that takes the opponent set:
+### Online games
+- Add a Supabase RPC `update_lobby_results(p_lobby_id uuid, p_results jsonb)` (SECURITY DEFINER) that:
+  - Verifies `auth.uid()` is either the lobby's `host_user_id` or has the `admin` role via `has_role`.
+  - Iterates the `p_results` array `[{ player_id, vp, rank }, …]` and updates `lobby_players.vp` and `lobby_players.rank` for rows belonging to `p_lobby_id`.
+  - Returns `{ success: true }` or `{ error: '…' }`.
+- The History page strips the `online-` prefix to recover `lobby_id`, but each `PlayerResult` currently has no `player_id`. We extend `useOnlineGameHistory` to also expose the `lobby_players.id` per row (added to a parallel `_meta` field on `GameRecord`, kept optional so the local type stays unchanged).
+- After a successful save, call `refetch()` from `useOnlineGameHistory`.
 
-```sql
-CREATE OR REPLACE FUNCTION public.get_last_played_faction_vs_opponents(
-  p_user_id uuid,
-  p_opponent_ids uuid[]
-) RETURNS text
-```
+### Permissions UI
+- `useOnlineGameHistory` already loads each lobby's row; expose `host_user_id` per game so the History page can check `user.id === host_user_id`.
+- Use existing `useIsAdmin` hook to allow admin override.
 
-Logic:
-- If `p_opponent_ids` is empty/null → return NULL (no block).
-- Find the most recent completed lobby where:
-  - `lobby_players.user_id = p_user_id` AND `chosen_faction IS NOT NULL`, AND
-  - For every `oid` in `p_opponent_ids`, there exists a `lobby_players` row in that same lobby with `user_id = oid`.
-- Return that row's `chosen_faction->>'name'`, or NULL.
+### Files to add / change
+- `src/hooks/useGameHistory.ts` — add `updateGame`.
+- `src/hooks/useOnlineGameHistory.ts` — include `host_user_id` and per-player `lobby_player_id` in returned records; add an `updateOnlineGame` helper that calls the new RPC.
+- `src/types/gameHistory.ts` — add optional `hostUserId?: string` and per-player `playerId?: string` (online metadata).
+- `src/components/EditResultsDialog.tsx` (new) — modal with the VP/Rank grid, save/cancel.
+- `src/pages/History.tsx` — Edit button gated by permissions, opens the dialog, dispatches to local vs online updater.
+- New Supabase migration adding `public.update_lobby_results` RPC.
 
-SQL sketch:
-```sql
-SELECT (lp.chosen_faction->>'name')
-FROM public.lobby_players lp
-JOIN public.lobbies l ON l.id = lp.lobby_id
-WHERE lp.user_id = p_user_id
-  AND l.status = 'completed'
-  AND lp.chosen_faction IS NOT NULL
-  AND NOT EXISTS (
-    SELECT unnest(p_opponent_ids) AS oid
-    EXCEPT
-    SELECT lp2.user_id FROM public.lobby_players lp2
-    WHERE lp2.lobby_id = lp.lobby_id AND lp2.user_id IS NOT NULL
-  )
-ORDER BY l.created_at DESC
-LIMIT 1;
-```
-
-Keep the old `get_last_played_faction_name` as a thin wrapper that calls the new function with an empty array, OR drop it after updating callers — drop it since `claim_faction` and `get_forbidden_tokens` are the only callers.
-
-### 2. Update `claim_faction`
-
-Inside the `free_no_repeat` branch, before the existing check:
-- Build `v_opponents uuid[]` = all `user_id` values from `lobby_players` where `lobby_id = p_lobby_id AND id <> p_player_id AND user_id IS NOT NULL`.
-- Call `get_last_played_faction_vs_opponents(v_player_user_id, v_opponents)` instead of the old global lookup.
-- Rest of the logic (taken-check, fallback) unchanged.
-
-### 3. Update `get_forbidden_tokens`
-
-- Build `v_opponents` = all `user_id` from `lobby_players` for `p_lobby_id` excluding the caller (`auth.uid()`), where `user_id IS NOT NULL`.
-- Call `get_last_played_faction_vs_opponents(v_user_id, v_opponents)` to get `v_last_faction`.
-- Rest of the function (mapping lookup, fallback if all unclaimed are forbidden) unchanged.
-
-### 4. Frontend
-
-No changes. `claim_faction`, `claim_token`, and `get_forbidden_tokens` keep their signatures. The picker UI's "Played last game" / "Repeat allowed" badges remain accurate — they just now reflect group-aware history.
-
-### 5. Memory update
-
-Update `mem://features/draft-mechanic` to document the per-opponent semantics so future sessions know the rule is group-scoped, not global.
-
-## Files touched
-
-- **Migration** — drop `get_last_played_faction_name`; create `get_last_played_faction_vs_opponents`; replace `claim_faction` and `get_forbidden_tokens` to compute the opponent set and call the new helper.
-- `mem://features/draft-mechanic` — document the new rule.
-
-No frontend or schema changes.
+### Out of scope
+- Editing player names, faction assignments, adding/removing players.
+- Editing completed lobbies' draft state (already covered by `reset_lobby_draft`).
+- Audit log of edits.
