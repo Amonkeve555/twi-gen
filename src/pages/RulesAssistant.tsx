@@ -161,10 +161,21 @@ const RulesAssistant = () => {
       });
     };
 
+    const attachCitations = (cs: Citation[]) => {
+      setMessages((prev) => {
+        const last = prev[prev.length - 1];
+        if (last?.role === "assistant") {
+          return prev.map((m, i) => (i === prev.length - 1 ? { ...m, citations: cs } : m));
+        }
+        return prev;
+      });
+    };
+
     try {
       await streamChat({
         messages: [...messages, userMsg],
         onDelta: (chunk) => upsertAssistant(chunk),
+        onCitations: attachCitations,
         onDone: () => setIsLoading(false),
       });
     } catch (e) {
