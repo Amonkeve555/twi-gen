@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import StarField from "@/components/StarField";
 import MapSetupHex, { type SeatOccupant } from "@/components/MapSetupHex";
 import TileControlLeaderboard from "@/components/TileControlLeaderboard";
+import GameTimer from "@/components/GameTimer";
 import { MAP_SETUPS, getHomeSeats } from "@/data/mapSetups";
 import { useLobby } from "@/hooks/useLobby";
 import { useAuth } from "@/hooks/useAuth";
