@@ -68,20 +68,25 @@ const JoinLobby = () => {
 
   const isFull = players.length >= (settings?.max_players ?? 99);
 
-  // Resume in-progress pick
+  // Resume in-progress pick — re-sync whenever the player row changes
   useEffect(() => {
-    if (existingPlayer && phase === "intro") {
-      const picks = existingPlayer.token_picks ?? [];
-      const factions = (existingPlayer.assigned_factions as unknown as Faction[]) ?? [];
-      setPlayerId(existingPlayer.id);
-      setTokenPicks(picks);
-      setAssignedFactions(factions);
-      const isDone = isFreeMode
-        ? !!existingPlayer.chosen_faction
-        : picks.length >= picksPerPlayer;
-      setPhase(isDone ? "done" : "pick");
-    }
-  }, [existingPlayer, phase, picksPerPlayer, isFreeMode]);
+    if (!existingPlayer) return;
+    const picks = existingPlayer.token_picks ?? [];
+    const factions = (existingPlayer.assigned_factions as unknown as Faction[]) ?? [];
+    setPlayerId(existingPlayer.id);
+    setTokenPicks(picks);
+    setAssignedFactions(factions);
+    const isDone = isFreeMode
+      ? !!existingPlayer.chosen_faction
+      : picks.length >= picksPerPlayer;
+    setPhase((prev) => {
+      // Never get stuck on "done" if picks are actually incomplete
+      if (!isDone) return "pick";
+      // Don't bounce a finished player back from "done" view
+      if (prev === "done") return "done";
+      return "done";
+    });
+  }, [existingPlayer, picksPerPlayer, isFreeMode]);
 
   // Fetch user's last played faction vs current authenticated opponents (for no-repeat modes)
   useEffect(() => {
