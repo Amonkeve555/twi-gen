@@ -67,6 +67,16 @@ const JoinLobby = () => {
   }, [players, pendingFaction, profile?.nickname]);
 
   const isFull = players.length >= (settings?.max_players ?? 99);
+  const existingPlayerPicksDone = existingPlayer
+    ? isFreeMode
+      ? !!existingPlayer.chosen_faction
+      : (existingPlayer.token_picks?.length ?? 0) >= picksPerPlayer
+    : false;
+  const effectivePhase: JoinPhase = existingPlayer
+    ? existingPlayerPicksDone
+      ? "done"
+      : "pick"
+    : phase;
 
   // Resume in-progress pick — re-sync whenever the player row changes
   useEffect(() => {
@@ -284,7 +294,7 @@ const JoinLobby = () => {
           <div className="imperial-divider w-48 mx-auto mt-4" />
         </motion.div>
 
-        {phase === "intro" && !existingPlayer && (
+        {effectivePhase === "intro" && !existingPlayer && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
             {isFull ? (
               <div className="glass imperial-border rounded p-6 text-center">
@@ -311,7 +321,7 @@ const JoinLobby = () => {
           </motion.div>
         )}
 
-        {phase === "pick" && (
+        {effectivePhase === "pick" && existingPlayer && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
             <div className="text-center glass imperial-border rounded p-4">
               <p className="text-muted-foreground text-base font-body uppercase tracking-[0.15em] mb-1">
@@ -350,7 +360,7 @@ const JoinLobby = () => {
           </motion.div>
         )}
 
-        {phase === "done" && (
+        {effectivePhase === "done" && existingPlayer && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
             <h2 className="font-display text-base uppercase tracking-[0.3em] text-primary text-glow text-center">
               Your Assigned Factions
