@@ -35,10 +35,10 @@ const JoinLobby = () => {
   const [lastFactionName, setLastFactionName] = useState<string | null>(null);
   const [pendingFaction, setPendingFaction] = useState<string | null>(null);
   const [revealedFaction, setRevealedFaction] = useState<Faction | null>(null);
-  const existingPlayer = players.find((p) => p.user_id === user?.id);
+  const sessionId = useMemo(() => getSessionId(), []);
+  const existingPlayer = players.find((p) => p.user_id === user?.id) ?? players.find((p) => p.session_id === sessionId);
 
   const settings = lobby?.settings as LobbySettings | undefined;
-  const tokenMapping = lobby?.token_mapping as Record<string, Faction> | null;
   const totalTokens = settings?.factions?.length ?? 0;
   const picksPerPlayer = settings?.picks_per_player ?? 1;
   const draftMode = settings?.draft_mode ?? "token";
@@ -88,6 +88,20 @@ const JoinLobby = () => {
     });
   }, [existingPlayer, picksPerPlayer, isFreeMode]);
 
+  // If the player started as a guest on this device, link that row to their account before resuming.
+  useEffect(() => {
+    if (!user || !existingPlayer || existingPlayer.user_id || existingPlayer.session_id !== sessionId) return;
+
+    supabase
+      .from("lobby_players")
+      .update({ user_id: user.id })
+      .eq("id", existingPlayer.id)
+      .is("user_id", null)
+      .then(({ error: err }) => {
+        if (err) console.error("Failed to claim existing player row", err);
+      });
+  }, [existingPlayer, sessionId, user]);
+
   // Fetch user's last played faction vs current authenticated opponents (for no-repeat modes)
   useEffect(() => {
     if (!isNoRepeat || !user || !lobby) {
@@ -132,7 +146,6 @@ const JoinLobby = () => {
   const joinLobby = async () => {
     if (!lobby || !user || !profile?.nickname) return;
     setJoining(true);
-    const sessionId = getSessionId();
     const { data, error: err } = await supabase
       .from("lobby_players")
       .insert({
@@ -387,9 +400,6 @@ const JoinLobby = () => {
             </div>
           </motion.div>
         )}
-
-        {/* keep tokenMapping referenced */}
-        {false && tokenMapping && null}
       </div>
 
       <FactionDetailDialog
