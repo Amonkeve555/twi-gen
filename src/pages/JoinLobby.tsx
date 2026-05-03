@@ -39,7 +39,6 @@ const JoinLobby = () => {
   const existingPlayer = players.find((p) => p.user_id === user?.id) ?? players.find((p) => p.session_id === sessionId);
 
   const settings = lobby?.settings as LobbySettings | undefined;
-  const tokenMapping = lobby?.token_mapping as Record<string, Faction> | null;
   const totalTokens = settings?.factions?.length ?? 0;
   const picksPerPlayer = settings?.picks_per_player ?? 1;
   const draftMode = settings?.draft_mode ?? "token";
@@ -401,9 +400,6 @@ const JoinLobby = () => {
             </div>
           </motion.div>
         )}
-
-        {/* keep tokenMapping referenced */}
-        {false && tokenMapping && null}
       </div>
 
       <FactionDetailDialog
