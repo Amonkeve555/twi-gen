@@ -10,6 +10,7 @@ import GameTimer from "@/components/GameTimer";
 import { supabase } from "@/integrations/supabase/client";
 import { useLobby, type LobbySettings } from "@/hooks/useLobby";
 import { useAuth } from "@/hooks/useAuth";
+import { getSessionId } from "@/lib/sessionId";
 import type { Faction } from "@/data/factions";
 
 const LobbyView = () => {
@@ -21,6 +22,7 @@ const LobbyView = () => {
   const [resetting, setResetting] = useState(false);
   const [starting, setStarting] = useState(false);
   const { user } = useAuth();
+  const sessionId = useState(() => getSessionId())[0];
 
   const settings = lobby?.settings as LobbySettings | undefined;
   const picksPerPlayer = settings?.picks_per_player ?? 1;
@@ -121,8 +123,8 @@ const LobbyView = () => {
     );
   }
 
-  const inLobby = !!user && players.some((p) => p.user_id === user.id);
-  const myPlayer = user ? players.find((p) => p.user_id === user.id) : null;
+  const inLobby = players.some((p) => p.user_id === user?.id || p.session_id === sessionId);
+  const myPlayer = players.find((p) => p.user_id === user?.id) ?? players.find((p) => p.session_id === sessionId) ?? null;
   const myPicksDone = isFreeMode
     ? !!myPlayer?.chosen_faction
     : (myPlayer?.token_picks?.length ?? 0) >= picksPerPlayer;
