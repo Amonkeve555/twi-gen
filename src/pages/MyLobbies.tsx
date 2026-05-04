@@ -235,6 +235,21 @@ const MyLobbies = () => {
           </div>
         </motion.div>
       </div>
+      {editing && (
+        <EditGameDateDialog
+          lobbyId={editing.id}
+          currentDate={editing.game_date}
+          open={!!editing}
+          onOpenChange={(open) => {
+            if (!open) setEditing(null);
+          }}
+          onSaved={(iso) => {
+            setLobbies((prev) =>
+              prev.map((x) => (x.id === editing.id ? { ...x, game_date: iso } : x))
+            );
+          }}
+        />
+      )}
     </div>
   );
 };
