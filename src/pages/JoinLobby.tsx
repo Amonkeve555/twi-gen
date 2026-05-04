@@ -454,7 +454,16 @@ const JoinLobby = () => {
               </div>
             )}
 
-            <div className="flex justify-center">
+            <div className="flex flex-col items-center gap-3">
+              {!locked && (
+                <Button
+                  onClick={changePick}
+                  variant="outline"
+                  className="font-display text-xs uppercase tracking-[0.2em] border-amber-500/40 text-amber-400 hover:bg-amber-500/10"
+                >
+                  Change Pick
+                </Button>
+              )}
               <Button onClick={() => navigate(`/lobby/${inviteCode}`)} className="font-display text-sm uppercase tracking-[0.2em] glow-primary px-10 py-6 bg-primary text-primary-foreground hover:bg-primary/90">
                 View Lobby
               </Button>
