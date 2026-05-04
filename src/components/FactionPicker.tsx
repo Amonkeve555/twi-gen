@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Loader2, Info } from "lucide-react";
+import { Loader2, Info, Sparkles } from "lucide-react";
 import type { Faction } from "@/data/factions";
 import { cn } from "@/lib/utils";
 import FactionDetailDialog from "@/components/FactionDetailDialog";
+import { Button } from "@/components/ui/button";
 
 interface FactionPickerProps {
   factions: Faction[];
@@ -13,6 +14,8 @@ interface FactionPickerProps {
   onSelect: (faction: Faction) => void;
   disabled?: boolean;
   pendingFaction?: string | null; // name of faction currently being claimed
+  showRandomPickButton?: boolean;
+  randomPickLabel?: string;
 }
 
 const FactionPicker = ({
@@ -23,6 +26,8 @@ const FactionPicker = ({
   onSelect,
   disabled,
   pendingFaction,
+  showRandomPickButton,
+  randomPickLabel = "Davidovo tlačítko",
 }: FactionPickerProps) => {
   const [preview, setPreview] = useState<Faction | null>(null);
   const isClaiming = !!pendingFaction;
@@ -32,8 +37,37 @@ const FactionPicker = ({
     onSelect(faction);
   };
 
+  const eligibleForRandom = factions.filter((f) => {
+    if (takenFactions.has(f.name)) return false;
+    if (forbiddenFaction === f.name && !forbiddenRelaxed) return false;
+    return true;
+  });
+
+  const handleRandomPick = () => {
+    if (eligibleForRandom.length === 0) return;
+    const choice = eligibleForRandom[Math.floor(Math.random() * eligibleForRandom.length)];
+    onSelect(choice);
+  };
+
   return (
     <>
+      {showRandomPickButton && (
+        <div className="flex flex-col items-center gap-2 mb-4">
+          <Button
+            onClick={handleRandomPick}
+            disabled={disabled || isClaiming || eligibleForRandom.length === 0}
+            size="lg"
+            className="font-display text-sm uppercase tracking-[0.2em] glow-primary px-8 py-5 bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            <Sparkles className="mr-2 h-4 w-4" />
+            {randomPickLabel}
+          </Button>
+          <p className="font-body text-xs text-muted-foreground text-center">
+            Picks a random faction for you from the available pool.
+          </p>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {factions.map((f) => {
           const takenBy = takenFactions.get(f.name);
