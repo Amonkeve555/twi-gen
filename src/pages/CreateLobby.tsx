@@ -131,6 +131,45 @@ const CreateLobby = () => {
             <div className="glass imperial-border rounded p-6 space-y-6 mb-6">
               <div className="space-y-3">
                 <h2 className="font-display text-sm uppercase tracking-[0.2em] text-primary text-glow">
+                  Game Date <span className="text-destructive">*</span>
+                </h2>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-body bg-input border-border hover:border-primary/40",
+                        !gameDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {gameDate ? format(gameDate, "PPP") : "Pick the date you'll play"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={gameDate}
+                      onSelect={setGameDate}
+                      disabled={(date) => {
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        return date < today;
+                      }}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+                <p className="font-body text-xs text-muted-foreground">
+                  Picks lock 3 days before this date. Anyone without a faction is auto-assigned a random one.
+                </p>
+              </div>
+
+              <div className="imperial-divider" />
+
+              <div className="space-y-3">
+                <h2 className="font-display text-sm uppercase tracking-[0.2em] text-primary text-glow">
                   Lobby Name
                 </h2>
                 <Input
