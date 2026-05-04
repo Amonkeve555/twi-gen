@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Users, Clock, Check, Trophy } from "lucide-react";
+import { ArrowLeft, Users, Clock, Check, Trophy, Pencil, CalendarPlus, Calendar as CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import StarField from "@/components/StarField";
+import EditGameDateDialog from "@/components/EditGameDateDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { isLocked, formatGameDate } from "@/lib/lobbyLock";
 import type { LobbySettings } from "@/hooks/useLobby";
 
 interface LobbyWithRole {
@@ -14,6 +16,7 @@ interface LobbyWithRole {
   host_name: string;
   status: string;
   created_at: string;
+  game_date: string | null;
   settings: LobbySettings;
   role: "host" | "player";
   player_count: number;
