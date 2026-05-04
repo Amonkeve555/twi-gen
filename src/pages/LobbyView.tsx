@@ -369,6 +369,14 @@ const LobbyView = () => {
           </div>
         </motion.div>
       </div>
+      {lobby && isHost && (
+        <EditGameDateDialog
+          lobbyId={lobby.id}
+          currentDate={lobby.game_date}
+          open={editDateOpen}
+          onOpenChange={setEditDateOpen}
+        />
+      )}
     </div>
   );
 };
