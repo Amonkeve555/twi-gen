@@ -18,7 +18,7 @@ import type { LobbySettings } from "@/hooks/useLobby";
 import UserMenu from "@/components/UserMenu";
 import ClaimGuestDataDialog from "@/components/ClaimGuestDataDialog";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
-import { formatGameDate } from "@/lib/lobbyLock";
+import { formatGameDate, formatTimeUntilLock, isLocked } from "@/lib/lobbyLock";
 
 interface ActiveLobby {
   id: string;
@@ -330,9 +330,22 @@ const Index = () => {
                             </td>
                             <td className="px-4 py-3">
                               <p className="font-body text-sm text-muted-foreground">{formatGameDate(l.game_date)}</p>
-                              <p className="font-body text-xs text-muted-foreground/70">
-                                {l.game_date ? `in ${formatHoursUntil(l.game_date)}` : "no date"}
-                              </p>
+                              {l.game_date ? (
+                                <>
+                                  <p className="font-body text-xs text-muted-foreground/70">
+                                    Game in {formatHoursUntil(l.game_date)}
+                                  </p>
+                                  {isLocked(l.game_date) ? (
+                                    <p className="font-body text-xs text-amber-400">Locked</p>
+                                  ) : (
+                                    <p className="font-body text-xs text-amber-400/80">
+                                      Locks in {formatTimeUntilLock(l.game_date)}
+                                    </p>
+                                  )}
+                                </>
+                              ) : (
+                                <p className="font-body text-xs text-muted-foreground/70">no date</p>
+                              )}
                             </td>
                             <td className="px-4 py-3 text-center">
                               <span className="font-body text-sm text-muted-foreground flex items-center justify-center gap-1">
