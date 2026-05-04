@@ -78,7 +78,10 @@ export function useLobby(inviteCode: string | undefined) {
       tile_control: ((data as { tile_control?: unknown }).tile_control as Record<string, number> | null) ?? {},
       started_at: ((data as { started_at?: string | null }).started_at) ?? null,
       ended_at: ((data as { ended_at?: string | null }).ended_at) ?? null,
+      game_date: ((data as { game_date?: string | null }).game_date) ?? null,
     });
+    setError(null);
+  }, [inviteCode]);
     setError(null);
   }, [inviteCode]);
 
