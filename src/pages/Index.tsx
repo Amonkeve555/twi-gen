@@ -311,6 +311,7 @@ const Index = () => {
                       <thead>
                         <tr className="border-b border-border">
                           <th className="font-display text-xs uppercase tracking-[0.15em] text-muted-foreground text-left px-4 py-3">Game</th>
+                          <th className="font-display text-xs uppercase tracking-[0.15em] text-muted-foreground text-left px-4 py-3">When</th>
                           <th className="font-display text-xs uppercase tracking-[0.15em] text-muted-foreground text-center px-4 py-3">Players</th>
                           <th className="font-display text-xs uppercase tracking-[0.15em] text-muted-foreground text-center px-4 py-3">Status</th>
                           <th className="font-display text-xs uppercase tracking-[0.15em] text-muted-foreground text-right px-4 py-3">Role</th>
@@ -326,6 +327,12 @@ const Index = () => {
                             <td className="px-4 py-3">
                               <p className="font-display text-sm text-primary">{l.host_name}'s game</p>
                               <code className="font-body text-xs text-muted-foreground">{l.invite_code}</code>
+                            </td>
+                            <td className="px-4 py-3">
+                              <p className="font-body text-sm text-muted-foreground">{formatGameDate(l.game_date)}</p>
+                              <p className="font-body text-xs text-muted-foreground/70">
+                                {l.game_date ? `in ${formatHoursUntil(l.game_date)}` : "no date"}
+                              </p>
                             </td>
                             <td className="px-4 py-3 text-center">
                               <span className="font-body text-sm text-muted-foreground flex items-center justify-center gap-1">
