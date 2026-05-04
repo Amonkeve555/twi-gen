@@ -135,5 +135,28 @@ export function useLobby(inviteCode: string | undefined) {
     };
   }, [lobby?.id, fetchPlayers, fetchLobby]);
 
+  // Auto-assign random factions once we enter the lock window (3 days before game_date)
+  const autoAssignedRef = useRef(false);
+  useEffect(() => {
+    if (!lobby) return;
+    if (autoAssignedRef.current) return;
+    if (!isLocked(lobby.game_date)) return;
+    const settings = lobby.settings;
+    const draftMode = settings?.draft_mode ?? "token";
+    const isFreeMode = draftMode === "free" || draftMode === "free_no_repeat";
+    const picksPerPlayer = settings?.picks_per_player ?? 1;
+    const incomplete = players.some((p) =>
+      isFreeMode ? !p.chosen_faction : (p.token_picks?.length ?? 0) < picksPerPlayer
+    );
+    if (!incomplete) return;
+    autoAssignedRef.current = true;
+    supabase.rpc("auto_assign_missing_factions", { p_lobby_id: lobby.id }).then(({ error: err }) => {
+      if (err) {
+        console.error("auto_assign_missing_factions", err);
+        autoAssignedRef.current = false;
+      }
+    });
+  }, [lobby, players]);
+
   return { lobby, players, loading, error, refetch: fetchPlayers };
 }
