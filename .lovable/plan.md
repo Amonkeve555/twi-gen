@@ -1,97 +1,51 @@
-## Overview
+# Add / edit game date on existing lobbies
 
-Three new features for game lobbies:
+Hosts can currently only set the game date when *creating* a new lobby. Legacy lobbies (created before the feature) have no date, and there is no way to change a date if plans shift. This plan adds a host-only "Set / Edit game date" control on the **Lobby view** and on the **My Lobbies** list, allowing hosts to set or update the date any time before the 3-day lock window.
 
-1. **Mandatory game date** when creating a lobby (future dates only).
-2. **3-day lock window** — once the game is less than 3 days away, picking/editing is frozen and anyone without a faction is auto-assigned a random one.
-3. **"Davidovo tlačítko"** — a button on the faction picker (free-pick modes only) that randomly picks an available faction for the player.
+## Scope
 
----
+- Hosts can set a game date on lobbies that don't have one yet.
+- Hosts can edit an existing date as long as the lobby is not yet locked (more than 3 days before the current `game_date`).
+- Once the lock window has begun, the edit control is hidden / disabled with clear messaging.
+- The chosen date must be in the future (same rule as the create form).
+- Non-hosts never see the edit control.
 
-## 1. Mandatory game date
+## Database
 
-### Database
-- Add `game_date timestamptz` to `lobbies` (nullable for legacy rows; new rows required via app validation).
-- No CHECK constraint (must be immutable). Validation lives in app + a `BEFORE INSERT` trigger that rejects new lobbies with `game_date IS NULL` or `game_date < now()`.
+The existing `lobbies_validate_game_date` trigger only enforces validation `IF TG_OP = 'INSERT'`, so UPDATEs already pass through unchanged. To prevent hosts from sneaking past-dated edits or bypassing the lock via direct UPDATE, the trigger will be extended:
 
-### UI — `src/pages/CreateLobby.tsx`
-- Add a shadcn date picker (Popover + Calendar) above "Lobby Name".
-- Disable past dates in the calendar (`disabled={(d) => d < startOfToday()}`).
-- "Create Lobby" button disabled until a date is selected.
-- Pass `game_date` in the insert payload.
+- On `UPDATE`, when `NEW.game_date IS DISTINCT FROM OLD.game_date`:
+  - Reject if `NEW.game_date` is `NULL`.
+  - Reject if `NEW.game_date < now()` (must be future).
+  - Reject if `OLD.game_date IS NOT NULL AND OLD.game_date - interval '3 days' <= now()` — i.e. lobby is already locked.
 
-### Display
-- Show game date on `LobbyView`, `JoinLobby` header, `MyLobbies` list, and home `Public Lobbies` table.
-- Update `useLobby.ts` `LobbyRow` type to include `game_date`.
+No table changes; only the trigger function is updated. RLS already allows the host to UPDATE their lobby.
 
----
+## UI
 
-## 2. 3-day lock window + auto-assign
+### Lobby view (`src/pages/LobbyView.tsx`)
+- Next to the "Game date: …" line, when `isHost` and not locked, show a small "Edit" (pencil) button.
+- When `isHost` and `game_date` is `null`, replace the line with a prominent "Set game date" call-to-action (so hosts of legacy lobbies notice it).
+- Clicking opens a dialog with the existing shadcn date picker (future-only, `pointer-events-auto`). Confirm calls `supabase.from('lobbies').update({ game_date }).eq('id', lobby.id)`.
+- Toast on success / error. Realtime already pushes the update to all viewers.
+- Hidden completely once `isLocked(game_date)` is true.
 
-### Helper
-- New `src/lib/lobbyLock.ts` exporting:
-  - `getLockTime(gameDate)` → `gameDate − 3 days`.
-  - `isLocked(gameDate)` → `now >= lockTime`.
-  - `formatTimeUntilLock(gameDate)` for UI hints.
+### My Lobbies (`src/pages/MyLobbies.tsx`)
+- Add a "Game date" column showing the date or "—".
+- For each row where the current user is host **and** the lobby is not locked, show an inline "Set / Edit" button that opens the same date-picker dialog (extracted into a shared component).
+- Same realtime / toast behavior.
 
-### Auto-assign — server side
-- New SQL function `public.auto_assign_missing_factions(p_lobby_id uuid)`:
-  - Reads lobby settings, draft mode, `token_mapping`.
-  - For every `lobby_player` in the lobby missing a complete pick:
-    - **Token modes**: assign random unclaimed token(s) up to `picks_per_player`, append to `token_picks`, build `assigned_factions` from `token_mapping`.
-    - **Free modes**: pick a random faction not yet in any other player's `chosen_faction`, set `chosen_faction` + `assigned_factions`.
-  - Idempotent — skips players already complete.
-  - `SECURITY DEFINER`, callable by anyone (so the lock can fire from any client viewing the lobby).
+### Shared component
+- New `src/components/EditGameDateDialog.tsx`: encapsulates the date picker + update call. Props: `lobbyId`, `currentDate`, `open`, `onOpenChange`. Reused by both pages.
 
-### Lock enforcement — server side
-- Update `claim_token`, `claim_faction`, and `reset_lobby_draft` to check `game_date` and return `{ error: 'locked' }` once the 3-day window has begun.
+## Out of scope
 
-### Client trigger
-- In `useLobby.ts`, after fetching the lobby, if `isLocked(game_date)` and any player still has incomplete picks, call `supabase.rpc("auto_assign_missing_factions", ...)` once. Realtime will broadcast the resulting updates to everyone.
+- Editing the date on locked lobbies (host needs to start a new lobby in that case).
+- Notifying joined players when the date changes (could be a follow-up).
 
-### UI changes
-- `JoinLobby.tsx`: when locked, hide TokenGrid / FactionPicker, show a "Picks locked" banner with the assigned faction(s) for that player.
-- `LobbyView.tsx`: show a lock badge ("Picks locked — game starts in X") near the game date; hide "Reset Draft" host button while locked.
-- Disable the new edit/change controls (below) when `isLocked`.
+## Files touched
 
-### Edit / change picks (before lock)
-- Add a "Change pick" button on `JoinLobby`'s `done` view and on `LobbyView` for each player's own row. Clicking it:
-  - Calls a new `clear_player_pick(p_player_id)` RPC that resets `token_picks`, `assigned_factions`, `chosen_faction` for that single player (host or self only, and only when `!isLocked`).
-  - Returns the user to the picker phase.
-
----
-
-## 3. "Davidovo tlačítko" (free-pick random)
-
-### UI — `src/components/FactionPicker.tsx` (or its host in `JoinLobby.tsx`)
-- Add a prominent button labeled **"Davidovo tlačítko"** above the faction grid, visible only in `free` / `free_no_repeat` modes and only while the player can pick (not locked, not done).
-- On click:
-  - Build a list of factions from `settings.factions` excluding entries in `takenFactions` and (for `free_no_repeat`) the player's `lastFactionName` unless `freeForbiddenRelaxed`.
-  - Pick one with `Math.random()` and call the existing `selectFaction(faction)` flow — server still validates via `claim_faction`.
-- Disabled when no eligible faction remains, with a tooltip explaining why.
-
----
-
-## Technical Details
-
-**Files to edit**
-- `src/pages/CreateLobby.tsx` — date picker + validation + insert payload.
-- `src/pages/JoinLobby.tsx` — locked banner, "Davidovo tlačítko", change-pick button.
-- `src/pages/LobbyView.tsx` — game date, lock badge, change-pick per player, hide reset when locked.
-- `src/pages/MyLobbies.tsx` and home Public Lobbies table — show game date.
-- `src/hooks/useLobby.ts` — new `game_date` field, auto-assign trigger effect.
-- `src/components/FactionPicker.tsx` — accept and render the random-pick button.
-- New `src/lib/lobbyLock.ts`.
-
-**New / updated SQL** (single migration)
-- `ALTER TABLE lobbies ADD COLUMN game_date timestamptz;`
-- Validation trigger `lobbies_game_date_validate` (BEFORE INSERT).
-- Functions: `auto_assign_missing_factions`, `clear_player_pick`.
-- Edits to `claim_token`, `claim_faction`, `reset_lobby_draft` to enforce lock.
-
-**Backwards compatibility**
-- Existing lobbies without `game_date` are treated as never locked; date column remains nullable. New lobbies require a date through the trigger + UI.
-
-**Design tokens**
-- Lock banner: amber/destructive accent using existing `glass imperial-border` + `text-amber-400`.
-- "Davidovo tlačítko": primary glow style consistent with existing CTA buttons (Cinzel uppercase tracking).
+- `supabase/migrations/...` — extend `lobbies_validate_game_date` trigger to cover UPDATE.
+- `src/components/EditGameDateDialog.tsx` (new).
+- `src/pages/LobbyView.tsx` — add edit button + dialog wiring; legacy "Set date" CTA.
+- `src/pages/MyLobbies.tsx` — add Game date column + inline edit button.
