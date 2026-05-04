@@ -18,6 +18,7 @@ import type { LobbySettings } from "@/hooks/useLobby";
 import UserMenu from "@/components/UserMenu";
 import ClaimGuestDataDialog from "@/components/ClaimGuestDataDialog";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { formatGameDate } from "@/lib/lobbyLock";
 
 interface ActiveLobby {
   id: string;
@@ -25,9 +26,25 @@ interface ActiveLobby {
   host_name: string;
   status: string;
   created_at: string;
+  game_date: string | null;
   settings: LobbySettings;
   role: "host" | "player" | "—";
   player_count: number;
+}
+
+function formatHoursUntil(gameDate: string | null): string {
+  if (!gameDate) return "—";
+  const diffMs = new Date(gameDate).getTime() - Date.now();
+  if (diffMs <= 0) return "now";
+  const hours = Math.floor(diffMs / (60 * 60 * 1000));
+  if (hours < 1) {
+    const minutes = Math.max(1, Math.floor(diffMs / (60 * 1000)));
+    return `${minutes}m`;
+  }
+  if (hours < 48) return `${hours}h`;
+  const days = Math.floor(hours / 24);
+  const remH = hours % 24;
+  return `${days}d ${remH}h`;
 }
 
 type Phase = "menu" | "setup" | "draft" | "choose" | "reveal";
