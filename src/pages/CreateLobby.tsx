@@ -285,7 +285,12 @@ const CreateLobby = () => {
               >
                 {creating ? "Creating..." : "Create Lobby"}
               </Button>
-              {!canCreate && (
+              {!gameDate && (
+                <p className="text-destructive text-sm font-body">
+                  Pick a game date to continue
+                </p>
+              )}
+              {gameDate && availableFactions.length < maxPlayers * effectivePicksPerPlayer && (
                 <p className="text-destructive text-sm font-body">
                   Not enough factions ({availableFactions.length}) for {maxPlayers} players × {effectivePicksPerPlayer} picks
                 </p>
