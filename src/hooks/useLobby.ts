@@ -82,8 +82,6 @@ export function useLobby(inviteCode: string | undefined) {
     });
     setError(null);
   }, [inviteCode]);
-    setError(null);
-  }, [inviteCode]);
 
   const fetchPlayers = useCallback(async () => {
     if (!lobby) return;
