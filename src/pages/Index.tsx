@@ -18,7 +18,7 @@ import type { LobbySettings } from "@/hooks/useLobby";
 import UserMenu from "@/components/UserMenu";
 import ClaimGuestDataDialog from "@/components/ClaimGuestDataDialog";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
-import { formatGameDate } from "@/lib/lobbyLock";
+import { formatGameDate, formatTimeUntilLock, isLocked } from "@/lib/lobbyLock";
 
 interface ActiveLobby {
   id: string;
