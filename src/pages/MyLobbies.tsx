@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Users, Clock, Check, Trophy } from "lucide-react";
+import { ArrowLeft, Users, Clock, Check, Trophy, Pencil, CalendarPlus, Calendar as CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import StarField from "@/components/StarField";
+import EditGameDateDialog from "@/components/EditGameDateDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { isLocked, formatGameDate } from "@/lib/lobbyLock";
 import type { LobbySettings } from "@/hooks/useLobby";
 
 interface LobbyWithRole {
@@ -14,6 +16,7 @@ interface LobbyWithRole {
   host_name: string;
   status: string;
   created_at: string;
+  game_date: string | null;
   settings: LobbySettings;
   role: "host" | "player";
   player_count: number;
@@ -24,6 +27,7 @@ const MyLobbies = () => {
   const { user } = useAuth();
   const [lobbies, setLobbies] = useState<LobbyWithRole[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState<LobbyWithRole | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -137,42 +141,85 @@ const MyLobbies = () => {
               <p className="font-body text-muted-foreground">No lobbies yet. Create one to get started!</p>
             </div>
           ) : (
-            lobbies.map((l) => (
-              <motion.button
-                key={l.id}
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
-                onClick={() => navigate(`/lobby/${l.invite_code}`)}
-                className="w-full glass imperial-border rounded p-4 text-left transition-all hover:border-primary/60 cursor-pointer"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <code className="font-body text-xs text-primary bg-secondary px-2 py-0.5 rounded">
-                        {l.invite_code}
-                      </code>
-                      <span className="text-[10px] font-body uppercase tracking-wider px-2 py-0.5 rounded border border-border text-muted-foreground">
-                        {l.role}
-                      </span>
+            lobbies.map((l) => {
+              const lobbyLocked = isLocked(l.game_date);
+              const canEditDate = l.role === "host" && !lobbyLocked;
+              return (
+                <motion.div
+                  key={l.id}
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => navigate(`/lobby/${l.invite_code}`)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      navigate(`/lobby/${l.invite_code}`);
+                    }
+                  }}
+                  className="w-full glass imperial-border rounded p-4 text-left transition-all hover:border-primary/60 cursor-pointer"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <code className="font-body text-xs text-primary bg-secondary px-2 py-0.5 rounded">
+                          {l.invite_code}
+                        </code>
+                        <span className="text-[10px] font-body uppercase tracking-wider px-2 py-0.5 rounded border border-border text-muted-foreground">
+                          {l.role}
+                        </span>
+                        {lobbyLocked && (
+                          <span className="text-[10px] font-body uppercase tracking-wider px-2 py-0.5 rounded border border-amber-400/40 text-amber-400">
+                            Locked
+                          </span>
+                        )}
+                      </div>
+                      <p className="font-display text-sm text-primary">
+                        {l.host_name}'s game
+                      </p>
+                      <div className="flex items-center gap-3 mt-1 text-xs font-body text-muted-foreground flex-wrap">
+                        <span className="flex items-center gap-1">
+                          <Users className="h-3 w-3" />
+                          {l.player_count}/{l.settings.max_players}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <CalendarIcon className="h-3 w-3" />
+                          {l.game_date ? formatGameDate(l.game_date) : "No date set"}
+                        </span>
+                      </div>
                     </div>
-                    <p className="font-display text-sm text-primary">
-                      {l.host_name}'s game
-                    </p>
-                    <div className="flex items-center gap-3 mt-1 text-xs font-body text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Users className="h-3 w-3" />
-                        {l.player_count}/{l.settings.max_players}
-                      </span>
-                      <span>{new Date(l.created_at).toLocaleDateString()}</span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {canEditDate && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditing(l);
+                          }}
+                          className="h-7 px-2 border-border text-muted-foreground hover:text-primary hover:border-primary/40 font-body text-xs"
+                        >
+                          {l.game_date ? (
+                            <>
+                              <Pencil className="h-3 w-3 mr-1" />
+                              Date
+                            </>
+                          ) : (
+                            <>
+                              <CalendarPlus className="h-3 w-3 mr-1" />
+                              Set date
+                            </>
+                          )}
+                        </Button>
+                      )}
+                      {statusIcon(l.status)}
+                      <span className="font-body text-xs text-muted-foreground">{statusLabel(l.status)}</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {statusIcon(l.status)}
-                    <span className="font-body text-xs text-muted-foreground">{statusLabel(l.status)}</span>
-                  </div>
-                </div>
-              </motion.button>
-            ))
+                </motion.div>
+              );
+            })
           )}
 
           <div className="flex justify-center pt-4">
@@ -188,6 +235,21 @@ const MyLobbies = () => {
           </div>
         </motion.div>
       </div>
+      {editing && (
+        <EditGameDateDialog
+          lobbyId={editing.id}
+          currentDate={editing.game_date}
+          open={!!editing}
+          onOpenChange={(open) => {
+            if (!open) setEditing(null);
+          }}
+          onSaved={(iso) => {
+            setLobbies((prev) =>
+              prev.map((x) => (x.id === editing.id ? { ...x, game_date: iso } : x))
+            );
+          }}
+        />
+      )}
     </div>
   );
 };
