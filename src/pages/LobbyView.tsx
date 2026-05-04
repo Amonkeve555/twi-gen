@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useLobby, type LobbySettings } from "@/hooks/useLobby";
 import { useAuth } from "@/hooks/useAuth";
 import { getSessionId } from "@/lib/sessionId";
+import { isLocked, formatGameDate, formatTimeUntilLock } from "@/lib/lobbyLock";
 import type { Faction } from "@/data/factions";
 
 const LobbyView = () => {
@@ -29,6 +30,7 @@ const LobbyView = () => {
   const draftMode = settings?.draft_mode ?? "token";
   const isFreeMode = draftMode === "free" || draftMode === "free_no_repeat";
   const isHost = !!user && lobby?.host_user_id === user.id;
+  const locked = isLocked(lobby?.game_date);
   const allPicked = players.length >= (settings?.max_players ?? 99) &&
     players.every((p) =>
       isFreeMode ? p.chosen_faction != null : (p.token_picks?.length ?? 0) >= picksPerPlayer
@@ -144,6 +146,23 @@ const LobbyView = () => {
               {copied ? <Check className="h-3 w-3 text-green-400" /> : <Copy className="h-3 w-3" />}
             </Button>
           </div>
+          {lobby?.game_date && (
+            <p className="font-body text-base text-muted-foreground mt-2">
+              Game date: <span className="text-primary">{formatGameDate(lobby.game_date)}</span>
+              {!locked && formatTimeUntilLock(lobby.game_date) && (
+                <span className="text-amber-400 ml-2">
+                  · Picks lock in {formatTimeUntilLock(lobby.game_date)}
+                </span>
+              )}
+            </p>
+          )}
+          {locked && (
+            <div className="glass imperial-border rounded p-2 mt-3 inline-block">
+              <p className="font-display text-xs uppercase tracking-[0.2em] text-amber-400">
+                Picks Locked
+              </p>
+            </div>
+          )}
           {lobby?.started_at && (
             <div className="flex justify-center mt-3">
               <GameTimer startedAt={lobby.started_at} endedAt={lobby.ended_at} />
@@ -299,16 +318,18 @@ const LobbyView = () => {
               </Button>
               {isHost && (
                 <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={resetDraft}
-                    disabled={resetting}
-                    className="font-display text-xs uppercase tracking-[0.15em] border-amber-500/40 text-amber-400 hover:bg-amber-500/10"
-                  >
-                    <RotateCcw className="mr-2 h-3 w-3" />
-                    {resetting ? "Resetting..." : "Reset Draft"}
-                  </Button>
+                  {!locked && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={resetDraft}
+                      disabled={resetting}
+                      className="font-display text-xs uppercase tracking-[0.15em] border-amber-500/40 text-amber-400 hover:bg-amber-500/10"
+                    >
+                      <RotateCcw className="mr-2 h-3 w-3" />
+                      {resetting ? "Resetting..." : "Reset Draft"}
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     size="sm"

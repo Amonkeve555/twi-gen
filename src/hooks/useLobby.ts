@@ -1,5 +1,6 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { isLocked } from "@/lib/lobbyLock";
 import type { Faction } from "@/data/factions";
 
 export type DraftMode = "token" | "token_no_repeat" | "free" | "free_no_repeat";
@@ -24,6 +25,7 @@ export interface LobbyRow {
   tile_control: Record<string, number> | null;
   started_at: string | null;
   ended_at: string | null;
+  game_date: string | null;
   created_at: string;
 }
 
@@ -76,6 +78,7 @@ export function useLobby(inviteCode: string | undefined) {
       tile_control: ((data as { tile_control?: unknown }).tile_control as Record<string, number> | null) ?? {},
       started_at: ((data as { started_at?: string | null }).started_at) ?? null,
       ended_at: ((data as { ended_at?: string | null }).ended_at) ?? null,
+      game_date: ((data as { game_date?: string | null }).game_date) ?? null,
     });
     setError(null);
   }, [inviteCode]);
@@ -131,6 +134,29 @@ export function useLobby(inviteCode: string | undefined) {
       supabase.removeChannel(channel);
     };
   }, [lobby?.id, fetchPlayers, fetchLobby]);
+
+  // Auto-assign random factions once we enter the lock window (3 days before game_date)
+  const autoAssignedRef = useRef(false);
+  useEffect(() => {
+    if (!lobby) return;
+    if (autoAssignedRef.current) return;
+    if (!isLocked(lobby.game_date)) return;
+    const settings = lobby.settings;
+    const draftMode = settings?.draft_mode ?? "token";
+    const isFreeMode = draftMode === "free" || draftMode === "free_no_repeat";
+    const picksPerPlayer = settings?.picks_per_player ?? 1;
+    const incomplete = players.some((p) =>
+      isFreeMode ? !p.chosen_faction : (p.token_picks?.length ?? 0) < picksPerPlayer
+    );
+    if (!incomplete) return;
+    autoAssignedRef.current = true;
+    supabase.rpc("auto_assign_missing_factions", { p_lobby_id: lobby.id }).then(({ error: err }) => {
+      if (err) {
+        console.error("auto_assign_missing_factions", err);
+        autoAssignedRef.current = false;
+      }
+    });
+  }, [lobby, players]);
 
   return { lobby, players, loading, error, refetch: fetchPlayers };
 }

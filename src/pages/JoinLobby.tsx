@@ -15,6 +15,7 @@ import { useLobby, type LobbySettings } from "@/hooks/useLobby";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { getLastPlayedFactionVsOpponents } from "@/lib/lastPlayedFaction";
+import { isLocked, formatGameDate, formatTimeUntilLock } from "@/lib/lobbyLock";
 import type { Faction } from "@/data/factions";
 
 type JoinPhase = "intro" | "pick" | "done";
@@ -44,6 +45,7 @@ const JoinLobby = () => {
   const draftMode = settings?.draft_mode ?? "token";
   const isFreeMode = draftMode === "free" || draftMode === "free_no_repeat";
   const isNoRepeat = draftMode === "free_no_repeat" || draftMode === "token_no_repeat";
+  const locked = isLocked(lobby?.game_date);
 
   const takenTokens = useMemo(() => {
     const map = new Map<number, number>();
@@ -242,6 +244,28 @@ const JoinLobby = () => {
     [lobby, playerId, pendingFaction]
   );
 
+  const changePick = useCallback(async () => {
+    if (!playerId || !lobby) return;
+    if (locked) {
+      toast.error("Picks are locked (within 3 days of game)");
+      return;
+    }
+    const { data, error: err } = await supabase.rpc("clear_player_pick", { p_player_id: playerId });
+    if (err) {
+      toast.error("Failed to clear pick");
+      console.error(err);
+      return;
+    }
+    const result = data as { success?: boolean; error?: string };
+    if (result?.error) {
+      toast.error(result.error === "locked" ? "Picks are locked (within 3 days of game)" : result.error);
+      return;
+    }
+    setTokenPicks([]);
+    setAssignedFactions([]);
+    setPhase("pick");
+  }, [playerId, lobby, locked]);
+
   // For free_no_repeat: relax forbidden if no other faction is available
   const freeForbiddenRelaxed = useMemo(() => {
     if (draftMode !== "free_no_repeat" || !lastFactionName) return false;
@@ -291,6 +315,23 @@ const JoinLobby = () => {
           <p className="font-display text-sm uppercase tracking-[0.4em] text-muted-foreground">
             Lobby {inviteCode}
           </p>
+          {lobby?.game_date && (
+            <p className="font-body text-base text-muted-foreground mt-2">
+              Game date: <span className="text-primary">{formatGameDate(lobby.game_date)}</span>
+              {!locked && formatTimeUntilLock(lobby.game_date) && (
+                <span className="text-amber-400 ml-2">
+                  · Picks lock in {formatTimeUntilLock(lobby.game_date)}
+                </span>
+              )}
+            </p>
+          )}
+          {locked && (
+            <div className="glass imperial-border rounded p-3 mt-3 inline-block">
+              <p className="font-display text-xs uppercase tracking-[0.2em] text-amber-400">
+                Picks Locked · within 3 days of game date
+              </p>
+            </div>
+          )}
           <div className="imperial-divider w-48 mx-auto mt-4" />
         </motion.div>
 
@@ -339,7 +380,16 @@ const JoinLobby = () => {
                 </p>
               )}
             </div>
-            {isFreeMode ? (
+            {locked ? (
+              <div className="glass imperial-border rounded p-6 text-center space-y-2">
+                <p className="font-display text-base uppercase tracking-[0.2em] text-amber-400">
+                  Picks Locked
+                </p>
+                <p className="font-body text-sm text-muted-foreground">
+                  The lobby is within 3 days of the game date. A faction will be auto-assigned shortly.
+                </p>
+              </div>
+            ) : isFreeMode ? (
               <FactionPicker
                 factions={settings?.factions ?? []}
                 takenFactions={takenFactions}
@@ -347,6 +397,7 @@ const JoinLobby = () => {
                 forbiddenRelaxed={freeForbiddenRelaxed}
                 onSelect={selectFaction}
                 pendingFaction={pendingFaction}
+                showRandomPickButton
               />
             ) : (
               <TokenGrid
@@ -403,7 +454,16 @@ const JoinLobby = () => {
               </div>
             )}
 
-            <div className="flex justify-center">
+            <div className="flex flex-col items-center gap-3">
+              {!locked && (
+                <Button
+                  onClick={changePick}
+                  variant="outline"
+                  className="font-display text-xs uppercase tracking-[0.2em] border-amber-500/40 text-amber-400 hover:bg-amber-500/10"
+                >
+                  Change Pick
+                </Button>
+              )}
               <Button onClick={() => navigate(`/lobby/${inviteCode}`)} className="font-display text-sm uppercase tracking-[0.2em] glow-primary px-10 py-6 bg-primary text-primary-foreground hover:bg-primary/90">
                 View Lobby
               </Button>

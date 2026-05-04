@@ -1,9 +1,12 @@
 import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Copy, Check } from "lucide-react";
+import { ArrowLeft, Copy, Check, CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import StarField from "@/components/StarField";
 import FactionPool from "@/components/FactionPool";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +16,7 @@ import { TI4_FACTIONS, POK_FACTIONS, type Faction } from "@/data/factions";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import type { DraftMode } from "@/hooks/useLobby";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 const DRAFT_MODES: { value: DraftMode; label: string; desc: string }[] = [
@@ -27,6 +31,7 @@ const CreateLobby = () => {
   const { user } = useAuth();
   const { profile } = useProfile();
   const [hostName, setHostName] = useState("");
+  const [gameDate, setGameDate] = useState<Date | undefined>(undefined);
   const [maxPlayers, setMaxPlayers] = useState(3);
   const [picksPerPlayer, setPicksPerPlayer] = useState(1);
   const [draftMode, setDraftMode] = useState<DraftMode>("token");
@@ -48,7 +53,7 @@ const CreateLobby = () => {
     );
   }, [includePok, excludedFactions]);
 
-  const canCreate = availableFactions.length >= maxPlayers * effectivePicksPerPlayer;
+  const canCreate = availableFactions.length >= maxPlayers * effectivePicksPerPlayer && !!gameDate;
 
   const toggleFaction = useCallback((name: string) => {
     setExcludedFactions((prev) => {
@@ -60,7 +65,7 @@ const CreateLobby = () => {
   }, []);
 
   const createLobby = async () => {
-    if (!user) return;
+    if (!user || !gameDate) return;
     setCreating(true);
     const code = generateInviteCode();
     const sessionId = getSessionId();
@@ -89,6 +94,7 @@ const CreateLobby = () => {
       host_password: "", // legacy column, no longer used
       settings: JSON.parse(JSON.stringify(settings)),
       token_mapping: tokenMapping ? JSON.parse(JSON.stringify(tokenMapping)) : null,
+      game_date: gameDate.toISOString(),
     }]);
 
     if (error) {
@@ -123,6 +129,45 @@ const CreateLobby = () => {
         {!createdCode ? (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <div className="glass imperial-border rounded p-6 space-y-6 mb-6">
+              <div className="space-y-3">
+                <h2 className="font-display text-sm uppercase tracking-[0.2em] text-primary text-glow">
+                  Game Date <span className="text-destructive">*</span>
+                </h2>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-body bg-input border-border hover:border-primary/40",
+                        !gameDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {gameDate ? format(gameDate, "PPP") : "Pick the date you'll play"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={gameDate}
+                      onSelect={setGameDate}
+                      disabled={(date) => {
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        return date < today;
+                      }}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+                <p className="font-body text-xs text-muted-foreground">
+                  Picks lock 3 days before this date. Anyone without a faction is auto-assigned a random one.
+                </p>
+              </div>
+
+              <div className="imperial-divider" />
+
               <div className="space-y-3">
                 <h2 className="font-display text-sm uppercase tracking-[0.2em] text-primary text-glow">
                   Lobby Name
@@ -240,7 +285,12 @@ const CreateLobby = () => {
               >
                 {creating ? "Creating..." : "Create Lobby"}
               </Button>
-              {!canCreate && (
+              {!gameDate && (
+                <p className="text-destructive text-sm font-body">
+                  Pick a game date to continue
+                </p>
+              )}
+              {gameDate && availableFactions.length < maxPlayers * effectivePicksPerPlayer && (
                 <p className="text-destructive text-sm font-body">
                   Not enough factions ({availableFactions.length}) for {maxPlayers} players × {effectivePicksPerPlayer} picks
                 </p>
