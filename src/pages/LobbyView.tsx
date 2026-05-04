@@ -146,6 +146,23 @@ const LobbyView = () => {
               {copied ? <Check className="h-3 w-3 text-green-400" /> : <Copy className="h-3 w-3" />}
             </Button>
           </div>
+          {lobby?.game_date && (
+            <p className="font-body text-base text-muted-foreground mt-2">
+              Game date: <span className="text-primary">{formatGameDate(lobby.game_date)}</span>
+              {!locked && formatTimeUntilLock(lobby.game_date) && (
+                <span className="text-amber-400 ml-2">
+                  · Picks lock in {formatTimeUntilLock(lobby.game_date)}
+                </span>
+              )}
+            </p>
+          )}
+          {locked && (
+            <div className="glass imperial-border rounded p-2 mt-3 inline-block">
+              <p className="font-display text-xs uppercase tracking-[0.2em] text-amber-400">
+                Picks Locked
+              </p>
+            </div>
+          )}
           {lobby?.started_at && (
             <div className="flex justify-center mt-3">
               <GameTimer startedAt={lobby.started_at} endedAt={lobby.ended_at} />
