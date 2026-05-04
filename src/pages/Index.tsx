@@ -18,6 +18,7 @@ import type { LobbySettings } from "@/hooks/useLobby";
 import UserMenu from "@/components/UserMenu";
 import ClaimGuestDataDialog from "@/components/ClaimGuestDataDialog";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { formatGameDate } from "@/lib/lobbyLock";
 
 interface ActiveLobby {
   id: string;
@@ -25,9 +26,25 @@ interface ActiveLobby {
   host_name: string;
   status: string;
   created_at: string;
+  game_date: string | null;
   settings: LobbySettings;
   role: "host" | "player" | "—";
   player_count: number;
+}
+
+function formatHoursUntil(gameDate: string | null): string {
+  if (!gameDate) return "—";
+  const diffMs = new Date(gameDate).getTime() - Date.now();
+  if (diffMs <= 0) return "now";
+  const hours = Math.floor(diffMs / (60 * 60 * 1000));
+  if (hours < 1) {
+    const minutes = Math.max(1, Math.floor(diffMs / (60 * 1000)));
+    return `${minutes}m`;
+  }
+  if (hours < 48) return `${hours}h`;
+  const days = Math.floor(hours / 24);
+  const remH = hours % 24;
+  return `${days}d ${remH}h`;
 }
 
 type Phase = "menu" | "setup" | "draft" | "choose" | "reveal";
@@ -294,6 +311,7 @@ const Index = () => {
                       <thead>
                         <tr className="border-b border-border">
                           <th className="font-display text-xs uppercase tracking-[0.15em] text-muted-foreground text-left px-4 py-3">Game</th>
+                          <th className="font-display text-xs uppercase tracking-[0.15em] text-muted-foreground text-left px-4 py-3">When</th>
                           <th className="font-display text-xs uppercase tracking-[0.15em] text-muted-foreground text-center px-4 py-3">Players</th>
                           <th className="font-display text-xs uppercase tracking-[0.15em] text-muted-foreground text-center px-4 py-3">Status</th>
                           <th className="font-display text-xs uppercase tracking-[0.15em] text-muted-foreground text-right px-4 py-3">Role</th>
@@ -309,6 +327,12 @@ const Index = () => {
                             <td className="px-4 py-3">
                               <p className="font-display text-sm text-primary">{l.host_name}'s game</p>
                               <code className="font-body text-xs text-muted-foreground">{l.invite_code}</code>
+                            </td>
+                            <td className="px-4 py-3">
+                              <p className="font-body text-sm text-muted-foreground">{formatGameDate(l.game_date)}</p>
+                              <p className="font-body text-xs text-muted-foreground/70">
+                                {l.game_date ? `in ${formatHoursUntil(l.game_date)}` : "no date"}
+                              </p>
                             </td>
                             <td className="px-4 py-3 text-center">
                               <span className="font-body text-sm text-muted-foreground flex items-center justify-center gap-1">
