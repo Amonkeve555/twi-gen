@@ -11,7 +11,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useLobby, type LobbySettings } from "@/hooks/useLobby";
 import { useAuth } from "@/hooks/useAuth";
 import { getSessionId } from "@/lib/sessionId";
-import { isLocked, formatGameDate, formatTimeUntilLock } from "@/lib/lobbyLock";
+import { isLocked, formatGameDate } from "@/lib/lobbyLock";
+import LockBanner from "@/components/LockBanner";
 import type { Faction } from "@/data/factions";
 
 const LobbyView = () => {
@@ -149,18 +150,11 @@ const LobbyView = () => {
           {lobby?.game_date && (
             <p className="font-body text-base text-muted-foreground mt-2">
               Game date: <span className="text-primary">{formatGameDate(lobby.game_date)}</span>
-              {!locked && formatTimeUntilLock(lobby.game_date) && (
-                <span className="text-amber-400 ml-2">
-                  · Picks lock in {formatTimeUntilLock(lobby.game_date)}
-                </span>
-              )}
             </p>
           )}
-          {locked && (
-            <div className="glass imperial-border rounded p-2 mt-3 inline-block">
-              <p className="font-display text-xs uppercase tracking-[0.2em] text-amber-400">
-                Picks Locked
-              </p>
+          {lobby?.game_date && (
+            <div className="max-w-xl mx-auto mt-4">
+              <LockBanner gameDate={lobby.game_date} />
             </div>
           )}
           {lobby?.started_at && (
