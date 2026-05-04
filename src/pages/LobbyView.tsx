@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Copy, Check, Users, Clock, ArrowLeft, Trash2, UserMinus, RotateCcw, Map as MapIcon } from "lucide-react";
+import { Copy, Check, Users, Clock, ArrowLeft, Trash2, UserMinus, RotateCcw, Map as MapIcon, Pencil, CalendarPlus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { getSessionId } from "@/lib/sessionId";
 import { isLocked, formatGameDate } from "@/lib/lobbyLock";
 import LockBanner from "@/components/LockBanner";
+import EditGameDateDialog from "@/components/EditGameDateDialog";
 import type { Faction } from "@/data/factions";
 
 const LobbyView = () => {
@@ -20,6 +21,7 @@ const LobbyView = () => {
   const navigate = useNavigate();
   const { lobby, players, loading, error } = useLobby(inviteCode);
   const [copied, setCopied] = useState(false);
+  const [editDateOpen, setEditDateOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [starting, setStarting] = useState(false);
@@ -147,10 +149,37 @@ const LobbyView = () => {
               {copied ? <Check className="h-3 w-3 text-green-400" /> : <Copy className="h-3 w-3" />}
             </Button>
           </div>
-          {lobby?.game_date && (
-            <p className="font-body text-base text-muted-foreground mt-2">
-              Game date: <span className="text-primary">{formatGameDate(lobby.game_date)}</span>
+          {lobby?.game_date ? (
+            <p className="font-body text-base text-muted-foreground mt-2 flex items-center justify-center gap-2 flex-wrap">
+              <span>
+                Game date: <span className="text-primary">{formatGameDate(lobby.game_date)}</span>
+              </span>
+              {isHost && !locked && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEditDateOpen(true)}
+                  className="h-7 px-2 border-border text-muted-foreground hover:text-primary hover:border-primary/40 font-body text-xs"
+                >
+                  <Pencil className="h-3 w-3 mr-1" />
+                  Edit
+                </Button>
+              )}
             </p>
+          ) : (
+            isHost && (
+              <div className="mt-3 flex justify-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEditDateOpen(true)}
+                  className="border-primary/50 text-primary hover:border-primary font-display text-xs uppercase tracking-[0.15em]"
+                >
+                  <CalendarPlus className="h-4 w-4 mr-2" />
+                  Set Game Date
+                </Button>
+              </div>
+            )
           )}
           {lobby?.game_date && (
             <div className="max-w-xl mx-auto mt-4">
