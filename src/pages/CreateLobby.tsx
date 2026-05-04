@@ -53,7 +53,7 @@ const CreateLobby = () => {
     );
   }, [includePok, excludedFactions]);
 
-  const canCreate = availableFactions.length >= maxPlayers * effectivePicksPerPlayer;
+  const canCreate = availableFactions.length >= maxPlayers * effectivePicksPerPlayer && !!gameDate;
 
   const toggleFaction = useCallback((name: string) => {
     setExcludedFactions((prev) => {
@@ -65,7 +65,7 @@ const CreateLobby = () => {
   }, []);
 
   const createLobby = async () => {
-    if (!user) return;
+    if (!user || !gameDate) return;
     setCreating(true);
     const code = generateInviteCode();
     const sessionId = getSessionId();
@@ -94,6 +94,7 @@ const CreateLobby = () => {
       host_password: "", // legacy column, no longer used
       settings: JSON.parse(JSON.stringify(settings)),
       token_mapping: tokenMapping ? JSON.parse(JSON.stringify(tokenMapping)) : null,
+      game_date: gameDate.toISOString(),
     }]);
 
     if (error) {
