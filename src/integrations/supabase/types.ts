@@ -45,6 +45,7 @@ export type Database = {
         Row: {
           created_at: string
           ended_at: string | null
+          game_date: string | null
           host_name: string
           host_password: string
           host_session_id: string
@@ -60,6 +61,7 @@ export type Database = {
         Insert: {
           created_at?: string
           ended_at?: string | null
+          game_date?: string | null
           host_name?: string
           host_password?: string
           host_session_id: string
@@ -75,6 +77,7 @@ export type Database = {
         Update: {
           created_at?: string
           ended_at?: string | null
+          game_date?: string | null
           host_name?: string
           host_password?: string
           host_session_id?: string
@@ -299,6 +302,10 @@ export type Database = {
         Args: { p_lobby_id: string; p_player_id: string; p_seat_index: number }
         Returns: Json
       }
+      auto_assign_missing_factions: {
+        Args: { p_lobby_id: string }
+        Returns: Json
+      }
       claim_faction: {
         Args: { p_faction: Json; p_lobby_id: string; p_player_id: string }
         Returns: Json
@@ -308,6 +315,7 @@ export type Database = {
         Args: { p_lobby_id: string; p_player_id: string; p_token_id: number }
         Returns: Json
       }
+      clear_player_pick: { Args: { p_player_id: string }; Returns: Json }
       clear_seats: { Args: { p_lobby_id: string }; Returns: Json }
       clear_tile_control: { Args: { p_lobby_id: string }; Returns: Json }
       end_game: { Args: { p_lobby_id: string }; Returns: Json }

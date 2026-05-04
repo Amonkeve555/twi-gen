@@ -1,54 +1,97 @@
-# Fix: Player can't return to faction picker after dropping out
+## Overview
 
-## The bug
+Three new features for game lobbies:
 
-When a user closes the tab / navigates away mid-draft and comes back, they get stuck because of how the entry points and `JoinLobby` resume logic interact.
+1. **Mandatory game date** when creating a lobby (future dates only).
+2. **3-day lock window** — once the game is less than 3 days away, picking/editing is frozen and anyone without a faction is auto-assigned a random one.
+3. **"Davidovo tlačítko"** — a button on the faction picker (free-pick modes only) that randomly picks an available faction for the player.
 
-### Where it breaks
+---
 
-1. **`/lobby/:inviteCode` (`LobbyView.tsx`, lines 232–240)** only shows the **"Join This Lobby"** button when `!inLobby && !isHost`. As soon as a player has a row in `lobby_players` (which happens the moment they click Join, *before* picking tokens), `inLobby === true` and the button disappears. A half-drafted player landing here from the home page or "My Lobbies" sees the lobby but has **no visible way back into the picker**.
+## 1. Mandatory game date
 
-2. **`/join/:inviteCode` (`JoinLobby.tsx`, lines 73–84)** does have resume logic, but the `intro` screen at line 269 renders only when `!existingPlayer`. The resume `useEffect` runs on the next render and flips `phase` to `"pick"` or `"done"`. If for any reason `existingPlayer` is briefly undefined while `players` is still loading, or if the user has already finished picking (`phase === "done"`), they land on the "Your Assigned Factions" / color-picker view with no obvious "back to picker" affordance — and importantly there is no guard that handles a player whose `token_picks.length < picksPerPlayer` but who navigated to `/lobby/...` instead of `/join/...`.
+### Database
+- Add `game_date timestamptz` to `lobbies` (nullable for legacy rows; new rows required via app validation).
+- No CHECK constraint (must be immutable). Validation lives in app + a `BEFORE INSERT` trigger that rejects new lobbies with `game_date IS NULL` or `game_date < now()`.
 
-3. **Home page & My Lobbies** (`Index.tsx` line 306, `MyLobbies.tsx` line 145) always send the user to `/lobby/...`, never to `/join/...`, so a half-drafted player has no link that takes them back into the draft UI.
+### UI — `src/pages/CreateLobby.tsx`
+- Add a shadcn date picker (Popover + Calendar) above "Lobby Name".
+- Disable past dates in the calendar (`disabled={(d) => d < startOfToday()}`).
+- "Create Lobby" button disabled until a date is selected.
+- Pass `game_date` in the insert payload.
 
-### Net effect
-A player who started picking, closed the window, and re-opens the lobby from the home page lands on `LobbyView` with their incomplete row already there → no "Join" button, no "Resume picking" button → stuck.
+### Display
+- Show game date on `LobbyView`, `JoinLobby` header, `MyLobbies` list, and home `Public Lobbies` table.
+- Update `useLobby.ts` `LobbyRow` type to include `game_date`.
 
-## Plan
+---
 
-### 1. Add a "Resume picking" CTA on `LobbyView` for incomplete players
-In `src/pages/LobbyView.tsx`, compute whether the current user has joined but not finished:
+## 2. 3-day lock window + auto-assign
 
-```ts
-const myPlayer = user ? players.find(p => p.user_id === user.id) : null;
-const myPicksDone = isFreeMode
-  ? !!myPlayer?.chosen_faction
-  : (myPlayer?.token_picks?.length ?? 0) >= picksPerPlayer;
-const needsToPick = !!myPlayer && !myPicksDone && !lobby.started_at;
-```
+### Helper
+- New `src/lib/lobbyLock.ts` exporting:
+  - `getLockTime(gameDate)` → `gameDate − 3 days`.
+  - `isLocked(gameDate)` → `now >= lockTime`.
+  - `formatTimeUntilLock(gameDate)` for UI hints.
 
-Render a prominent **"Resume picking your faction"** button (same styling as "Join This Lobby") when `needsToPick`, linking to `/join/${inviteCode}`. Keep the existing "Join This Lobby" button for users with no row yet.
+### Auto-assign — server side
+- New SQL function `public.auto_assign_missing_factions(p_lobby_id uuid)`:
+  - Reads lobby settings, draft mode, `token_mapping`.
+  - For every `lobby_player` in the lobby missing a complete pick:
+    - **Token modes**: assign random unclaimed token(s) up to `picks_per_player`, append to `token_picks`, build `assigned_factions` from `token_mapping`.
+    - **Free modes**: pick a random faction not yet in any other player's `chosen_faction`, set `chosen_faction` + `assigned_factions`.
+  - Idempotent — skips players already complete.
+  - `SECURITY DEFINER`, callable by anyone (so the lock can fire from any client viewing the lobby).
 
-### 2. Make `JoinLobby` robust to all resume states
-In `src/pages/JoinLobby.tsx`:
+### Lock enforcement — server side
+- Update `claim_token`, `claim_faction`, and `reset_lobby_draft` to check `game_date` and return `{ error: 'locked' }` once the 3-day window has begun.
 
-- Keep the existing resume `useEffect`, but also re-evaluate when `existingPlayer` changes after the initial mount (e.g. realtime row arrives). Today the guard `phase === "intro"` prevents it from re-syncing if `phase` was set to `"done"` first by a stale row.
-- When `phase === "done"` but the player still has fewer than `picksPerPlayer` picks in token mode, treat it as `"pick"` instead. This prevents getting "stuck on Done" if state was inconsistent.
-- On the `done` screen, add a small **"Pick more tokens"** / **"Change faction"** affordance only when picks are actually incomplete (defensive — should normally not show).
+### Client trigger
+- In `useLobby.ts`, after fetching the lobby, if `isLocked(game_date)` and any player still has incomplete picks, call `supabase.rpc("auto_assign_missing_factions", ...)` once. Realtime will broadcast the resulting updates to everyone.
 
-### 3. Route home/My Lobbies links smartly
-In `src/pages/Index.tsx` (line 306) and `src/pages/MyLobbies.tsx` (line 145), when rendering the user's own lobby card, if the row indicates the player hasn't completed their picks, link to `/join/${invite_code}` instead of `/lobby/${invite_code}`. If we don't already have `lobby_players` data at those call sites, the simpler fix is: always link to `/lobby/...` and let LobbyView's new "Resume picking" button (step 1) handle it. Recommend the simpler version — single source of truth.
+### UI changes
+- `JoinLobby.tsx`: when locked, hide TokenGrid / FactionPicker, show a "Picks locked" banner with the assigned faction(s) for that player.
+- `LobbyView.tsx`: show a lock badge ("Picks locked — game starts in X") near the game date; hide "Reset Draft" host button while locked.
+- Disable the new edit/change controls (below) when `isLocked`.
 
-### 4. Sanity: handle host who hasn't drafted
-Hosts currently never see a Join button (`!inLobby && !isHost`). If the host is also a player and dropped mid-draft, the same "Resume picking" button from step 1 should show for them too — the new condition is purely based on `myPlayer` and pick completeness, independent of `isHost`.
+### Edit / change picks (before lock)
+- Add a "Change pick" button on `JoinLobby`'s `done` view and on `LobbyView` for each player's own row. Clicking it:
+  - Calls a new `clear_player_pick(p_player_id)` RPC that resets `token_picks`, `assigned_factions`, `chosen_faction` for that single player (host or self only, and only when `!isLocked`).
+  - Returns the user to the picker phase.
 
-## Files to change
+---
 
-- `src/pages/LobbyView.tsx` — add `needsToPick` computation + "Resume picking" button.
-- `src/pages/JoinLobby.tsx` — tighten resume `useEffect` so it re-syncs on `existingPlayer` change and never lands on `done` when picks are incomplete.
+## 3. "Davidovo tlačítko" (free-pick random)
 
-## Out of scope
+### UI — `src/components/FactionPicker.tsx` (or its host in `JoinLobby.tsx`)
+- Add a prominent button labeled **"Davidovo tlačítko"** above the faction grid, visible only in `free` / `free_no_repeat` modes and only while the player can pick (not locked, not done).
+- On click:
+  - Build a list of factions from `settings.factions` excluding entries in `takenFactions` and (for `free_no_repeat`) the player's `lastFactionName` unless `freeForbiddenRelaxed`.
+  - Pick one with `Math.random()` and call the existing `selectFaction(faction)` flow — server still validates via `claim_faction`.
+- Disabled when no eligible faction remains, with a tooltip explaining why.
 
-- Backend / RPC changes — the data model already supports resuming; this is purely a UI routing fix.
-- Changing how players are inserted into `lobby_players` (current behavior of inserting on Join click is fine).
+---
+
+## Technical Details
+
+**Files to edit**
+- `src/pages/CreateLobby.tsx` — date picker + validation + insert payload.
+- `src/pages/JoinLobby.tsx` — locked banner, "Davidovo tlačítko", change-pick button.
+- `src/pages/LobbyView.tsx` — game date, lock badge, change-pick per player, hide reset when locked.
+- `src/pages/MyLobbies.tsx` and home Public Lobbies table — show game date.
+- `src/hooks/useLobby.ts` — new `game_date` field, auto-assign trigger effect.
+- `src/components/FactionPicker.tsx` — accept and render the random-pick button.
+- New `src/lib/lobbyLock.ts`.
+
+**New / updated SQL** (single migration)
+- `ALTER TABLE lobbies ADD COLUMN game_date timestamptz;`
+- Validation trigger `lobbies_game_date_validate` (BEFORE INSERT).
+- Functions: `auto_assign_missing_factions`, `clear_player_pick`.
+- Edits to `claim_token`, `claim_faction`, `reset_lobby_draft` to enforce lock.
+
+**Backwards compatibility**
+- Existing lobbies without `game_date` are treated as never locked; date column remains nullable. New lobbies require a date through the trigger + UI.
+
+**Design tokens**
+- Lock banner: amber/destructive accent using existing `glass imperial-border` + `text-amber-400`.
+- "Davidovo tlačítko": primary glow style consistent with existing CTA buttons (Cinzel uppercase tracking).
