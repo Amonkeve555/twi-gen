@@ -1,5 +1,6 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { isLocked } from "@/lib/lobbyLock";
 import type { Faction } from "@/data/factions";
 
 export type DraftMode = "token" | "token_no_repeat" | "free" | "free_no_repeat";
@@ -24,6 +25,7 @@ export interface LobbyRow {
   tile_control: Record<string, number> | null;
   started_at: string | null;
   ended_at: string | null;
+  game_date: string | null;
   created_at: string;
 }
 
