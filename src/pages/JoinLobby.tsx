@@ -315,6 +315,23 @@ const JoinLobby = () => {
           <p className="font-display text-sm uppercase tracking-[0.4em] text-muted-foreground">
             Lobby {inviteCode}
           </p>
+          {lobby?.game_date && (
+            <p className="font-body text-base text-muted-foreground mt-2">
+              Game date: <span className="text-primary">{formatGameDate(lobby.game_date)}</span>
+              {!locked && formatTimeUntilLock(lobby.game_date) && (
+                <span className="text-amber-400 ml-2">
+                  · Picks lock in {formatTimeUntilLock(lobby.game_date)}
+                </span>
+              )}
+            </p>
+          )}
+          {locked && (
+            <div className="glass imperial-border rounded p-3 mt-3 inline-block">
+              <p className="font-display text-xs uppercase tracking-[0.2em] text-amber-400">
+                Picks Locked · within 3 days of game date
+              </p>
+            </div>
+          )}
           <div className="imperial-divider w-48 mx-auto mt-4" />
         </motion.div>
 
