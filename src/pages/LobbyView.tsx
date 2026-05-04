@@ -296,6 +296,17 @@ const LobbyView = () => {
                 Resume Picking Your Faction
               </Button>
             )}
+            {myPlayer && myPicksDone && !locked && !lobby?.started_at && (
+              <Button
+                onClick={() => navigate(`/join/${inviteCode}`)}
+                variant="outline"
+                size="lg"
+                className="font-display text-sm uppercase tracking-[0.2em] px-8 py-5 border-primary/40 text-primary hover:bg-primary/10"
+              >
+                <RotateCcw className="mr-2 h-4 w-4" />
+                Change My Faction
+              </Button>
+            )}
             <Button
               onClick={() => navigate(`/game/${inviteCode}`)}
               variant="outline"
