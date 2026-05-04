@@ -244,6 +244,28 @@ const JoinLobby = () => {
     [lobby, playerId, pendingFaction]
   );
 
+  const changePick = useCallback(async () => {
+    if (!playerId || !lobby) return;
+    if (locked) {
+      toast.error("Picks are locked (within 3 days of game)");
+      return;
+    }
+    const { data, error: err } = await supabase.rpc("clear_player_pick", { p_player_id: playerId });
+    if (err) {
+      toast.error("Failed to clear pick");
+      console.error(err);
+      return;
+    }
+    const result = data as { success?: boolean; error?: string };
+    if (result?.error) {
+      toast.error(result.error === "locked" ? "Picks are locked (within 3 days of game)" : result.error);
+      return;
+    }
+    setTokenPicks([]);
+    setAssignedFactions([]);
+    setPhase("pick");
+  }, [playerId, lobby, locked]);
+
   // For free_no_repeat: relax forbidden if no other faction is available
   const freeForbiddenRelaxed = useMemo(() => {
     if (draftMode !== "free_no_repeat" || !lastFactionName) return false;
