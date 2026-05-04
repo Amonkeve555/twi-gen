@@ -380,7 +380,16 @@ const JoinLobby = () => {
                 </p>
               )}
             </div>
-            {isFreeMode ? (
+            {locked ? (
+              <div className="glass imperial-border rounded p-6 text-center space-y-2">
+                <p className="font-display text-base uppercase tracking-[0.2em] text-amber-400">
+                  Picks Locked
+                </p>
+                <p className="font-body text-sm text-muted-foreground">
+                  The lobby is within 3 days of the game date. A faction will be auto-assigned shortly.
+                </p>
+              </div>
+            ) : isFreeMode ? (
               <FactionPicker
                 factions={settings?.factions ?? []}
                 takenFactions={takenFactions}
@@ -388,6 +397,7 @@ const JoinLobby = () => {
                 forbiddenRelaxed={freeForbiddenRelaxed}
                 onSelect={selectFaction}
                 pendingFaction={pendingFaction}
+                showRandomPickButton
               />
             ) : (
               <TokenGrid
