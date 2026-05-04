@@ -1,9 +1,12 @@
 import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Copy, Check } from "lucide-react";
+import { ArrowLeft, Copy, Check, CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import StarField from "@/components/StarField";
 import FactionPool from "@/components/FactionPool";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +16,7 @@ import { TI4_FACTIONS, POK_FACTIONS, type Faction } from "@/data/factions";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import type { DraftMode } from "@/hooks/useLobby";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 const DRAFT_MODES: { value: DraftMode; label: string; desc: string }[] = [
@@ -27,6 +31,7 @@ const CreateLobby = () => {
   const { user } = useAuth();
   const { profile } = useProfile();
   const [hostName, setHostName] = useState("");
+  const [gameDate, setGameDate] = useState<Date | undefined>(undefined);
   const [maxPlayers, setMaxPlayers] = useState(3);
   const [picksPerPlayer, setPicksPerPlayer] = useState(1);
   const [draftMode, setDraftMode] = useState<DraftMode>("token");
