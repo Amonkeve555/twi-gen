@@ -15,6 +15,7 @@ import { useLobby, type LobbySettings } from "@/hooks/useLobby";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { getLastPlayedFactionVsOpponents } from "@/lib/lastPlayedFaction";
+import { isLocked, formatGameDate, formatTimeUntilLock } from "@/lib/lobbyLock";
 import type { Faction } from "@/data/factions";
 
 type JoinPhase = "intro" | "pick" | "done";
