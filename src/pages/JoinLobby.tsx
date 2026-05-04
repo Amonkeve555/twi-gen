@@ -45,6 +45,7 @@ const JoinLobby = () => {
   const draftMode = settings?.draft_mode ?? "token";
   const isFreeMode = draftMode === "free" || draftMode === "free_no_repeat";
   const isNoRepeat = draftMode === "free_no_repeat" || draftMode === "token_no_repeat";
+  const locked = isLocked(lobby?.game_date);
 
   const takenTokens = useMemo(() => {
     const map = new Map<number, number>();
