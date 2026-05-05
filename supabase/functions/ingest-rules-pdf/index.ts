@@ -88,20 +88,24 @@ function chunkPages(pages: string[]): Chunk[] {
 }
 
 async function embedBatch(texts: string[]): Promise<number[][]> {
-  const r = await fetch(EMBED_URL, {
+  if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
+  const r = await fetch(`${EMBED_URL}?key=${GEMINI_API_KEY}`, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ model: EMBED_MODEL, input: texts }),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      requests: texts.map((text) => ({
+        model: `models/${EMBED_MODEL}`,
+        content: { parts: [{ text }] },
+        taskType: "RETRIEVAL_DOCUMENT",
+      })),
+    }),
   });
   if (!r.ok) {
     const t = await r.text();
     throw new Error(`Embed failed [${r.status}]: ${t}`);
   }
   const json = await r.json();
-  return (json.data as Array<{ embedding: number[] }>).map((d) => d.embedding);
+  return (json.embeddings as Array<{ values: number[] }>).map((d) => d.values);
 }
 
 Deno.serve(async (req) => {
