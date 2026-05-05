@@ -15,9 +15,10 @@ const corsHeaders = {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
+const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY")!;
 
 const CHAT_MODEL = "google/gemini-3-flash-preview";
-const EMBED_MODEL = "google/text-embedding-004";
+const EMBED_MODEL = "text-embedding-004";
 
 const FALLBACK_SYSTEM = `You are an expert rules judge for Twilight Imperium 4th Edition (TI4) including the Prophecy of Kings expansion. Answer accurately and clearly using bullet points and bold text where helpful. If you don't know, say so.`;
 
@@ -33,17 +34,22 @@ EXCERPTS:
 ${excerpts}`;
 
 async function embedQuery(text: string): Promise<number[]> {
-  const r = await fetch("https://ai.gateway.lovable.dev/v1/embeddings", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
-      "Content-Type": "application/json",
+  if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
+  const r = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${EMBED_MODEL}:embedContent?key=${GEMINI_API_KEY}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: `models/${EMBED_MODEL}`,
+        content: { parts: [{ text }] },
+        taskType: "RETRIEVAL_QUERY",
+      }),
     },
-    body: JSON.stringify({ model: EMBED_MODEL, input: text }),
-  });
+  );
   if (!r.ok) throw new Error(`embed failed: ${r.status} ${await r.text()}`);
   const j = await r.json();
-  return j.data[0].embedding as number[];
+  return j.embedding.values as number[];
 }
 
 interface Match {

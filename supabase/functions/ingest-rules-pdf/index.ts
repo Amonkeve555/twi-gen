@@ -13,10 +13,10 @@ const corsHeaders = {
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
+const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY")!;
 
-const EMBED_MODEL = "google/text-embedding-004"; // 768 dims
-const EMBED_URL = "https://ai.gateway.lovable.dev/v1/embeddings";
+const EMBED_MODEL = "text-embedding-004"; // 768 dims
+const EMBED_URL = `https://generativelanguage.googleapis.com/v1beta/models/${EMBED_MODEL}:batchEmbedContents`;
 
 const TARGET_CHARS = 2400; // ~600 tokens
 const OVERLAP_CHARS = 300;
@@ -88,20 +88,24 @@ function chunkPages(pages: string[]): Chunk[] {
 }
 
 async function embedBatch(texts: string[]): Promise<number[][]> {
-  const r = await fetch(EMBED_URL, {
+  if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
+  const r = await fetch(`${EMBED_URL}?key=${GEMINI_API_KEY}`, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ model: EMBED_MODEL, input: texts }),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      requests: texts.map((text) => ({
+        model: `models/${EMBED_MODEL}`,
+        content: { parts: [{ text }] },
+        taskType: "RETRIEVAL_DOCUMENT",
+      })),
+    }),
   });
   if (!r.ok) {
     const t = await r.text();
     throw new Error(`Embed failed [${r.status}]: ${t}`);
   }
   const json = await r.json();
-  return (json.data as Array<{ embedding: number[] }>).map((d) => d.embedding);
+  return (json.embeddings as Array<{ values: number[] }>).map((d) => d.values);
 }
 
 Deno.serve(async (req) => {
