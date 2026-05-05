@@ -18,7 +18,7 @@ const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY")!;
 
 const CHAT_MODEL = "google/gemini-3-flash-preview";
-const EMBED_MODEL = "text-embedding-004";
+const EMBED_MODEL = "gemini-embedding-001";
 
 const FALLBACK_SYSTEM = `You are an expert rules judge for Twilight Imperium 4th Edition (TI4) including the Prophecy of Kings expansion. Answer accurately and clearly using bullet points and bold text where helpful. If you don't know, say so.`;
 
