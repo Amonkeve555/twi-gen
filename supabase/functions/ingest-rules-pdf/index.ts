@@ -16,7 +16,7 @@ const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY")!;
 
 const EMBED_MODEL = "text-embedding-004"; // 768 dims
-const EMBED_URL = "https://ai.gateway.lovable.dev/v1/embeddings";
+const EMBED_URL = `https://generativelanguage.googleapis.com/v1beta/models/${EMBED_MODEL}:batchEmbedContents`;
 
 const TARGET_CHARS = 2400; // ~600 tokens
 const OVERLAP_CHARS = 300;
