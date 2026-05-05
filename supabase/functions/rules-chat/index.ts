@@ -34,17 +34,22 @@ EXCERPTS:
 ${excerpts}`;
 
 async function embedQuery(text: string): Promise<number[]> {
-  const r = await fetch("https://ai.gateway.lovable.dev/v1/embeddings", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
-      "Content-Type": "application/json",
+  if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
+  const r = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${EMBED_MODEL}:embedContent?key=${GEMINI_API_KEY}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: `models/${EMBED_MODEL}`,
+        content: { parts: [{ text }] },
+        taskType: "RETRIEVAL_QUERY",
+      }),
     },
-    body: JSON.stringify({ model: EMBED_MODEL, input: text }),
-  });
+  );
   if (!r.ok) throw new Error(`embed failed: ${r.status} ${await r.text()}`);
   const j = await r.json();
-  return j.data[0].embedding as number[];
+  return j.embedding.values as number[];
 }
 
 interface Match {
