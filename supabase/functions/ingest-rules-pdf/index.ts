@@ -91,22 +91,35 @@ async function embedBatch(texts: string[]): Promise<number[][]> {
   if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
   const out: number[][] = [];
   for (const text of texts) {
-    const r = await fetch(`${EMBED_URL}?key=${GEMINI_API_KEY}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: `models/${EMBED_MODEL}`,
-        content: { parts: [{ text }] },
-        taskType: "RETRIEVAL_DOCUMENT",
-        outputDimensionality: 768,
-      }),
-    });
-    if (!r.ok) {
+    let attempt = 0;
+    while (true) {
+      const r = await fetch(`${EMBED_URL}?key=${GEMINI_API_KEY}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: `models/${EMBED_MODEL}`,
+          content: { parts: [{ text }] },
+          taskType: "RETRIEVAL_DOCUMENT",
+          outputDimensionality: 768,
+        }),
+      });
+      if (r.ok) {
+        const json = await r.json();
+        out.push(json.embedding.values as number[]);
+        // Throttle: free tier ~5 RPM => ~13s between calls. Use 13s to be safe.
+        await new Promise((res) => setTimeout(res, 13000));
+        break;
+      }
       const t = await r.text();
+      if (r.status === 429 && attempt < 5) {
+        attempt++;
+        const wait = 30000 * attempt; // 30s, 60s, 90s, ...
+        console.warn(`429 from embed, waiting ${wait}ms (attempt ${attempt})`);
+        await new Promise((res) => setTimeout(res, wait));
+        continue;
+      }
       throw new Error(`Embed failed [${r.status}]: ${t}`);
     }
-    const json = await r.json();
-    out.push(json.embedding.values as number[]);
   }
   return out;
 }
