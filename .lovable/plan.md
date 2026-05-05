@@ -1,51 +1,57 @@
-# Add / edit game date on existing lobbies
+# Fix the embeddings 404 in PDF ingestion
 
-Hosts can currently only set the game date when *creating* a new lobby. Legacy lobbies (created before the feature) have no date, and there is no way to change a date if plans shift. This plan adds a host-only "Set / Edit game date" control on the **Lobby view** and on the **My Lobbies** list, allowing hosts to set or update the date any time before the 3-day lock window.
+The Lovable AI Gateway doesn't expose `/v1/embeddings` for this workspace, so `ingest-rules-pdf` fails with `route_not_found`. The chat side (Lovable AI) works fine — only embeddings need a different provider.
 
-## Scope
+## Approach
 
-- Hosts can set a game date on lobbies that don't have one yet.
-- Hosts can edit an existing date as long as the lobby is not yet locked (more than 3 days before the current `game_date`).
-- Once the lock window has begun, the edit control is hidden / disabled with clear messaging.
-- The chosen date must be in the future (same rule as the create form).
-- Non-hosts never see the edit control.
+Call **Google's Generative Language API directly** for embeddings, using `text-embedding-004` (the same model and **same 768-dim output** that's already in the database schema). This means:
 
-## Database
+- No DB migration needed — existing `vector(768)` column and any chunks stay compatible.
+- Both ingestion *and* the query-side embedding in `rules-chat` get switched to the same direct-API call, so vectors stay in the same space.
+- Chat answers continue to use the Lovable AI Gateway (Gemini) — that part already works.
 
-The existing `lobbies_validate_game_date` trigger only enforces validation `IF TG_OP = 'INSERT'`, so UPDATEs already pass through unchanged. To prevent hosts from sneaking past-dated edits or bypassing the lock via direct UPDATE, the trigger will be extended:
+## What's needed from you
 
-- On `UPDATE`, when `NEW.game_date IS DISTINCT FROM OLD.game_date`:
-  - Reject if `NEW.game_date` is `NULL`.
-  - Reject if `NEW.game_date < now()` (must be future).
-  - Reject if `OLD.game_date IS NOT NULL AND OLD.game_date - interval '3 days' <= now()` — i.e. lobby is already locked.
+A Google AI Studio API key (free tier is plenty for embedding rulebooks):
+1. Go to https://aistudio.google.com/apikey
+2. Click "Create API key" → copy the value
+3. I'll then prompt you with the secret form to paste it as `GEMINI_API_KEY`
 
-No table changes; only the trigger function is updated. RLS already allows the host to UPDATE their lobby.
+If you'd rather use OpenAI's `text-embedding-3-small` instead, say so — but that requires a DB migration to change the vector dimension (1536) and re-ingesting any existing PDFs.
 
-## UI
+## Implementation
 
-### Lobby view (`src/pages/LobbyView.tsx`)
-- Next to the "Game date: …" line, when `isHost` and not locked, show a small "Edit" (pencil) button.
-- When `isHost` and `game_date` is `null`, replace the line with a prominent "Set game date" call-to-action (so hosts of legacy lobbies notice it).
-- Clicking opens a dialog with the existing shadcn date picker (future-only, `pointer-events-auto`). Confirm calls `supabase.from('lobbies').update({ game_date }).eq('id', lobby.id)`.
-- Toast on success / error. Realtime already pushes the update to all viewers.
-- Hidden completely once `isLocked(game_date)` is true.
+### Edge function: `supabase/functions/ingest-rules-pdf/index.ts`
+Replace the `embedBatch` function:
+- Endpoint: `POST https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:batchEmbedContents?key={GEMINI_API_KEY}`
+- Body shape: `{ requests: [{ model: "models/text-embedding-004", content: { parts: [{ text }] }, taskType: "RETRIEVAL_DOCUMENT" }, ...] }`
+- Read vectors from `embeddings[].values`
+- Keep the existing batch size of 16 and the existing chunk-insert loop unchanged
+- Add a clear error if `GEMINI_API_KEY` is missing
 
-### My Lobbies (`src/pages/MyLobbies.tsx`)
-- Add a "Game date" column showing the date or "—".
-- For each row where the current user is host **and** the lobby is not locked, show an inline "Set / Edit" button that opens the same date-picker dialog (extracted into a shared component).
-- Same realtime / toast behavior.
+### Edge function: `supabase/functions/rules-chat/index.ts`
+Same swap for the **single** query embedding, but with `taskType: "RETRIEVAL_QUERY"` (this is the recommended Gemini practice — document chunks use `RETRIEVAL_DOCUMENT`, the user's question uses `RETRIEVAL_QUERY`, which improves retrieval quality).
+- Use the singular `:embedContent` endpoint for one vector.
 
-### Shared component
-- New `src/components/EditGameDateDialog.tsx`: encapsulates the date picker + update call. Props: `lobbyId`, `currentDate`, `open`, `onOpenChange`. Reused by both pages.
+### No database changes
+- `rules_chunks.embedding` stays `vector(768)`.
+- Existing chunks (if any are already in `ready` state with old vectors) remain valid because the model is unchanged.
+- Any sources currently in `error` state can be re-ingested via the existing **Re-ingest** button in the admin panel.
 
-## Out of scope
+### No frontend changes
+The admin panel, upload flow, and Rules Assistant UI stay exactly as they are.
 
-- Editing the date on locked lobbies (host needs to start a new lobby in that case).
-- Notifying joined players when the date changes (could be a follow-up).
+## Verification
+
+After deploy I'll:
+1. Confirm `GEMINI_API_KEY` is set.
+2. Check `ingest-rules-pdf` logs are clean on a test re-ingest.
+3. Send a sample question through `rules-chat` and confirm it returns a grounded answer with citations.
 
 ## Files touched
 
-- `supabase/migrations/...` — extend `lobbies_validate_game_date` trigger to cover UPDATE.
-- `src/components/EditGameDateDialog.tsx` (new).
-- `src/pages/LobbyView.tsx` — add edit button + dialog wiring; legacy "Set date" CTA.
-- `src/pages/MyLobbies.tsx` — add Game date column + inline edit button.
+- `supabase/functions/ingest-rules-pdf/index.ts` — swap embedding call
+- `supabase/functions/rules-chat/index.ts` — swap query embedding call
+- (new secret) `GEMINI_API_KEY`
+
+Confirm the Google API key route and I'll request the secret and implement.
