@@ -15,8 +15,8 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY")!;
 
-const EMBED_MODEL = "text-embedding-004"; // 768 dims
-const EMBED_URL = `https://generativelanguage.googleapis.com/v1beta/models/${EMBED_MODEL}:batchEmbedContents`;
+const EMBED_MODEL = "gemini-embedding-001"; // 768 dims with outputDimensionality
+const EMBED_URL = `https://generativelanguage.googleapis.com/v1beta/models/${EMBED_MODEL}:embedContent`;
 
 const TARGET_CHARS = 2400; // ~600 tokens
 const OVERLAP_CHARS = 300;
@@ -89,23 +89,26 @@ function chunkPages(pages: string[]): Chunk[] {
 
 async function embedBatch(texts: string[]): Promise<number[][]> {
   if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
-  const r = await fetch(`${EMBED_URL}?key=${GEMINI_API_KEY}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      requests: texts.map((text) => ({
+  const out: number[][] = [];
+  for (const text of texts) {
+    const r = await fetch(`${EMBED_URL}?key=${GEMINI_API_KEY}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
         model: `models/${EMBED_MODEL}`,
         content: { parts: [{ text }] },
         taskType: "RETRIEVAL_DOCUMENT",
-      })),
-    }),
-  });
-  if (!r.ok) {
-    const t = await r.text();
-    throw new Error(`Embed failed [${r.status}]: ${t}`);
+        outputDimensionality: 768,
+      }),
+    });
+    if (!r.ok) {
+      const t = await r.text();
+      throw new Error(`Embed failed [${r.status}]: ${t}`);
+    }
+    const json = await r.json();
+    out.push(json.embedding.values as number[]);
   }
-  const json = await r.json();
-  return (json.embeddings as Array<{ values: number[] }>).map((d) => d.values);
+  return out;
 }
 
 Deno.serve(async (req) => {
