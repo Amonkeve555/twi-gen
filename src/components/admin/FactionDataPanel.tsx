@@ -45,7 +45,7 @@ const FactionDataPanel = () => {
       supabase.from("faction_data_overrides").select("*"),
     ]);
     if (pRes.error) toast.error(`Proposals: ${pRes.error.message}`);
-    else setProposals((pRes.data ?? []) as ProposalRow[]);
+    else setProposals((pRes.data ?? []) as unknown as ProposalRow[]);
     if (oRes.error) toast.error(`Overrides: ${oRes.error.message}`);
     else {
       const map: Record<string, OverrideRow> = {};
@@ -86,12 +86,12 @@ const FactionDataPanel = () => {
     setBusyId(p.id);
     try {
       const { error: upErr } = await supabase.from("faction_data_overrides").upsert(
-        {
+        [{
           faction_name: p.proposal.faction_name,
-          data: p.proposal.data,
-          citations: p.proposal.citations,
+          data: p.proposal.data as never,
+          citations: p.proposal.citations as never,
           applied_from_proposal: p.id,
-        },
+        }],
         { onConflict: "faction_name" },
       );
       if (upErr) throw upErr;
