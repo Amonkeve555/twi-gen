@@ -44,6 +44,7 @@ async function embedQuery(text: string): Promise<number[]> {
         model: `models/${EMBED_MODEL}`,
         content: { parts: [{ text }] },
         taskType: "RETRIEVAL_QUERY",
+        outputDimensionality: 768,
       }),
     },
   );
