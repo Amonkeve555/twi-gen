@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import StarField from "@/components/StarField";
 import { TI4_FACTIONS, POK_FACTIONS, GENERIC_TECH, UNIT_REFERENCE, type Faction, type FactionTech } from "@/data/factions";
+import { useMergedFactions } from "@/hooks/useMergedFactions";
 import TechTree from "@/components/TechTree";
 
 const TECH_TYPE_COLORS: Record<string, string> = {
@@ -235,8 +236,10 @@ const FactionGuide = () => {
   const [showPok, setShowPok] = useState(true);
   const [detailDialog, setDetailDialog] = useState<DetailDialogData | null>(null);
 
+  const { ti4: mergedTi4, pok: mergedPok } = useMergedFactions();
+
   const factions = useMemo(() => {
-    const all = [...TI4_FACTIONS, ...(showPok ? POK_FACTIONS : [])];
+    const all = [...mergedTi4, ...(showPok ? mergedPok : [])];
     if (!search.trim()) return all;
     const q = search.toLowerCase();
     return all.filter(
@@ -250,7 +253,7 @@ const FactionGuide = () => {
         f.hero?.name.toLowerCase().includes(q) ||
         f.strategyTip?.toLowerCase().includes(q)
     );
-  }, [search, showPok]);
+  }, [search, showPok, mergedTi4, mergedPok]);
 
   return (
     <div className="min-h-screen relative">

@@ -1,18 +1,32 @@
-## Plan: Verify Gemini embedding fix for PDF ingestion
+Plan to make race/faction information update from the ingested PDFs safely:
 
-The `ingest-rules-pdf` function was updated to use `gemini-embedding-001` with `:embedContent` and `outputDimensionality: 768`. The stuck row was reset to `pending`. Now verify it works end-to-end.
+1. Add an admin-reviewed faction data pipeline
+- Create a backend function that reads only `ready` ingested PDF chunks.
+- For each full faction name, retrieve the relevant excerpts and ask Gemini to produce structured JSON matching the current faction fields: abilities, promissory note, starting units, starting tech, commodities, faction tech, agent, commander, hero.
+- Save the generated result into the existing `faction_data_proposals` table instead of applying it automatically.
 
-### Steps
+2. Add persistent approved overrides
+- Add a small `faction_data_overrides` table keyed by faction name.
+- Store only approved faction data plus citation/source metadata.
+- Keep admin-only write access and public read access, matching the existing guide behavior.
 
-1. **Trigger re-ingestion** of the pending PDF row (via the admin UI or by invoking the function).
-2. **Watch edge function logs** for `ingest-rules-pdf` to confirm embeddings succeed (no 404/400 from Gemini API).
-3. **Check `rules_sources` row** transitions to `status = 'ready'` with a non-zero `chunk_count`.
-4. **Check `rules_chunks`** has rows with non-null `embedding` of dimension 768.
-5. **Apply matching fix to `rules-chat`** if needed — it currently uses `text-embedding-004` for query embedding, which will also 404. Switch it to `gemini-embedding-001` + `:embedContent` + `outputDimensionality: 768` so query and document vectors share the same model/dimensions.
-6. **Test a rules question** in the AI chat to confirm retrieval + answer with citations.
+3. Add admin review UI
+- Extend the Rules PDFs/Admin area with a “Faction Data” section.
+- Add a “Generate from ingested PDFs” button.
+- Show pending proposals as a diff against the current `src/data/factions.ts` values.
+- Add Apply / Discard actions so bad AI extraction never silently changes the live race data.
 
-### Technical notes
+4. Use approved overrides in the app
+- Add a shared hook/helper that merges static faction data with approved database overrides.
+- Update the Faction Guide and faction-selection flows to use the merged data.
+- Keep existing saved lobby/history faction snapshots intact so old games do not break.
 
-- Both query and document embeddings must use the **same model and dimensionality** or cosine similarity is meaningless. Step 5 is required, not optional.
-- `gemini-embedding-001` only supports single `:embedContent` calls (no batch), so ingestion will be slower per chunk — acceptable for admin-side ingestion.
-- If rate limits hit during ingestion, add a small delay between chunk calls.
+5. Improve reliability and debugging
+- Include citations/page references in each generated faction proposal so you can see where values came from.
+- Surface extraction errors in the admin UI.
+- Avoid re-embedding PDFs for this feature; it will reuse already-ingested chunks to avoid more Gemini quota pressure.
+
+Technical notes:
+- The current PDF ingestion only powers `rules-chat`; it does not update `src/data/factions.ts`.
+- The app currently imports race data from a static TypeScript file, so runtime PDF updates need approved database overrides rather than trying to rewrite source code from a backend function.
+- Generation will use Gemini through the existing AI setup, while the PDF semantic search stays on the existing `rules_chunks` embeddings.

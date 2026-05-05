@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      faction_data_overrides: {
+        Row: {
+          applied_by: string | null
+          applied_from_proposal: string | null
+          citations: Json
+          created_at: string
+          data: Json
+          faction_name: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          applied_by?: string | null
+          applied_from_proposal?: string | null
+          citations?: Json
+          created_at?: string
+          data: Json
+          faction_name: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          applied_by?: string | null
+          applied_from_proposal?: string | null
+          citations?: Json
+          created_at?: string
+          data?: Json
+          faction_name?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       faction_data_proposals: {
         Row: {
           created_at: string
