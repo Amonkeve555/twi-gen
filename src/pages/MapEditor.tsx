@@ -409,6 +409,15 @@ const MapEditor = () => {
             <RotateCcw className="mr-2 h-3 w-3" />
             Reset to template
           </Button>
+          <Button
+            variant="outline"
+            onClick={saveAsTemplate}
+            disabled={!map}
+            className="font-display text-xs uppercase tracking-[0.2em]"
+          >
+            <Save className="mr-2 h-3 w-3" />
+            Save as template
+          </Button>
           {lobby.custom_map && (
             <Button
               variant="outline"
