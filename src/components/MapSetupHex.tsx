@@ -210,7 +210,8 @@ const MapSetupHex = ({ setup, seats, seatOrder, onSeatClick, compact, tileContro
       }
       return compact ? "" : `P${c.player}`;
     }
-    if (compact) return "";
+    if (compact) return c.label ? "" : "";
+    if (c.label) return c.label.length > 10 ? c.label.slice(0, 10) + "…" : c.label;
     if (c.role === "slice") return seatOrder ? "" : `${c.player}`;
     if (c.role === "hyperlane") return "HL";
     return "";
