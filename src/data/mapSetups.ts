@@ -5,6 +5,7 @@
 export type HexRole =
   | "mecatol"
   | "home"
+  | "home-option"
   | "equidistant"
   | "slice"
   | "hyperlane"
