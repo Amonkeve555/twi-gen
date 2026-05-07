@@ -19,6 +19,18 @@ import {
   type CustomMap,
   type CustomMapCell,
 } from "@/lib/customMap";
+import {
+  listMyTemplates,
+  saveTemplate,
+  type MapTemplate,
+} from "@/lib/mapTemplates";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type PlayerCount = 3 | 4 | 5 | 6 | 7 | 8;
 type Brush = "mecatol" | "home" | "blue" | "red" | "hyperlane" | "empty" | "erase";
