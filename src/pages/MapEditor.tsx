@@ -236,6 +236,14 @@ const MapEditor = () => {
             >
               Blank 4-ring
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadFreeCanvas}
+              className="font-display text-xs uppercase tracking-[0.15em]"
+            >
+              Free canvas
+            </Button>
           </div>
         </div>
 
@@ -305,6 +313,7 @@ const MapEditor = () => {
               setup={setup}
               onTileClick={handleTileClick}
               neutral
+              gridGuide={{ range: 6 }}
             />
             <p className="font-body text-xs text-muted-foreground/70 text-center italic mt-3">
               Click any hex to paint it with the active brush.
