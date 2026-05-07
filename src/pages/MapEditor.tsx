@@ -71,6 +71,21 @@ const MapEditor = () => {
   const [brush, setBrush] = useState<Brush>("blue");
   const [labelInput, setLabelInput] = useState("");
   const [saving, setSaving] = useState(false);
+  const [templates, setTemplates] = useState<MapTemplate[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+    listMyTemplates().then(setTemplates).catch(() => {});
+  }, [user?.id]);
+
+  const refreshTemplates = async () => {
+    if (!user) return;
+    try {
+      setTemplates(await listMyTemplates());
+    } catch {
+      /* ignore */
+    }
+  };
 
   const playerCount = clampCount(lobby?.settings?.max_players ?? 6);
   const isHost = !!user && lobby?.host_user_id === user.id;
