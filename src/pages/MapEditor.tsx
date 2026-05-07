@@ -54,7 +54,6 @@ const MapEditor = () => {
 
   const [map, setMap] = useState<CustomMap | null>(null);
   const [brush, setBrush] = useState<Brush>("blue");
-  const [seatForBrush, setSeatForBrush] = useState(0);
   const [labelInput, setLabelInput] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -86,7 +85,6 @@ const MapEditor = () => {
       kind: brush as HexRole,
       label: labelInput.trim() || undefined,
     };
-    if (brush === "home") next.seat = seatForBrush;
     const newCells = [...map.cells];
     if (idx >= 0) newCells[idx] = next;
     else newCells.push(next);
@@ -258,22 +256,6 @@ const MapEditor = () => {
             ))}
           </div>
 
-          {brush === "home" && (
-            <div className="flex items-center gap-2">
-              <span className="font-body text-xs text-muted-foreground">Seat #</span>
-              {Array.from({ length: playerCount }, (_, i) => (
-                <Button
-                  key={i}
-                  variant={seatForBrush === i ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSeatForBrush(i)}
-                  className="h-8 w-8 p-0 font-display text-xs"
-                >
-                  {i + 1}
-                </Button>
-              ))}
-            </div>
-          )}
 
           <div className="flex items-center gap-2">
             <span className="font-body text-xs text-muted-foreground whitespace-nowrap">
@@ -308,6 +290,7 @@ const MapEditor = () => {
             <MapSetupHex
               setup={setup}
               onTileClick={handleTileClick}
+              neutral
             />
             <p className="font-body text-xs text-muted-foreground/70 text-center italic mt-3">
               Click any hex to paint it with the active brush.
