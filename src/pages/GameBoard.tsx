@@ -9,7 +9,8 @@ import StarField from "@/components/StarField";
 import MapSetupHex, { type SeatOccupant } from "@/components/MapSetupHex";
 import TileControlLeaderboard from "@/components/TileControlLeaderboard";
 import GameTimer from "@/components/GameTimer";
-import { MAP_SETUPS, getHomeSeats } from "@/data/mapSetups";
+import { getHomeSeats, getHomeSeatsFromSetup } from "@/data/mapSetups";
+import { setupForLobby } from "@/lib/customMap";
 import { useLobby } from "@/hooks/useLobby";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,8 +40,11 @@ const GameBoard = () => {
   const canEnterScores = isHost && isEnded && !isCompleted;
 
   const playerCount = clampCount(lobby?.settings?.max_players ?? 6);
-  const setup = MAP_SETUPS[playerCount];
-  const seatOrder = useMemo(() => getHomeSeats(playerCount), [playerCount]);
+  const setup = useMemo(() => setupForLobby(lobby?.custom_map ?? null, playerCount), [lobby?.custom_map, playerCount]);
+  const seatOrder = useMemo(
+    () => (lobby?.custom_map ? getHomeSeatsFromSetup(setup) : getHomeSeats(playerCount)),
+    [lobby?.custom_map, setup, playerCount],
+  );
   const tileControl = (lobby?.tile_control ?? {}) as Record<string, number>;
 
   const seats = useMemo(() => {
