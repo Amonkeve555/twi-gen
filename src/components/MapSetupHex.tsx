@@ -44,17 +44,17 @@ interface Props {
   onTileClick?: (q: number, r: number, currentSeat: number | undefined) => void;
 }
 
-// Pointy-top hex axial -> pixel
+// Flat-top hex axial -> pixel
 function axialToPixel(q: number, r: number, size: number) {
-  const x = size * Math.sqrt(3) * (q + r / 2);
-  const y = size * 1.5 * r;
+  const x = size * 1.5 * q;
+  const y = size * Math.sqrt(3) * (r + q / 2);
   return { x, y };
 }
 
 function hexPoints(cx: number, cy: number, size: number) {
   const pts: string[] = [];
   for (let i = 0; i < 6; i++) {
-    const angle = (Math.PI / 180) * (60 * i - 30); // pointy-top
+    const angle = (Math.PI / 180) * (60 * i); // flat-top
     const x = cx + size * Math.cos(angle);
     const y = cy + size * Math.sin(angle);
     pts.push(`${x.toFixed(2)},${y.toFixed(2)}`);
