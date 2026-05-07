@@ -54,7 +54,6 @@ const MapEditor = () => {
 
   const [map, setMap] = useState<CustomMap | null>(null);
   const [brush, setBrush] = useState<Brush>("blue");
-  const [seatForBrush, setSeatForBrush] = useState(0);
   const [labelInput, setLabelInput] = useState("");
   const [saving, setSaving] = useState(false);
 
