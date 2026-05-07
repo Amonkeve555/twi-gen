@@ -85,6 +85,9 @@ const MapSetup = () => {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 font-body text-sm">
             <LegendItem color="hsl(190 80% 60%)" label="Mecatol Rex (center)" />
             <LegendItem color="hsl(0 75% 60%)" label="Home Systems" filled />
+            {count <= 5 && (
+              <LegendItem color="hsl(135 70% 55%)" label="Potential Home (closest to your seat)" filled />
+            )}
             <LegendItem color="hsl(135 55% 50%)" label="Player Slice" subtle />
             <LegendItem color="hsl(220 25% 50%)" label="Equidistant" />
             {(count === 7 || count === 8) && (

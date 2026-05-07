@@ -5,6 +5,7 @@
 export type HexRole =
   | "mecatol"
   | "home"
+  | "home-option"
   | "equidistant"
   | "slice"
   | "hyperlane"
@@ -218,6 +219,10 @@ function build4p(): MapSetup {
   ];
   equis.forEach(([q, r]) => mark(cells, q, r, "equidistant"));
 
+  // Remaining outer corners are potential home positions (rulebook green hexes)
+  mark(cells, 0, -3, "home-option");
+  mark(cells, 0, 3, "home-option");
+
   return {
     players: 4,
     rings: 3,
@@ -256,6 +261,11 @@ function build3p(): MapSetup {
     [1, 2], [-1, 3], [-2, -1], [-2, 3],
   ];
   equis.forEach(([q, r]) => mark(cells, q, r, "equidistant"));
+
+  // Remaining outer corners are potential home positions (rulebook green hexes)
+  mark(cells, 3, -3, "home-option");
+  mark(cells, 0, 3, "home-option");
+  mark(cells, -3, 0, "home-option");
 
   return {
     players: 3,
@@ -302,6 +312,9 @@ function build5p(): MapSetup {
     [-3, 3], [-2, 3], [-3, 2], [-2, 2],
   ];
   equis.forEach(([q, r]) => mark(cells, q, r, "equidistant"));
+
+  // Remaining outer corner is a potential home position (rulebook green hex)
+  mark(cells, -3, 3, "home-option");
 
   return {
     players: 5,
@@ -472,6 +485,7 @@ export function getHomeSeats(players: 3 | 4 | 5 | 6 | 7 | 8): HexCell[] {
 export const ROLE_LABELS: Record<HexRole, string> = {
   mecatol: "Mecatol Rex",
   home: "Home System",
+  "home-option": "Potential Home System",
   equidistant: "Equidistant System",
   slice: "Player Slice",
   hyperlane: "Hyperlane (fixed tile)",
