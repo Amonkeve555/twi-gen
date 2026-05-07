@@ -423,7 +423,7 @@ const Index = () => {
                     className="col-span-2 font-display text-xs uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40 py-4"
                   >
                     <Hexagon className="mr-2 h-3.5 w-3.5" />
-                    Map Setup
+                    Map Editor
                   </Button>
                   {isAdmin && (
                     <Button

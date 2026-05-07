@@ -19,6 +19,18 @@ import {
   type CustomMap,
   type CustomMapCell,
 } from "@/lib/customMap";
+import {
+  listMyTemplates,
+  saveTemplate,
+  type MapTemplate,
+} from "@/lib/mapTemplates";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type PlayerCount = 3 | 4 | 5 | 6 | 7 | 8;
 type Brush = "mecatol" | "home" | "blue" | "red" | "hyperlane" | "empty" | "erase";
@@ -59,6 +71,21 @@ const MapEditor = () => {
   const [brush, setBrush] = useState<Brush>("blue");
   const [labelInput, setLabelInput] = useState("");
   const [saving, setSaving] = useState(false);
+  const [templates, setTemplates] = useState<MapTemplate[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+    listMyTemplates().then(setTemplates).catch(() => {});
+  }, [user?.id]);
+
+  const refreshTemplates = async () => {
+    if (!user) return;
+    try {
+      setTemplates(await listMyTemplates());
+    } catch {
+      /* ignore */
+    }
+  };
 
   const playerCount = clampCount(lobby?.settings?.max_players ?? 6);
   const isHost = !!user && lobby?.host_user_id === user.id;
@@ -113,6 +140,30 @@ const MapEditor = () => {
   const loadFreeCanvas = () => {
     if (!confirm("Replace current map with a blank free canvas?")) return;
     setMap(freeCanvasMap());
+  };
+
+  const loadFromTemplate = (id: string) => {
+    const tpl = templates.find((t) => t.id === id);
+    if (!tpl) return;
+    if (!confirm(`Load template "${tpl.name}"?`)) return;
+    setMap(tpl.data);
+  };
+
+  const saveAsTemplate = async () => {
+    if (!user) {
+      toast.error("Sign in to save templates");
+      return;
+    }
+    if (!map) return;
+    const name = prompt("Template name:")?.trim();
+    if (!name) return;
+    try {
+      await saveTemplate(name, map);
+      toast.success(`Saved "${name}"`);
+      await refreshTemplates();
+    } catch (e) {
+      toast.error(`Save failed: ${(e as Error).message}`);
+    }
   };
 
   const save = async () => {
@@ -245,6 +296,25 @@ const MapEditor = () => {
               Free canvas
             </Button>
           </div>
+          {templates.length > 0 && (
+            <div className="mt-3 flex items-center gap-2">
+              <span className="font-body text-xs text-muted-foreground whitespace-nowrap">
+                Load template
+              </span>
+              <Select onValueChange={loadFromTemplate}>
+                <SelectTrigger className="glass imperial-border h-8 font-body text-sm w-[240px]">
+                  <SelectValue placeholder="Select a saved template…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {templates.map((tpl) => (
+                    <SelectItem key={tpl.id} value={tpl.id}>
+                      {tpl.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
 
         {/* Brush */}
@@ -338,6 +408,15 @@ const MapEditor = () => {
           >
             <RotateCcw className="mr-2 h-3 w-3" />
             Reset to template
+          </Button>
+          <Button
+            variant="outline"
+            onClick={saveAsTemplate}
+            disabled={!map}
+            className="font-display text-xs uppercase tracking-[0.2em]"
+          >
+            <Save className="mr-2 h-3 w-3" />
+            Save as template
           </Button>
           {lobby.custom_map && (
             <Button
