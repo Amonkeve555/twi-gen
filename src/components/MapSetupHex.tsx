@@ -44,6 +44,8 @@ interface Props {
   onTileClick?: (q: number, r: number, currentSeat: number | undefined) => void;
   /** Editor mode: render uniform neutral styling without seat numbers, tile numbers, or per-player colors. */
   neutral?: boolean;
+  /** Render a faint snap grid of empty hexes within `range` axial distance of origin, behind real tiles. */
+  gridGuide?: { range: number };
 }
 
 // Flat-top hex axial -> pixel
@@ -64,7 +66,7 @@ function hexPoints(cx: number, cy: number, size: number) {
   return pts.join(" ");
 }
 
-const MapSetupHex = ({ setup, seats, seatOrder, onSeatClick, compact, tileControl, onTileClick, neutral }: Props) => {
+const MapSetupHex = ({ setup, seats, seatOrder, onSeatClick, compact, tileControl, onTileClick, neutral, gridGuide }: Props) => {
   const HEX_SIZE = compact ? 18 : 34;
 
   // Map from "q,r" -> seat_index for quick lookup
@@ -74,22 +76,43 @@ const MapSetupHex = ({ setup, seats, seatOrder, onSeatClick, compact, tileContro
     return m;
   }, [seatOrder]);
 
+  const guideCoords = useMemo(() => {
+    if (!gridGuide) return [] as Array<{ q: number; r: number }>;
+    const taken = new Set(setup.cells.map((c) => `${c.q},${c.r}`));
+    const out: Array<{ q: number; r: number }> = [];
+    const R = gridGuide.range;
+    for (let q = -R; q <= R; q++) {
+      for (let r = -R; r <= R; r++) {
+        const s = -q - r;
+        if (Math.max(Math.abs(q), Math.abs(r), Math.abs(s)) > R) continue;
+        if (taken.has(`${q},${r}`)) continue;
+        out.push({ q, r });
+      }
+    }
+    return out;
+  }, [gridGuide, setup]);
+
   const { cells, viewBox } = useMemo(() => {
     const cells = setup.cells;
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    cells.forEach((c) => {
-      const { x, y } = axialToPixel(c.q, c.r, HEX_SIZE);
+    const consider = (q: number, r: number) => {
+      const { x, y } = axialToPixel(q, r, HEX_SIZE);
       const w = HEX_SIZE * Math.sqrt(3);
       const h = HEX_SIZE * 2;
       minX = Math.min(minX, x - w / 2);
       maxX = Math.max(maxX, x + w / 2);
       minY = Math.min(minY, y - h / 2);
       maxY = Math.max(maxY, y + h / 2);
-    });
+    };
+    cells.forEach((c) => consider(c.q, c.r));
+    guideCoords.forEach((c) => consider(c.q, c.r));
+    if (!isFinite(minX)) {
+      minX = -HEX_SIZE; maxX = HEX_SIZE; minY = -HEX_SIZE; maxY = HEX_SIZE;
+    }
     const pad = 8;
     const vb = `${minX - pad} ${minY - pad} ${maxX - minX + pad * 2} ${maxY - minY + pad * 2}`;
     return { cells, viewBox: vb };
-  }, [setup]);
+  }, [setup, guideCoords, HEX_SIZE]);
 
   const seatColor = (seatIdx: number): string => {
     const occ = seats?.[seatIdx];
@@ -292,6 +315,21 @@ const MapSetupHex = ({ setup, seats, seatOrder, onSeatClick, compact, tileContro
           role="img"
           aria-label={`Twilight Imperium ${setup.players}-player map setup`}
         >
+          {guideCoords.map((g, i) => {
+            const { x, y } = axialToPixel(g.q, g.r, HEX_SIZE);
+            return (
+              <polygon
+                key={`guide-${i}`}
+                points={hexPoints(x, y, HEX_SIZE - 2)}
+                fill="hsl(220 30% 12% / 0.15)"
+                stroke="hsl(220 25% 45% / 0.35)"
+                strokeWidth={1}
+                strokeDasharray="2 3"
+                style={{ cursor: onTileClick ? "pointer" : "default" }}
+                onClick={onTileClick ? () => onTileClick(g.q, g.r, undefined) : undefined}
+              />
+            );
+          })}
           {cells.map((c, i) => {
             const { x, y } = axialToPixel(c.q, c.r, HEX_SIZE);
             const style = cellStyle(c);

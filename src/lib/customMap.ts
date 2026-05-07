@@ -68,6 +68,11 @@ export function blankCustomMap(rings: number): CustomMap {
   return { rings, cells };
 }
 
+/** Empty canvas — no cells, just a guide grid in the editor. */
+export function freeCanvasMap(): CustomMap {
+  return { rings: 6, cells: [] };
+}
+
 /** Convert an existing MapSetup into a CustomMap (for "load template" button). */
 export function setupToCustomMap(setup: MapSetup): CustomMap {
   return {

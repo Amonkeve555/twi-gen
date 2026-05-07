@@ -1,30 +1,25 @@
 ## Goal
-
-In the Map Editor, drop all auto-numbering and per-seat colors. Hosts paint a neutral map and place "Home" tiles wherever they want — no seat assignment, no template-driven player coloring.
+Add a "Free canvas" mode to the Map Editor so the host can place tiles anywhere on a hex grid (any shape — rectangle, line, asymmetric).
 
 ## Changes
 
 ### 1. `src/pages/MapEditor.tsx`
-- Remove the seat-number picker UI (the `Seat #` row with 1..N buttons).
-- Remove the `seatForBrush` state and stop writing `seat` onto painted cells.
-- Keep brushes: Mecatol, Home, Blue, Red, Hyperlane, Empty (no seat metadata on Home).
+- Add a **Free canvas** button next to "Blank 3-ring / 4-ring". Loads an empty `CustomMap` (no cells, `rings: 6`).
+- Add an **Erase** brush. When active, clicking a tile removes it from `cells`.
+- Painting a tile on an empty grid slot adds a new cell at that `q,r`.
 
-### 2. `src/components/MapSetupHex.tsx` (editor-only mode)
-Add a new prop `neutral?: boolean`. When `true`:
-- Do not render any text labels on tiles (no "MR", no "P1", no slice numbers, no seat numbers, no "HL").
-- Render every non-hyperlane tile with a single neutral style (dark fill, muted border).
-- Render `home` tiles with a uniform accent (single gold/amber stroke + subtle fill) — the same for every home, no per-player palette.
-- Hyperlanes keep their dashed purple style so they remain visually distinct.
-- User-typed `label` text on a tile is still rendered (that's intentional content).
+### 2. `src/components/MapSetupHex.tsx`
+- New optional prop `gridGuide?: { range: number }`. When set, renders faint dashed hex outlines for every axial `q,r` within `range` (≤ range, hex distance) behind real tiles, and forwards clicks on guide hexes via `onTileClick(q, r, undefined)`.
+- ViewBox expands to include the guide range so the canvas stays stable as tiles are added/removed.
+- Existing rendering paths (seat-aware, tile-control, neutral) untouched.
 
-The existing colored/seat-aware rendering paths stay untouched for `LobbyView`, `GameBoard`, `SeatingPanel`, and `HistoryMiniMap`.
+### 3. `src/lib/customMap.ts`
+- Add `freeCanvasMap()` returning `{ rings: 6, cells: [] }`.
 
-### 3. `MapEditor.tsx` rendering
-Pass `neutral` to `<MapSetupHex>` so the editor canvas is neutral.
-
-### 4. Data model
-No DB or type changes. `seat` becomes optional/unused on cells painted in the editor; existing maps with `seat` values still load fine (the field is just ignored visually in neutral mode and elsewhere relies on `seatOrder` derived from home cells in placement order).
+### 4. Editor wiring
+- When the current map has 0 cells or was created via Free canvas, pass `gridGuide={{ range: 6 }}` to `MapSetupHex`. Otherwise pass it whenever neutral mode is on, so the host can extend any layout outward.
+- Erase brush: in `paintCell`, if brush is `erase` and the cell exists, remove it; if it doesn't exist, no-op.
 
 ## Out of scope
-- Changing how the lobby/game board displays the saved map (those keep their existing seat coloring driven by faction colors).
-- Reworking seat assignment logic in `SeatingPanel` (separate concern).
+- Square/offset grid, drag-to-move, undo/redo, rotating hyperlanes, multi-select.
+- Changing how lobby/seating/game-board render saved maps (already shape-agnostic).
