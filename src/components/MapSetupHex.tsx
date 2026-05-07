@@ -315,6 +315,21 @@ const MapSetupHex = ({ setup, seats, seatOrder, onSeatClick, compact, tileContro
           role="img"
           aria-label={`Twilight Imperium ${setup.players}-player map setup`}
         >
+          {guideCoords.map((g, i) => {
+            const { x, y } = axialToPixel(g.q, g.r, HEX_SIZE);
+            return (
+              <polygon
+                key={`guide-${i}`}
+                points={hexPoints(x, y, HEX_SIZE - 2)}
+                fill="hsl(220 30% 12% / 0.15)"
+                stroke="hsl(220 25% 45% / 0.35)"
+                strokeWidth={1}
+                strokeDasharray="2 3"
+                style={{ cursor: onTileClick ? "pointer" : "default" }}
+                onClick={onTileClick ? () => onTileClick(g.q, g.r, undefined) : undefined}
+              />
+            );
+          })}
           {cells.map((c, i) => {
             const { x, y } = axialToPixel(c.q, c.r, HEX_SIZE);
             const style = cellStyle(c);
