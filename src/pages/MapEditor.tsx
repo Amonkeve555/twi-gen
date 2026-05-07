@@ -14,13 +14,14 @@ import { MAP_SETUPS, type HexCell, type HexRole, type MapSetup } from "@/data/ma
 import {
   blankCustomMap,
   customMapToSetup,
+  freeCanvasMap,
   setupToCustomMap,
   type CustomMap,
   type CustomMapCell,
 } from "@/lib/customMap";
 
 type PlayerCount = 3 | 4 | 5 | 6 | 7 | 8;
-type Brush = "mecatol" | "home" | "blue" | "red" | "hyperlane" | "empty";
+type Brush = "mecatol" | "home" | "blue" | "red" | "hyperlane" | "empty" | "erase";
 
 const BRUSH_LABELS: Record<Brush, string> = {
   mecatol: "Mecatol",
@@ -29,6 +30,7 @@ const BRUSH_LABELS: Record<Brush, string> = {
   red: "Red",
   hyperlane: "Hyperlane",
   empty: "Empty",
+  erase: "Erase",
 };
 
 const BRUSH_COLORS: Record<Brush, string> = {
@@ -38,6 +40,7 @@ const BRUSH_COLORS: Record<Brush, string> = {
   red: "hsl(0 75% 60%)",
   hyperlane: "hsl(280 65% 65%)",
   empty: "hsl(220 25% 50%)",
+  erase: "hsl(0 0% 70%)",
 };
 
 function clampCount(n: number): PlayerCount {
