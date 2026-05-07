@@ -85,7 +85,6 @@ const MapEditor = () => {
       kind: brush as HexRole,
       label: labelInput.trim() || undefined,
     };
-    if (brush === "home") next.seat = seatForBrush;
     const newCells = [...map.cells];
     if (idx >= 0) newCells[idx] = next;
     else newCells.push(next);
