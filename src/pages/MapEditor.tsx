@@ -296,6 +296,25 @@ const MapEditor = () => {
               Free canvas
             </Button>
           </div>
+          {templates.length > 0 && (
+            <div className="mt-3 flex items-center gap-2">
+              <span className="font-body text-xs text-muted-foreground whitespace-nowrap">
+                Load template
+              </span>
+              <Select onValueChange={loadFromTemplate}>
+                <SelectTrigger className="glass imperial-border h-8 font-body text-sm w-[240px]">
+                  <SelectValue placeholder="Select a saved template…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {templates.map((tpl) => (
+                    <SelectItem key={tpl.id} value={tpl.id}>
+                      {tpl.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
 
         {/* Brush */}
