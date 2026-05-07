@@ -473,6 +473,7 @@ export function getHomeSeats(players: 3 | 4 | 5 | 6 | 7 | 8): HexCell[] {
 export const ROLE_LABELS: Record<HexRole, string> = {
   mecatol: "Mecatol Rex",
   home: "Home System",
+  "home-option": "Potential Home System",
   equidistant: "Equidistant System",
   slice: "Player Slice",
   hyperlane: "Hyperlane (fixed tile)",
