@@ -234,6 +234,10 @@ const MapSetupHex = ({ setup, seats, seatOrder, onSeatClick, compact, tileContro
 
   const cellLabel = (c: HexCell) => {
     if (neutral) {
+      if (c.role === "home") {
+        const seatIdx = seatIndexByCoord.get(`${c.q},${c.r}`);
+        if (seatIdx !== undefined) return `${seatIdx + 1}`;
+      }
       if (c.label) return c.label.length > 10 ? c.label.slice(0, 10) + "…" : c.label;
       return "";
     }
