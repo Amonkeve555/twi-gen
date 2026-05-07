@@ -142,6 +142,30 @@ const MapEditor = () => {
     setMap(freeCanvasMap());
   };
 
+  const loadFromTemplate = (id: string) => {
+    const tpl = templates.find((t) => t.id === id);
+    if (!tpl) return;
+    if (!confirm(`Load template "${tpl.name}"?`)) return;
+    setMap(tpl.data);
+  };
+
+  const saveAsTemplate = async () => {
+    if (!user) {
+      toast.error("Sign in to save templates");
+      return;
+    }
+    if (!map) return;
+    const name = prompt("Template name:")?.trim();
+    if (!name) return;
+    try {
+      await saveTemplate(name, map);
+      toast.success(`Saved "${name}"`);
+      await refreshTemplates();
+    } catch (e) {
+      toast.error(`Save failed: ${(e as Error).message}`);
+    }
+  };
+
   const save = async () => {
     if (!lobby || !map) return;
     setSaving(true);
