@@ -256,22 +256,6 @@ const MapEditor = () => {
             ))}
           </div>
 
-          {brush === "home" && (
-            <div className="flex items-center gap-2">
-              <span className="font-body text-xs text-muted-foreground">Seat #</span>
-              {Array.from({ length: playerCount }, (_, i) => (
-                <Button
-                  key={i}
-                  variant={seatForBrush === i ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSeatForBrush(i)}
-                  className="h-8 w-8 p-0 font-display text-xs"
-                >
-                  {i + 1}
-                </Button>
-              ))}
-            </div>
-          )}
 
           <div className="flex items-center gap-2">
             <span className="font-body text-xs text-muted-foreground whitespace-nowrap">
