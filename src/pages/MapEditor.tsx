@@ -82,6 +82,12 @@ const MapEditor = () => {
   const paintCell = (q: number, r: number) => {
     if (!map) return;
     const idx = map.cells.findIndex((c) => c.q === q && c.r === r);
+    if (brush === "erase") {
+      if (idx < 0) return;
+      const newCells = map.cells.filter((_, i) => i !== idx);
+      setMap({ ...map, cells: newCells });
+      return;
+    }
     const next: CustomMapCell = {
       q,
       r,
@@ -102,6 +108,11 @@ const MapEditor = () => {
   const loadBlank = (rings: 3 | 4) => {
     if (!confirm(`Replace current map with a blank ${rings}-ring grid?`)) return;
     setMap(blankCustomMap(rings));
+  };
+
+  const loadFreeCanvas = () => {
+    if (!confirm("Replace current map with a blank free canvas?")) return;
+    setMap(freeCanvasMap());
   };
 
   const save = async () => {
