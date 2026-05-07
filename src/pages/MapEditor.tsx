@@ -290,6 +290,7 @@ const MapEditor = () => {
             <MapSetupHex
               setup={setup}
               onTileClick={handleTileClick}
+              neutral
             />
             <p className="font-body text-xs text-muted-foreground/70 text-center italic mt-3">
               Click any hex to paint it with the active brush.
