@@ -253,7 +253,7 @@ const MapSetupHex = ({ setup, seats, seatOrder, onSeatClick, compact, tileContro
   };
 
   const subLabel = (c: HexCell) => {
-    if (neutral || compact || c.role !== "home") return "";
+    if (compact || c.role !== "home") return "";
     const seatIdx = seatIndexByCoord.get(`${c.q},${c.r}`);
     if (seatIdx === undefined) return "";
     const occ = seats?.[seatIdx];

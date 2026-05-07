@@ -158,6 +158,7 @@ const SeatingPanel = ({ lobbyId, players, isHost, playerCount, customMap }: Prop
               seats={seats}
               seatOrder={seatOrder}
               onSeatClick={isHost ? handleSeatClick : undefined}
+              neutral
             />
           </div>
 
