@@ -15,6 +15,7 @@ import MyLobbies from "./pages/MyLobbies.tsx";
 import FactionGuide from "./pages/FactionGuide.tsx";
 import RulesAssistant from "./pages/RulesAssistant.tsx";
 import MapSetup from "./pages/MapSetup.tsx";
+import MapEditor from "./pages/MapEditor.tsx";
 import Stats from "./pages/Stats.tsx";
 import Auth from "./pages/Auth.tsx";
 import ProfileSetup from "./pages/ProfileSetup.tsx";
@@ -41,6 +42,7 @@ const App = () => (
           <Route path="/create" element={<AuthGuard><CreateLobby /></AuthGuard>} />
           <Route path="/join/:inviteCode" element={<AuthGuard><JoinLobby /></AuthGuard>} />
           <Route path="/lobby/:inviteCode" element={<AuthGuard><LobbyView /></AuthGuard>} />
+          <Route path="/lobby/:inviteCode/map-editor" element={<AuthGuard><MapEditor /></AuthGuard>} />
           <Route path="/lobby/:inviteCode/gameday" element={<AuthGuard><GameDay /></AuthGuard>} />
           <Route path="/game/:code" element={<AuthGuard><GameBoard /></AuthGuard>} />
           <Route path="/my-lobbies" element={<AuthGuard><MyLobbies /></AuthGuard>} />
