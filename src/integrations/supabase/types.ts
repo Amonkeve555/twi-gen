@@ -77,6 +77,7 @@ export type Database = {
       lobbies: {
         Row: {
           created_at: string
+          custom_map: Json | null
           ended_at: string | null
           game_date: string | null
           host_name: string
@@ -93,6 +94,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          custom_map?: Json | null
           ended_at?: string | null
           game_date?: string | null
           host_name?: string
@@ -109,6 +111,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          custom_map?: Json | null
           ended_at?: string | null
           game_date?: string | null
           host_name?: string
