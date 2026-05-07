@@ -42,6 +42,8 @@ interface Props {
   tileControl?: Record<string, number>;
   /** Click handler for any tile (game board mode). Receives q, r and current owner seat. */
   onTileClick?: (q: number, r: number, currentSeat: number | undefined) => void;
+  /** Editor mode: render uniform neutral styling without seat numbers, tile numbers, or per-player colors. */
+  neutral?: boolean;
 }
 
 // Flat-top hex axial -> pixel
@@ -62,7 +64,7 @@ function hexPoints(cx: number, cy: number, size: number) {
   return pts.join(" ");
 }
 
-const MapSetupHex = ({ setup, seats, seatOrder, onSeatClick, compact, tileControl, onTileClick }: Props) => {
+const MapSetupHex = ({ setup, seats, seatOrder, onSeatClick, compact, tileControl, onTileClick, neutral }: Props) => {
   const HEX_SIZE = compact ? 18 : 34;
 
   // Map from "q,r" -> seat_index for quick lookup
