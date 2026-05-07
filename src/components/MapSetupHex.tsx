@@ -173,6 +173,18 @@ const MapSetupHex = ({ setup, seats, seatOrder, onSeatClick, compact, tileContro
           stroke: "hsl(135 70% 55%)",
           strokeWidth: 2,
         };
+      case "blue":
+        return {
+          fill: "hsl(210 70% 45% / 0.45)",
+          stroke: "hsl(210 80% 65%)",
+          strokeWidth: 1.5,
+        };
+      case "red":
+        return {
+          fill: "hsl(0 65% 40% / 0.45)",
+          stroke: "hsl(0 75% 60%)",
+          strokeWidth: 1.5,
+        };
       case "hyperlane":
         return {
           fill: "hsl(280 50% 35% / 0.45)",
@@ -198,7 +210,8 @@ const MapSetupHex = ({ setup, seats, seatOrder, onSeatClick, compact, tileContro
       }
       return compact ? "" : `P${c.player}`;
     }
-    if (compact) return "";
+    if (compact) return c.label ? "" : "";
+    if (c.label) return c.label.length > 10 ? c.label.slice(0, 10) + "…" : c.label;
     if (c.role === "slice") return seatOrder ? "" : `${c.player}`;
     if (c.role === "hyperlane") return "HL";
     return "";

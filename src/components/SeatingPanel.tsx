@@ -9,7 +9,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import MapSetupHex, { type SeatOccupant } from "@/components/MapSetupHex";
-import { MAP_SETUPS, getHomeSeats } from "@/data/mapSetups";
+import { MAP_SETUPS, getHomeSeats, getHomeSeatsFromSetup } from "@/data/mapSetups";
+import { setupForLobby, type CustomMap } from "@/lib/customMap";
 import { supabase } from "@/integrations/supabase/client";
 import type { LobbyPlayerRow } from "@/hooks/useLobby";
 import type { Faction } from "@/data/factions";
@@ -22,6 +23,8 @@ interface Props {
   isHost: boolean;
   /** Max players from lobby settings — used as the seating template size */
   playerCount: number;
+  /** Optional custom map override */
+  customMap?: CustomMap | null;
 }
 
 function clampCount(n: number): PlayerCount {
@@ -30,14 +33,17 @@ function clampCount(n: number): PlayerCount {
   return n as PlayerCount;
 }
 
-const SeatingPanel = ({ lobbyId, players, isHost, playerCount }: Props) => {
+const SeatingPanel = ({ lobbyId, players, isHost, playerCount, customMap }: Props) => {
   const [open, setOpen] = useState(true);
   const [busy, setBusy] = useState(false);
   const [activeSeat, setActiveSeat] = useState<number | null>(null);
 
   const count = clampCount(playerCount);
-  const setup = MAP_SETUPS[count];
-  const seatOrder = useMemo(() => getHomeSeats(count), [count]);
+  const setup = useMemo(() => setupForLobby(customMap, count), [customMap, count]);
+  const seatOrder = useMemo(
+    () => (customMap ? getHomeSeatsFromSetup(setup) : getHomeSeats(count)),
+    [customMap, setup, count],
+  );
 
   // Build seat -> occupant map from players
   const seats = useMemo(() => {

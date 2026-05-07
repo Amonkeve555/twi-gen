@@ -9,6 +9,8 @@ export type HexRole =
   | "equidistant"
   | "slice"
   | "hyperlane"
+  | "blue"
+  | "red"
   | "empty";
 
 export interface HexCell {
@@ -489,5 +491,27 @@ export const ROLE_LABELS: Record<HexRole, string> = {
   equidistant: "Equidistant System",
   slice: "Player Slice",
   hyperlane: "Hyperlane (fixed tile)",
+  blue: "Planet System",
+  red: "Anomaly / Empty",
   empty: "Empty",
 };
+
+/** Like getHomeSeats but works on any MapSetup (e.g. a custom one). */
+export function getHomeSeatsFromSetup(setup: MapSetup): HexCell[] {
+  const homes = setup.cells.filter((c) => c.role === "home");
+  return homes.slice().sort((a, b) => {
+    const ax = a.q + a.r / 2;
+    const ay = a.r;
+    const bx = b.q + b.r / 2;
+    const by = b.r;
+    const angA = Math.atan2(ay, ax);
+    const angB = Math.atan2(by, bx);
+    const norm = (ang: number) => {
+      let v = ang + Math.PI / 2;
+      if (v < 0) v += Math.PI * 2;
+      return v;
+    };
+    return norm(angA) - norm(angB);
+  });
+}
+

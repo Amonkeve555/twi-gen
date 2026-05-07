@@ -275,7 +275,22 @@ const LobbyView = () => {
             players={players}
             isHost={isHost}
             playerCount={settings?.max_players ?? 6}
+            customMap={lobby.custom_map}
           />
+
+          {isHost && (
+            <div className="flex justify-center">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate(`/lobby/${inviteCode}/map-editor`)}
+                className="font-display text-xs uppercase tracking-[0.2em] border-primary/40 text-primary hover:bg-primary/10"
+              >
+                <MapIcon className="mr-2 h-3 w-3" />
+                {lobby.custom_map ? "Edit custom map" : "Build custom map"}
+              </Button>
+            </div>
+          )}
 
           <div className="flex flex-col items-center gap-3">
             {!inLobby && !isHost && (
