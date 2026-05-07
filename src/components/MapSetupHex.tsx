@@ -113,6 +113,35 @@ const MapSetupHex = ({ setup, seats, seatOrder, onSeatClick, compact, tileContro
   };
 
   const cellStyle = (c: HexCell) => {
+    if (neutral) {
+      if (c.role === "hyperlane") {
+        return {
+          fill: "hsl(280 50% 35% / 0.35)",
+          stroke: "hsl(280 65% 65%)",
+          strokeWidth: 1.5,
+          strokeDasharray: "3 2",
+        };
+      }
+      if (c.role === "mecatol") {
+        return {
+          fill: "hsl(190 70% 45% / 0.3)",
+          stroke: "hsl(190 80% 60%)",
+          strokeWidth: 2,
+        };
+      }
+      if (c.role === "home") {
+        return {
+          fill: "hsl(42 70% 45% / 0.35)",
+          stroke: "hsl(42 85% 55%)",
+          strokeWidth: 2.5,
+        };
+      }
+      return {
+        fill: "hsl(220 25% 22% / 0.5)",
+        stroke: "hsl(220 25% 50% / 0.6)",
+        strokeWidth: 1.25,
+      };
+    }
     // Tile-control overlay (game board mode) — applies to any non-hyperlane tile.
     const tcSeat = tileControlSeat(c);
     if (tcSeat !== undefined && c.role !== "hyperlane") {
@@ -204,6 +233,10 @@ const MapSetupHex = ({ setup, seats, seatOrder, onSeatClick, compact, tileContro
   };
 
   const cellLabel = (c: HexCell) => {
+    if (neutral) {
+      if (c.label) return c.label.length > 10 ? c.label.slice(0, 10) + "…" : c.label;
+      return "";
+    }
     if (c.role === "mecatol") return compact ? "" : "MR";
     if (c.role === "home") {
       const seatIdx = seatIndexByCoord.get(`${c.q},${c.r}`);
