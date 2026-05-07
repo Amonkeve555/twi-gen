@@ -173,6 +173,18 @@ const MapSetupHex = ({ setup, seats, seatOrder, onSeatClick, compact, tileContro
           stroke: "hsl(135 70% 55%)",
           strokeWidth: 2,
         };
+      case "blue":
+        return {
+          fill: "hsl(210 70% 45% / 0.45)",
+          stroke: "hsl(210 80% 65%)",
+          strokeWidth: 1.5,
+        };
+      case "red":
+        return {
+          fill: "hsl(0 65% 40% / 0.45)",
+          stroke: "hsl(0 75% 60%)",
+          strokeWidth: 1.5,
+        };
       case "hyperlane":
         return {
           fill: "hsl(280 50% 35% / 0.45)",
