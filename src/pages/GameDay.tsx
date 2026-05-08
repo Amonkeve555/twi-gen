@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Trophy, Save } from "lucide-react";
@@ -7,10 +7,21 @@ import { Input } from "@/components/ui/input";
 import StarField from "@/components/StarField";
 import FactionCard from "@/components/FactionCard";
 import GameTimer from "@/components/GameTimer";
+import MapSetupHex, { type SeatOccupant } from "@/components/MapSetupHex";
+import TileControlLeaderboard from "@/components/TileControlLeaderboard";
+import { getHomeSeats, getHomeSeatsFromSetup } from "@/data/mapSetups";
+import { setupForLobby } from "@/lib/customMap";
 import { supabase } from "@/integrations/supabase/client";
 import { useLobby, type LobbySettings } from "@/hooks/useLobby";
 import { useAuth } from "@/hooks/useAuth";
 import type { Faction } from "@/data/factions";
+
+type PlayerCount = 3 | 4 | 5 | 6 | 7 | 8;
+function clampCount(n: number): PlayerCount {
+  if (n <= 3) return 3;
+  if (n >= 8) return 8;
+  return n as PlayerCount;
+}
 
 type GameDayPhase = "choose" | "results";
 
@@ -26,6 +37,34 @@ const GameDay = () => {
   const settings = lobby?.settings as LobbySettings | undefined;
   const picksPerPlayer = settings?.picks_per_player ?? 1;
   const isHost = !!user && lobby?.host_user_id === user.id;
+
+  const playerCount = clampCount(settings?.max_players ?? players.length ?? 6);
+  const setup = useMemo(() => setupForLobby(lobby?.custom_map ?? null, playerCount), [lobby?.custom_map, playerCount]);
+  const seatOrder = useMemo(
+    () => (lobby?.custom_map ? getHomeSeatsFromSetup(setup) : getHomeSeats(playerCount)),
+    [lobby?.custom_map, setup, playerCount],
+  );
+  const tileControl = (lobby?.tile_control ?? {}) as Record<string, number>;
+  const seats = useMemo(() => {
+    const m: Record<number, SeatOccupant> = {};
+    for (const p of players) {
+      if (p.seat_index === null || p.seat_index === undefined) continue;
+      const chosen = p.chosen_faction as Faction | null;
+      const assigned = (p.assigned_factions as Faction[] | null) ?? null;
+      const f = chosen ?? (assigned && assigned.length === 1 ? assigned[0] : null);
+      m[p.seat_index] = {
+        playerId: p.id,
+        playerName: p.player_name,
+        factionColor: f?.color ?? null,
+        factionName: f?.name,
+      };
+    }
+    return m;
+  }, [players]);
+  const totalClaimableTiles = useMemo(
+    () => setup.cells.filter((c) => c.role !== "hyperlane").length,
+    [setup]
+  );
 
   // Auto-start the clock if host enters Game Day without explicitly starting.
   useEffect(() => {
@@ -225,6 +264,25 @@ const GameDay = () => {
 
         {phase === "results" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+            <div className="glass imperial-border rounded p-3 md:p-5">
+              <h2 className="font-display text-base uppercase tracking-[0.2em] text-primary text-glow text-center mb-4">
+                Final Map
+              </h2>
+              <MapSetupHex
+                setup={setup}
+                seats={seats}
+                seatOrder={seatOrder}
+                tileControl={tileControl}
+                compact
+              />
+              <div className="mt-4">
+                <TileControlLeaderboard
+                  players={players}
+                  tileControl={tileControl}
+                  totalClaimableTiles={totalClaimableTiles}
+                />
+              </div>
+            </div>
             <div className="glass imperial-border rounded p-6 space-y-4">
               <h2 className="font-display text-base uppercase tracking-[0.2em] text-primary text-glow text-center">
                 Game Results
