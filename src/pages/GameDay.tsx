@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Trophy, Save } from "lucide-react";
@@ -7,10 +7,21 @@ import { Input } from "@/components/ui/input";
 import StarField from "@/components/StarField";
 import FactionCard from "@/components/FactionCard";
 import GameTimer from "@/components/GameTimer";
+import MapSetupHex, { type SeatOccupant } from "@/components/MapSetupHex";
+import TileControlLeaderboard from "@/components/TileControlLeaderboard";
+import { getHomeSeats, getHomeSeatsFromSetup } from "@/data/mapSetups";
+import { setupForLobby } from "@/lib/customMap";
 import { supabase } from "@/integrations/supabase/client";
 import { useLobby, type LobbySettings } from "@/hooks/useLobby";
 import { useAuth } from "@/hooks/useAuth";
 import type { Faction } from "@/data/factions";
+
+type PlayerCount = 3 | 4 | 5 | 6 | 7 | 8;
+function clampCount(n: number): PlayerCount {
+  if (n <= 3) return 3;
+  if (n >= 8) return 8;
+  return n as PlayerCount;
+}
 
 type GameDayPhase = "choose" | "results";
 
