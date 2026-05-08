@@ -264,6 +264,25 @@ const GameDay = () => {
 
         {phase === "results" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+            <div className="glass imperial-border rounded p-3 md:p-5">
+              <h2 className="font-display text-base uppercase tracking-[0.2em] text-primary text-glow text-center mb-4">
+                Final Map
+              </h2>
+              <MapSetupHex
+                setup={setup}
+                seats={seats}
+                seatOrder={seatOrder}
+                tileControl={tileControl}
+                compact
+              />
+              <div className="mt-4">
+                <TileControlLeaderboard
+                  players={players}
+                  tileControl={tileControl}
+                  totalClaimableTiles={totalClaimableTiles}
+                />
+              </div>
+            </div>
             <div className="glass imperial-border rounded p-6 space-y-4">
               <h2 className="font-display text-base uppercase tracking-[0.2em] text-primary text-glow text-center">
                 Game Results
