@@ -38,6 +38,34 @@ const GameDay = () => {
   const picksPerPlayer = settings?.picks_per_player ?? 1;
   const isHost = !!user && lobby?.host_user_id === user.id;
 
+  const playerCount = clampCount(settings?.max_players ?? players.length ?? 6);
+  const setup = useMemo(() => setupForLobby(lobby?.custom_map ?? null, playerCount), [lobby?.custom_map, playerCount]);
+  const seatOrder = useMemo(
+    () => (lobby?.custom_map ? getHomeSeatsFromSetup(setup) : getHomeSeats(playerCount)),
+    [lobby?.custom_map, setup, playerCount],
+  );
+  const tileControl = (lobby?.tile_control ?? {}) as Record<string, number>;
+  const seats = useMemo(() => {
+    const m: Record<number, SeatOccupant> = {};
+    for (const p of players) {
+      if (p.seat_index === null || p.seat_index === undefined) continue;
+      const chosen = p.chosen_faction as Faction | null;
+      const assigned = (p.assigned_factions as Faction[] | null) ?? null;
+      const f = chosen ?? (assigned && assigned.length === 1 ? assigned[0] : null);
+      m[p.seat_index] = {
+        playerId: p.id,
+        playerName: p.player_name,
+        factionColor: f?.color ?? null,
+        factionName: f?.name,
+      };
+    }
+    return m;
+  }, [players]);
+  const totalClaimableTiles = useMemo(
+    () => setup.cells.filter((c) => c.role !== "hyperlane").length,
+    [setup]
+  );
+
   // Auto-start the clock if host enters Game Day without explicitly starting.
   useEffect(() => {
     if (!lobby || !isHost) return;
