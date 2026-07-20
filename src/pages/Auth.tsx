@@ -10,6 +10,8 @@ import StarField from "@/components/StarField";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/hooks/useAuth";
+import { isNativePlatform } from "@/lib/platform";
+import { signInWithProviderNative } from "@/lib/nativeAuth";
 import tiEmblem from "@/assets/ti-emblem.png";
 
 const emailSchema = z.string().trim().email({ message: "Invalid email address" }).max(255);
@@ -25,6 +27,8 @@ const Auth = () => {
   const [busy, setBusy] = useState(false);
 
   const from = (location.state as { from?: string } | null)?.from ?? "/";
+
+  const native = isNativePlatform();
 
   useEffect(() => {
     if (!loading && user) {
@@ -81,6 +85,17 @@ const Auth = () => {
       return;
     }
     // If redirected, browser will navigate away. Otherwise tokens are set.
+  };
+
+  // Native OAuth: open the provider in the system browser; the session completes
+  // via the appUrlOpen deep-link handler in App.tsx (see src/lib/nativeAuth.ts).
+  const handleNativeOAuth = async (provider: "google" | "apple") => {
+    setBusy(true);
+    const { error } = await signInWithProviderNative(provider);
+    if (error) {
+      toast.error(`${provider === "apple" ? "Apple" : "Google"} sign-in failed`);
+    }
+    setBusy(false);
   };
 
   return (
@@ -144,15 +159,38 @@ const Auth = () => {
             </div>
           </div>
 
-          <Button
-            type="button"
-            onClick={handleGoogle}
-            disabled={busy}
-            variant="outline"
-            className="w-full font-display text-sm uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40"
-          >
-            Continue with Google
-          </Button>
+          {native ? (
+            <div className="space-y-3">
+              <Button
+                type="button"
+                onClick={() => handleNativeOAuth("google")}
+                disabled={busy}
+                variant="outline"
+                className="w-full font-display text-sm uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+              >
+                Continue with Google
+              </Button>
+              <Button
+                type="button"
+                onClick={() => handleNativeOAuth("apple")}
+                disabled={busy}
+                variant="outline"
+                className="w-full font-display text-sm uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+              >
+                Sign in with Apple
+              </Button>
+            </div>
+          ) : (
+            <Button
+              type="button"
+              onClick={handleGoogle}
+              disabled={busy}
+              variant="outline"
+              className="w-full font-display text-sm uppercase tracking-[0.15em] border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+            >
+              Continue with Google
+            </Button>
+          )}
         </motion.div>
 
         <div className="flex justify-center mt-6">

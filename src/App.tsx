@@ -1,9 +1,13 @@
+import { useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { toast } from "sonner";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import AuthGuard from "@/components/AuthGuard";
+import { isNativePlatform } from "@/lib/platform";
+import { handleAuthDeepLink } from "@/lib/nativeAuth";
 import Index from "./pages/Index.tsx";
 import History from "./pages/History.tsx";
 import CreateLobby from "./pages/CreateLobby.tsx";
@@ -24,7 +28,29 @@ import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
 
-const App = () => (
+/** On native, listen for the OAuth deep-link callback and complete sign-in. */
+function useNativeAuthDeepLink() {
+  useEffect(() => {
+    if (!isNativePlatform()) return;
+    let remove: (() => void) | undefined;
+    (async () => {
+      const { App: CapApp } = await import("@capacitor/app");
+      const handle = await CapApp.addListener("appUrlOpen", async ({ url }) => {
+        try {
+          await handleAuthDeepLink(url);
+        } catch (e) {
+          toast.error(e instanceof Error ? e.message : "Sign-in failed");
+        }
+      });
+      remove = () => handle.remove();
+    })();
+    return () => remove?.();
+  }, []);
+}
+
+const App = () => {
+  useNativeAuthDeepLink();
+  return (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
@@ -54,6 +80,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
-);
+  );
+};
 
 export default App;
