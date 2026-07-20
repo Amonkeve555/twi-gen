@@ -81,7 +81,6 @@ export type Database = {
           ended_at: string | null
           game_date: string | null
           host_name: string
-          host_password: string
           host_session_id: string
           host_user_id: string | null
           id: string
@@ -98,7 +97,6 @@ export type Database = {
           ended_at?: string | null
           game_date?: string | null
           host_name?: string
-          host_password?: string
           host_session_id: string
           host_user_id?: string | null
           id?: string
@@ -115,7 +113,6 @@ export type Database = {
           ended_at?: string | null
           game_date?: string | null
           host_name?: string
-          host_password?: string
           host_session_id?: string
           host_user_id?: string | null
           id?: string
