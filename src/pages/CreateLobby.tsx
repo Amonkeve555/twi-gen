@@ -91,7 +91,7 @@ const CreateLobby = () => {
       host_session_id: sessionId, // legacy (kept NOT NULL in schema)
       host_user_id: user.id,
       host_name: effectiveHostName,
-      host_password: "", // legacy column, no longer used
+      
       settings: JSON.parse(JSON.stringify(settings)),
       token_mapping: tokenMapping ? JSON.parse(JSON.stringify(tokenMapping)) : null,
       game_date: gameDate.toISOString(),
