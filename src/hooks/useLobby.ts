@@ -18,7 +18,7 @@ export interface LobbyRow {
   host_session_id: string;
   host_user_id: string | null;
   host_name: string;
-  host_password: string;
+  
   settings: LobbySettings;
   status: string;
   token_mapping: Record<string, Faction> | null;
