@@ -16,6 +16,7 @@ import tiEmblem from "@/assets/ti-emblem.png";
 
 const emailSchema = z.string().trim().email({ message: "Invalid email address" }).max(255);
 const passwordSchema = z.string().min(8, { message: "Password must be at least 8 characters" }).max(72);
+const POST_AUTH_PATH_KEY = "ti4_post_auth_path";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -32,7 +33,9 @@ const Auth = () => {
 
   useEffect(() => {
     if (!loading && user) {
-      navigate(from, { replace: true });
+      const savedPath = sessionStorage.getItem(POST_AUTH_PATH_KEY);
+      sessionStorage.removeItem(POST_AUTH_PATH_KEY);
+      navigate(savedPath?.startsWith("/") && !savedPath.startsWith("//") ? savedPath : from, { replace: true });
     }
   }, [loading, user, from, navigate]);
 
@@ -76,8 +79,10 @@ const Auth = () => {
 
   const handleGoogle = async () => {
     setBusy(true);
+    const intendedPath = from.startsWith("/") && !from.startsWith("//") ? from : "/";
+    sessionStorage.setItem(POST_AUTH_PATH_KEY, intendedPath);
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirect_uri: `${window.location.origin}/auth`,
     });
     if (result.error) {
       toast.error(result.error.message || "Google sign-in failed");
@@ -102,7 +107,8 @@ const Auth = () => {
       return;
     }
 
-    navigate(from, { replace: true });
+    sessionStorage.removeItem(POST_AUTH_PATH_KEY);
+    navigate(intendedPath, { replace: true });
   };
 
   // Native OAuth: open the provider in the system browser; the session completes
