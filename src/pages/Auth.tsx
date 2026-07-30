@@ -80,11 +80,29 @@ const Auth = () => {
       redirect_uri: window.location.origin,
     });
     if (result.error) {
-      toast.error("Google sign-in failed");
+      toast.error(result.error.message || "Google sign-in failed");
       setBusy(false);
       return;
     }
-    // If redirected, browser will navigate away. Otherwise tokens are set.
+    if (result.redirected) return;
+
+    // The generated OAuth wrapper currently does not surface errors returned by
+    // setSession(), so explicitly persist and validate the session before routing.
+    const { error: sessionError } = await supabase.auth.setSession(result.tokens);
+    if (sessionError) {
+      toast.error(sessionError.message || "Google session could not be saved");
+      setBusy(false);
+      return;
+    }
+
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData.user) {
+      toast.error(userError?.message || "Google session could not be verified");
+      setBusy(false);
+      return;
+    }
+
+    navigate(from, { replace: true });
   };
 
   // Native OAuth: open the provider in the system browser; the session completes
