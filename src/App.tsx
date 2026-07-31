@@ -22,6 +22,7 @@ import MapSetup from "./pages/MapSetup.tsx";
 import MapEditor from "./pages/MapEditor.tsx";
 import Stats from "./pages/Stats.tsx";
 import Auth from "./pages/Auth.tsx";
+import AuthCallback from "./pages/AuthCallback.tsx";
 import ProfileSetup from "./pages/ProfileSetup.tsx";
 import Admin from "./pages/Admin.tsx";
 import NotFound from "./pages/NotFound.tsx";
@@ -59,6 +60,7 @@ const App = () => {
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/profile-setup" element={<AuthGuard requireProfile={false}><ProfileSetup /></AuthGuard>} />
           <Route path="/factions" element={<FactionGuide />} />
           <Route path="/rules" element={<RulesAssistant />} />

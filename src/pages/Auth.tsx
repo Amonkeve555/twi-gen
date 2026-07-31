@@ -82,7 +82,7 @@ const Auth = () => {
     const intendedPath = from.startsWith("/") && !from.startsWith("//") ? from : "/";
     sessionStorage.setItem(POST_AUTH_PATH_KEY, intendedPath);
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: `${window.location.origin}/auth`,
+      redirect_uri: `${window.location.origin}/auth/callback`,
     });
     if (result.error) {
       toast.error(result.error.message || "Google sign-in failed");
@@ -91,15 +91,7 @@ const Auth = () => {
     }
     if (result.redirected) return;
 
-    // The generated OAuth wrapper currently does not surface errors returned by
-    // setSession(), so explicitly persist and validate the session before routing.
-    const { error: sessionError } = await supabase.auth.setSession(result.tokens);
-    if (sessionError) {
-      toast.error(sessionError.message || "Google session could not be saved");
-      setBusy(false);
-      return;
-    }
-
+    // The managed OAuth helper has already persisted the returned session.
     const { data: userData, error: userError } = await supabase.auth.getUser();
     if (userError || !userData.user) {
       toast.error(userError?.message || "Google session could not be verified");
