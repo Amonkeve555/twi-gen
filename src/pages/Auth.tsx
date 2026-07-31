@@ -27,14 +27,15 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const from = (location.state as { from?: string } | null)?.from ?? "/";
+  const stateFrom = (location.state as { from?: string } | null)?.from;
+  const from = stateFrom?.startsWith("/") && !stateFrom.startsWith("//") ? stateFrom : "/";
 
   const native = isNativePlatform();
 
   useEffect(() => {
     if (!loading && user) {
-      const savedPath = sessionStorage.getItem(POST_AUTH_PATH_KEY);
-      sessionStorage.removeItem(POST_AUTH_PATH_KEY);
+      const savedPath = localStorage.getItem(POST_AUTH_PATH_KEY);
+      localStorage.removeItem(POST_AUTH_PATH_KEY);
       navigate(savedPath?.startsWith("/") && !savedPath.startsWith("//") ? savedPath : from, { replace: true });
     }
   }, [loading, user, from, navigate]);
@@ -63,7 +64,7 @@ const Auth = () => {
         toast.error(error.message);
         return;
       }
-      toast.success("Account created. Welcome!");
+      toast.success("Check your email to confirm your account, then sign in.");
     } else {
       const { error } = await supabase.auth.signInWithPassword({
         email: emailParse.data,
@@ -80,7 +81,7 @@ const Auth = () => {
   const handleGoogle = async () => {
     setBusy(true);
     const intendedPath = from.startsWith("/") && !from.startsWith("//") ? from : "/";
-    sessionStorage.setItem(POST_AUTH_PATH_KEY, intendedPath);
+    localStorage.setItem(POST_AUTH_PATH_KEY, intendedPath);
     const result = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: `${window.location.origin}/auth/callback`,
     });
@@ -99,7 +100,7 @@ const Auth = () => {
       return;
     }
 
-    sessionStorage.removeItem(POST_AUTH_PATH_KEY);
+    localStorage.removeItem(POST_AUTH_PATH_KEY);
     navigate(intendedPath, { replace: true });
   };
 
