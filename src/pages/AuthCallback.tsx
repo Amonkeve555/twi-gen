@@ -13,17 +13,17 @@ const AuthCallback = () => {
     let active = true;
 
     const finish = async () => {
-      const { data, error } = await supabase.auth.getSession();
+      const { data, error } = await supabase.auth.getUser();
       if (!active) return;
 
-      if (error || !data.session) {
+      if (error || !data.user) {
         setMessage("Sign in could not be completed. Please try again.");
         window.setTimeout(() => navigate("/auth", { replace: true }), 1500);
         return;
       }
 
-      const savedPath = sessionStorage.getItem(POST_AUTH_PATH_KEY);
-      sessionStorage.removeItem(POST_AUTH_PATH_KEY);
+      const savedPath = localStorage.getItem(POST_AUTH_PATH_KEY);
+      localStorage.removeItem(POST_AUTH_PATH_KEY);
       const destination = savedPath?.startsWith("/") && !savedPath.startsWith("//")
         ? savedPath
         : "/";
