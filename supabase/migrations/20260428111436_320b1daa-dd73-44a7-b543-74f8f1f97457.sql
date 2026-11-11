@@ -1,6 +1,8 @@
 -- Grant admin role to Marek
+-- Guarded so it is a no-op on a fresh project where this user doesn't exist yet.
 INSERT INTO public.user_roles (user_id, role)
-VALUES ('bf1319b4-ffe0-4cee-9da8-59887d0993e0', 'admin')
+SELECT 'bf1319b4-ffe0-4cee-9da8-59887d0993e0', 'admin'
+WHERE EXISTS (SELECT 1 FROM auth.users WHERE id = 'bf1319b4-ffe0-4cee-9da8-59887d0993e0')
 ON CONFLICT (user_id, role) DO NOTHING;
 
 -- Allow admins to see all roles

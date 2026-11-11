@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import StarField from "@/components/StarField";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/hooks/useAuth";
 import { isNativePlatform } from "@/lib/platform";
 import { signInWithProviderNative } from "@/lib/nativeAuth";
@@ -82,26 +81,16 @@ const Auth = () => {
     setBusy(true);
     const intendedPath = from.startsWith("/") && !from.startsWith("//") ? from : "/";
     localStorage.setItem(POST_AUTH_PATH_KEY, intendedPath);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: `${window.location.origin}/auth/callback`,
+    // Redirects the browser to Google; the session is completed on /auth/callback
+    // (supabase-js exchanges the PKCE ?code= automatically on page load).
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
     });
-    if (result.error) {
-      toast.error(result.error.message || "Google sign-in failed");
+    if (error) {
+      toast.error(error.message || "Google sign-in failed");
       setBusy(false);
-      return;
     }
-    if (result.redirected) return;
-
-    // The managed OAuth helper has already persisted the returned session.
-    const { data: userData, error: userError } = await supabase.auth.getUser();
-    if (userError || !userData.user) {
-      toast.error(userError?.message || "Google session could not be verified");
-      setBusy(false);
-      return;
-    }
-
-    localStorage.removeItem(POST_AUTH_PATH_KEY);
-    navigate(intendedPath, { replace: true });
   };
 
   // Native OAuth: open the provider in the system browser; the session completes
